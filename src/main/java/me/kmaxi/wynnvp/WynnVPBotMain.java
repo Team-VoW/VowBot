@@ -9,7 +9,6 @@ import javax.security.auth.login.LoginException;
 
 public class WynnVPBotMain {
 
-    //Wynn Vp key: ODIxMzk3MDIyMjUwMzY5MDU0.YFDHlg.U9gV5RgFyviEMIUzel6vAJV7ugY
     //Test bot key: ODIzMjc1ODc5NDM3ODI4MTE2.YFedaQ.HD2kvFNQdNUUhsMe2sbfiKvOeMU
 
 
