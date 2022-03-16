@@ -1,8 +1,13 @@
 package me.kmaxi.wynnvp;
 
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class Utils {
@@ -92,13 +97,15 @@ public class Utils {
     }
 
 
-
     public static void formatName(String name, Guild guild, Consumer<String> callback) {
 
-        if (guild.getCategoryById(Config.spamCategoryID) == null){
+        if (guild.getCategoryById(Config.spamCategoryID) == null) {
             System.out.println("ERROR! SPAM CATEGORY IS NULL");
             return;
         }
+
+        RemoveMutePerms(guild);
+
 
         Objects.requireNonNull(guild.getCategoryById(Config.spamCategoryID))
                 .createTextChannel(name)
@@ -111,5 +118,25 @@ public class Utils {
         // which means it supplies you with the resulting channel
         user.openPrivateChannel().queue((channel) ->
                 channel.sendMessage(content).queue());
+    }
+
+    public static void RemoveMutePerms(Guild guild){
+        Objects.requireNonNull(guild.getCategoryById(Config.spamCategoryID)).getRolePermissionOverrides().forEach(permissionOverride -> {
+            if (Objects.requireNonNull(permissionOverride.getRole()).getIdLong() == Config.mutedRole) {
+                permissionOverride.delete().queue();
+            }
+        });
+    }
+
+    public static boolean hasRole(Member member, long roleToCheck){
+        List<Role> rolesList = member.getRoles();
+
+        for (Role role : rolesList) {
+            if (role.getIdLong() == roleToCheck) {
+                return true;
+            }
+        }
+        return false;
+
     }
 }

@@ -11,13 +11,14 @@ plugins {
     id 'java'
     id 'application'
 }
-
 mainClassName = "me.kmaxi.wynnvp.WynnVPBotMain"
+
 
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group 'org.example'
 version '1.0-SNAPSHOT'
+
 
 
 repositories {
@@ -27,7 +28,8 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile 'net.dv8tion:JDA:4.2.0_228'
     compile 'org.json:json:20201115'
+    compile 'net.dv8tion:JDA:5.0.0-alpha.9'
+
 
 }

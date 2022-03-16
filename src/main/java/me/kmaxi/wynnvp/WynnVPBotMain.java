@@ -21,9 +21,7 @@ public class WynnVPBotMain {
             jda.awaitReady();
             System.out.println("Finished building JDA!");
 
-        } catch (LoginException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (LoginException | InterruptedException e) {
             e.printStackTrace();
         }
 

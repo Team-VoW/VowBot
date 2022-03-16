@@ -3,11 +3,8 @@ package me.kmaxi.wynnvp.listeners;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.Utils;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.GuildChannel;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.util.ArrayList;
@@ -17,14 +14,21 @@ import java.util.Comparator;
 public class AddEmoteListener extends ListenerAdapter {
 
     @Override
-    public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event) {
+    public void onMessageReactionAdd(MessageReactionAddEvent event) {
         if (event.getUser().isBot()) {
             return;
         }
-        if (!(event.getChannel().getIdLong() == Config.channelName)) {
-            return;
+
+        if (event.getChannel().getIdLong() == Config.channelName) {
+            voiceApplyReact(event);
+        } else if (event.getChannel().getIdLong() == Config.reportedLines){
+            lineReportReact(event);
         }
 
+    }
+
+
+    private void voiceApplyReact(MessageReactionAddEvent event){
         String message = event.retrieveMessage().complete().getContentRaw();
 
         int numberReacted = Utils.whichNumberWasReacted(event.getReactionEmote().getName());
@@ -47,7 +51,7 @@ public class AddEmoteListener extends ListenerAdapter {
             if (playersHasTwoApplications(guild, playerName, event.getMember())) {
                 int limit = ChannelLimit(guild, event.getMember());
                 Utils.sendPrivateMessage(event.getUser(), "You may only have " + limit + " applications open at once. \n If you want to close a current application type `?close` in the application channel. "
-                + "If you want to have more then two audition channels and support the mod even more then feel free to become a Patron:  https://www.patreon.com/Voices_Of_Wynn");
+                        + "If you want to have more then two audition channels and support the mod even more then feel free to become a Patron:  https://www.patreon.com/Voices_Of_Wynn");
                 return;
             }
             if (channelExists(channelName, guild)) {
@@ -82,7 +86,6 @@ public class AddEmoteListener extends ListenerAdapter {
         });
     }
 
-
     private boolean playersHasTwoApplications(Guild guild, String name, Member member) {
         name = name.toLowerCase();
         int counter = 0;
@@ -101,7 +104,7 @@ public class AddEmoteListener extends ListenerAdapter {
         return false;
     }
 
-    private int ChannelLimit(Guild guild, Member member){
+    private int ChannelLimit(Guild guild, Member member) {
         int limit = 2;
         if (member.getRoles().contains(guild.getRoleById(Config.donatorPlusRole))) limit = 3;
         if (member.getRoles().contains(guild.getRoleById(Config.vipRole))) limit = 4;
@@ -110,8 +113,7 @@ public class AddEmoteListener extends ListenerAdapter {
 
     private Collection<Permission> permissions() {
         Collection<Permission> permissions = new ArrayList<>();
-        permissions.add(Permission.MESSAGE_WRITE);
-        permissions.add(Permission.MESSAGE_READ);
+        permissions.add(Permission.MESSAGE_SEND);
         permissions.add(Permission.MESSAGE_HISTORY);
         permissions.add(Permission.MESSAGE_EMBED_LINKS);
         permissions.add(Permission.MESSAGE_ATTACH_FILES);
@@ -122,7 +124,6 @@ public class AddEmoteListener extends ListenerAdapter {
 
     private Collection<Permission> traineePerms() {
         Collection<Permission> permissions = new ArrayList<>();
-        permissions.add(Permission.MESSAGE_READ);
         permissions.add(Permission.MESSAGE_HISTORY);
         permissions.add(Permission.MESSAGE_ADD_REACTION);
         return permissions;
@@ -154,6 +155,11 @@ public class AddEmoteListener extends ListenerAdapter {
 
     private boolean applicationCategoryHas50Channels(Guild guild) {
         return guild.getCategoryById(Config.categoryID).getChannels().size() >= 50;
+    }
+
+
+    private void lineReportReact(MessageReactionAddEvent event){
+        String message = event.retrieveMessage().complete().getContentRaw();
 
 
     }
