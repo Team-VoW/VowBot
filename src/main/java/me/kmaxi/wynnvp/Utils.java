@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.entities.User;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class Utils {
@@ -120,7 +119,7 @@ public class Utils {
                 channel.sendMessage(content).queue());
     }
 
-    public static void RemoveMutePerms(Guild guild){
+    public static void RemoveMutePerms(Guild guild) {
         Objects.requireNonNull(guild.getCategoryById(Config.spamCategoryID)).getRolePermissionOverrides().forEach(permissionOverride -> {
             if (Objects.requireNonNull(permissionOverride.getRole()).getIdLong() == Config.mutedRole) {
                 permissionOverride.delete().queue();
@@ -128,7 +127,7 @@ public class Utils {
         });
     }
 
-    public static boolean hasRole(Member member, long roleToCheck){
+    public static boolean hasRole(Member member, long roleToCheck) {
         List<Role> rolesList = member.getRoles();
 
         for (Role role : rolesList) {

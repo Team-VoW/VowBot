@@ -1,6 +1,7 @@
 package me.kmaxi.wynnvp.listeners;
 
 import me.kmaxi.wynnvp.Config;
+import me.kmaxi.wynnvp.LineReportManager;
 import me.kmaxi.wynnvp.Utils;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -22,7 +23,7 @@ public class AddEmoteListener extends ListenerAdapter {
         if (event.getChannel().getIdLong() == Config.channelName) {
             voiceApplyReact(event);
         } else if (event.getChannel().getIdLong() == Config.reportedLines){
-            lineReportReact(event);
+            LineReportManager.lineReportReact(event);
         }
 
     }
@@ -158,11 +159,7 @@ public class AddEmoteListener extends ListenerAdapter {
     }
 
 
-    private void lineReportReact(MessageReactionAddEvent event){
-        String message = event.retrieveMessage().complete().getContentRaw();
 
-
-    }
 
 
 }

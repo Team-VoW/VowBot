@@ -20,7 +20,7 @@ public class WynnVPBotMain {
                     .build();
             jda.awaitReady();
             System.out.println("Finished building JDA!");
-
+            LineReportManager.startTimer();
         } catch (LoginException | InterruptedException e) {
             e.printStackTrace();
         }

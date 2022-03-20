@@ -15,17 +15,22 @@ public class ChatListener extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
 
-
         Message message = event.getMessage();
         Member member = event.getMember();
         System.out.println("Message recieved from " + event.getAuthor().getName() + ": " + message.getContentDisplay());
         Guild guild;
+
         try {
             guild = event.getGuild();
         } catch (Exception e) {
             return;
         }
+        if (LineReportManager.guild == null) LineReportManager.guild = guild;
+
         MessageChannel messageChannel = event.getChannel();
+
+        if (event.getAuthor().isBot()) return;
+
         String[] splitMessage = message.getContentRaw().split(" ");
 
 
@@ -47,6 +52,9 @@ public class ChatListener extends ListenerAdapter {
                 return;
             case "?reports-pull":
                 LineReportManager.sendAllReports(guild);
+                return;
+            case "?get-tasks":
+                LineReportManager.sendAllAcceptedReports(messageChannel);
                 return;
             case "?close":
                 closeChannelImmediately(event);
@@ -192,7 +200,8 @@ public class ChatListener extends ListenerAdapter {
         messageChannel.sendMessage("`?close` to close an application."
                 + "\n`?setRole <QuestName> <NpcName> <PersonWhoGotRole(CaseSens)>` to assign a role to a person"
                 + "\n`?removeRole <QuestName> <NpcName>(CaseSens)>` to remove an assignation"
-                + "\n`?addquest <QuestName> <Npc> <Npc>...` to add a new quest. Maximum 9 roles.").queue();
+                + "\n`?addquest <QuestName> <Npc> <Npc>...` to add a new quest. Maximum 9 roles." +
+                "\n`?get-tasks` to get all accepted unvoiced lines").queue();
     }
 
     private static void addQuest(String[] splitMessage, MessageChannel messageChannel, Guild guild) {
