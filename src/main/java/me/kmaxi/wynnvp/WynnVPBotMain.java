@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp;
 
+import me.kmaxi.wynnvp.linereport.LineReportManager;
 import me.kmaxi.wynnvp.listeners.AddEmoteListener;
 import me.kmaxi.wynnvp.listeners.ChatListener;
 import net.dv8tion.jda.api.JDA;

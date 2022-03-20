@@ -1,5 +1,6 @@
-package me.kmaxi.wynnvp;
+package me.kmaxi.wynnvp.linereport;
 
+import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;

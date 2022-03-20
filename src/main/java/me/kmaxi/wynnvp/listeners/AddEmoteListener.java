@@ -1,7 +1,7 @@
 package me.kmaxi.wynnvp.listeners;
 
 import me.kmaxi.wynnvp.Config;
-import me.kmaxi.wynnvp.LineReportManager;
+import me.kmaxi.wynnvp.linereport.LineReportManager;
 import me.kmaxi.wynnvp.Utils;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
