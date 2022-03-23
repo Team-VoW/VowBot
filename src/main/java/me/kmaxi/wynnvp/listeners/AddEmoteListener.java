@@ -22,7 +22,7 @@ public class AddEmoteListener extends ListenerAdapter {
 
         if (event.getChannel().getIdLong() == Config.channelName) {
             voiceApplyReact(event);
-        } else if (event.getChannel().getIdLong() == Config.reportedLines){
+        } else if (event.getChannel().getIdLong() == Config.reportedLines || event.getChannel().getIdLong() == Config.acceptedLines){
             LineReportManager.lineReportReact(event);
         }
 

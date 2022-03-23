@@ -30,7 +30,7 @@ public class LineReportManager {
                 if (guild == null) return;
                 sendAllReports(guild);
             }
-        }, 0, 60 * 1000);
+        }, 0, 10 * 1000);
     }
 
 
@@ -68,6 +68,10 @@ public class LineReportManager {
 
         try {
             declineOrAcceptLine(line, yOrN);
+            guild.getTextChannelById(Config.acceptedLines).sendMessage(event.retrieveMessage().complete()).queue(message1 -> {
+                message1.addReaction(Config.declineUnicode).queue();
+                message1.addReaction(Config.microphoneUnicode).queue();
+            });
             event.retrieveMessage().complete().delete().queue();
         } catch (IOException e) {
             e.printStackTrace();
@@ -113,7 +117,10 @@ public class LineReportManager {
                         + "> `" + jsonObject.getString("message") + "`";
 
 
-                messageChannel.sendMessage(message).queue();
+                messageChannel.sendMessage(message).queue(message1 -> {
+                    message1.addReaction(Config.declineUnicode).queue();
+                    message1.addReaction(Config.microphoneUnicode).queue();
+                });
             }
         } catch (Exception e) {
             e.printStackTrace();
