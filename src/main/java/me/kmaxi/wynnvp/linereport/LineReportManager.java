@@ -68,10 +68,12 @@ public class LineReportManager {
 
         try {
             declineOrAcceptLine(line, yOrN);
-            guild.getTextChannelById(Config.acceptedLines).sendMessage(event.retrieveMessage().complete()).queue(message1 -> {
-                message1.addReaction(Config.declineUnicode).queue();
-                message1.addReaction(Config.microphoneUnicode).queue();
-            });
+            if (yOrN.equals("y")) {
+                guild.getTextChannelById(Config.acceptedLines).sendMessage(event.retrieveMessage().complete()).queue(message1 -> {
+                    message1.addReaction(Config.declineUnicode).queue();
+                    message1.addReaction(Config.microphoneUnicode).queue();
+                });
+            }
             event.retrieveMessage().complete().delete().queue();
         } catch (IOException e) {
             e.printStackTrace();
