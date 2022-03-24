@@ -47,11 +47,7 @@ public class LineReportManager {
         String line = str.substring(str.indexOf(" ") + 1);
         line = line.replace("`", "");
 
-
-        System.out.println(event.getReactionEmote().getAsCodepoints());
-
         String yOrN = "none";
-        System.out.println(event.getReactionEmote().getAsCodepoints());
 
         switch (event.getReactionEmote().getAsCodepoints()) {
             case "U+2705":
@@ -78,9 +74,9 @@ public class LineReportManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
+
+
 
 
     public static void sendAllReports(Guild guild) {
@@ -89,6 +85,10 @@ public class LineReportManager {
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+                if (AcceptFullVoicedDialogue.checkIfFullDialogueWasSent(guild, jsonObject)) {
+                    continue;
+                }
 
                 String message = "\uD83E\uDDD1\u200D\uD83C\uDF3E `" + jsonObject.getString("NPC") + "`\n"
                         + "\uD83D\uDDFA `" + jsonObject.getInt("X") + "|" + jsonObject.getInt("Y") + "|" + jsonObject.getInt("Z") + "`\n"
@@ -145,7 +145,7 @@ public class LineReportManager {
 
     }
 
-    private static void declineOrAcceptLine(String fullLine, String acceptedString) throws IOException {
+    public static void declineOrAcceptLine(String fullLine, String acceptedString) throws IOException {
 
         System.out.println("Line: " + fullLine + " has been marked as " + acceptedString);
 
