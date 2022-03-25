@@ -6,29 +6,43 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 public class AcceptFullVoicedDialogue {
 
 
-    public static boolean checkIfFullDialogueWasSent(Guild guild, JSONObject jsonObject) {
+    public static void queueCheckIfDialogueWasSent(Guild guild, JSONObject jsonObject) {
 
-        String npc = jsonObject.getString("NPC");
-        int[] lineDialogueNumbers = getLineNumberAndCount(jsonObject.getString("message"));
+        String line = jsonObject.getString("message");
 
-        if (lineDialogueNumbers[1] <= 2 || lineDialogueNumbers[0] == 1){
-            return false;
+        int[] lineDialogueNumbers = getLineNumberAndCount(line);
+
+        if (lineDialogueNumbers[1] <= 2 || lineDialogueNumbers[0] == 1 || lineDialogueNumbers[0] != lineDialogueNumbers[1]) {
+            return;
         }
+        String npc = jsonObject.getString("NPC");
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                checkIfFullDialogueWasSent(guild, line, npc);
+            }
+        }, 8000);
+
+    }
+
+    private static void checkIfFullDialogueWasSent(Guild guild, String checkLine, String npc) {
+
+        int[] lineDialogueNumbers = getLineNumberAndCount(checkLine);
+
 
         List<Message> messages = getLatestMessages(Objects.requireNonNull(guild.getTextChannelById(Config.reportedLines)), 70);
 
         List<Message> messageInSameDialogue = new ArrayList<>();
+        List<String> stringInSameDialogue = new ArrayList<>();
         ArrayList<Boolean> linesReported = new ArrayList<>();
-        for (int i = 0; i < lineDialogueNumbers[1]; i++){
+        for (int i = 0; i < lineDialogueNumbers[1]; i++) {
             linesReported.add(false);
         }
 
@@ -50,36 +64,30 @@ public class AcceptFullVoicedDialogue {
                 } else if (j == 3) {
                     int[] comparingDialogueN = getLineNumberAndCount(line);
                     if (comparingDialogueN[1] != lineDialogueNumbers[1]) break;
-                    if (comparingDialogueN[0] == 1){
-                        return false;
+                    if (comparingDialogueN[0] == 1) {
+                        return;
                     }
                     messageInSameDialogue.add(value);
+                    stringInSameDialogue.add(line);
                     linesReported.set(comparingDialogueN[0] - 1, true);
                 }
             }
 
         }
-        linesReported.set(lineDialogueNumbers[0] - 1, true);
-        for (int i = 1; i < linesReported.size(); i++){
-            if (!linesReported.get(i)) return false;
+
+
+        for (int i = 1; i < linesReported.size(); i++) {
+            System.out.println(linesReported.get(i));
+            if (!linesReported.get(i)) return;
         }
 
-        for (int i = 0; i < messageInSameDialogue.size(); i++){
+        for (int i = 0; i < messageInSameDialogue.size(); i++) {
             Message message = messageInSameDialogue.get(i);
-            String line = message.getContentRaw();
-            try {
-                LineReportManager.declineOrAcceptLine(line, "v");
-                message.delete().queue();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            String line = stringInSameDialogue.get(i);
+            LineReportManager.sendLineAndDeleteMessage(line, "v", message, guild);
+
         }
-        try {
-            LineReportManager.declineOrAcceptLine(jsonObject.getString("message"), "v");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return true;
+
     }
 
 

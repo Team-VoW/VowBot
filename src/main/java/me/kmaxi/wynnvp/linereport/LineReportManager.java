@@ -2,6 +2,7 @@ package me.kmaxi.wynnvp.linereport;
 
 import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import org.json.JSONArray;
@@ -62,33 +63,21 @@ public class LineReportManager {
         }
         if (yOrN.equals("none")) return;
 
-        try {
-            declineOrAcceptLine(line, yOrN);
-            if (yOrN.equals("y")) {
-                guild.getTextChannelById(Config.acceptedLines).sendMessage(event.retrieveMessage().complete()).queue(message1 -> {
-                    message1.addReaction(Config.declineUnicode).queue();
-                    message1.addReaction(Config.microphoneUnicode).queue();
-                });
-            }
-            event.retrieveMessage().complete().delete().queue();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        sendLineAndDeleteMessage(line, yOrN, event.retrieveMessage().complete(), guild);
+
+
     }
-
-
 
 
     public static void sendAllReports(Guild guild) {
         try {
-            JSONArray jsonArray = getJsonData("http://voicesofwynn.com/api/unvoiced-line-report/index?apiKey=testing");
+            JSONArray jsonArray = getJsonData("http://voicesofwynn.com/api/unvoiced-line-report/index?apiKey=" + Config.readingApiKey);
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
 
-                if (AcceptFullVoicedDialogue.checkIfFullDialogueWasSent(guild, jsonObject)) {
-                    continue;
-                }
+                AcceptFullVoicedDialogue.queueCheckIfDialogueWasSent(guild, jsonObject);
+
 
                 String message = "\uD83E\uDDD1\u200D\uD83C\uDF3E `" + jsonObject.getString("NPC") + "`\n"
                         + "\uD83D\uDDFA `" + jsonObject.getInt("X") + "|" + jsonObject.getInt("Y") + "|" + jsonObject.getInt("Z") + "`\n"
@@ -109,7 +98,7 @@ public class LineReportManager {
 
     public static void sendAllAcceptedReports(MessageChannel messageChannel) {
         try {
-            JSONArray jsonArray = getJsonData("http://voicesofwynn.com/api/unvoiced-line-report/accepted?apiKey=testing");
+            JSONArray jsonArray = getJsonData("http://voicesofwynn.com/api/unvoiced-line-report/accepted?apiKey=" + Config.readingApiKey);
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -145,7 +134,34 @@ public class LineReportManager {
 
     }
 
-    public static void declineOrAcceptLine(String fullLine, String acceptedString) throws IOException {
+
+    public static void sendLineAndDeleteMessage(String fullLine, String acceptedString, Message message, Guild guild) {
+
+        int responseCode = 0;
+        try {
+            responseCode = declineOrAcceptLine(fullLine, acceptedString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (responseCode != 204) {
+            //Failed
+            guild.getTextChannelById(Config.staffBotChat).sendMessage("Line: ´" + fullLine + "´ with status **" + acceptedString + "** got response code **" + responseCode + "**").queue();
+        } else {
+            if (acceptedString.equals("y")) {
+                guild.getTextChannelById(Config.acceptedLines).sendMessage(message).queue(message1 -> {
+                    message1.addReaction(Config.declineUnicode).queue();
+                    message1.addReaction(Config.microphoneUnicode).queue();
+                });
+            }
+
+            message.delete().queue();
+
+        }
+
+    }
+
+    private static int declineOrAcceptLine(String fullLine, String acceptedString) throws IOException {
 
         System.out.println("Line: " + fullLine + " has been marked as " + acceptedString);
 
@@ -165,16 +181,9 @@ public class LineReportManager {
         System.out.println(http.getResponseCode() + " " + http.getResponseMessage());
         http.disconnect();
 
+        return http.getResponseCode();
 
-        /*
-         if (!(responseCode >= 200 && responseCode < 300)) {
-            //Failed
-            System.out.println("HTTP response Code : " + responseCode);
-            return false;
-        }
-        System.out.println("HTTP response Code : " + responseCode);
-        return true;
-         */
+
     }
 
 }
