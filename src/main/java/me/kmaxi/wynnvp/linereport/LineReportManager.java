@@ -171,7 +171,7 @@ public class LineReportManager {
         http.setDoOutput(true);
         http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-        String data = "line=" + fullLine + "&answer=" + acceptedString + "&apiKey=testing";
+        String data = "line=" + fullLine + "&answer=" + acceptedString + "&apiKey=" + Config.updateApiKey;
 
         byte[] out = data.getBytes(StandardCharsets.UTF_8);
 
