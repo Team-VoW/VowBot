@@ -76,7 +76,7 @@ public class ChatListener extends ListenerAdapter {
 
 
     private static void closeChannelImmediately(MessageReceivedEvent event) {
-        if (event.getTextChannel().getParentCategoryIdLong() != Config.categoryID || event.getTextChannel().getParentCategoryIdLong() != Config.closingCategoryID) {
+       if (event.getTextChannel().getParentCategoryIdLong() != Config.categoryID && event.getTextChannel().getParentCategoryIdLong() != Config.closingCategoryID) {
             return;
         }
         event.getChannel().delete().queue();
@@ -85,7 +85,7 @@ public class ChatListener extends ListenerAdapter {
     private static void closeChannelWithCooldown(MessageReceivedEvent event) {
         TextChannel textChannel = event.getTextChannel();
 
-        if (textChannel.getParentCategoryIdLong() != Config.categoryID || textChannel.getParentCategoryIdLong() != Config.closingCategoryID) {
+        if (textChannel.getParentCategoryIdLong() != Config.categoryID && textChannel.getParentCategoryIdLong() != Config.closingCategoryID) {
             return;
         }
 
