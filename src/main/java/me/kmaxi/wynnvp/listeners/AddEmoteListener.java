@@ -120,6 +120,7 @@ public class AddEmoteListener extends ListenerAdapter {
         permissions.add(Permission.MESSAGE_ATTACH_FILES);
         permissions.add(Permission.MESSAGE_ADD_REACTION);
         permissions.add(Permission.MESSAGE_EXT_EMOJI);
+        permissions.add(Permission.VIEW_CHANNEL);
         return permissions;
     }
 
