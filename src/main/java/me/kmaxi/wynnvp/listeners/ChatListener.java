@@ -71,6 +71,9 @@ public class ChatListener extends ListenerAdapter {
             case "?addquest":
                 addQuest(splitMessage, messageChannel, guild);
                 break;
+            case "?resetf":
+                LineReportManager.resetForwarded();
+                break;
         }
     }
 

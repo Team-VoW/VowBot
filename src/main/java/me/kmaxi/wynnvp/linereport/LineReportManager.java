@@ -182,8 +182,33 @@ public class LineReportManager {
         http.disconnect();
 
         return http.getResponseCode();
+    }
 
+    public static void resetForwarded() {
+        System.out.println("Resseting all forwarded");
 
+        URL url = null;
+        try {
+            url = new URL("https://voicesofwynn.com/api/unvoiced-line-report/reset");
+            HttpURLConnection http = (HttpURLConnection) url.openConnection();
+            http.setRequestMethod("PUT");
+            http.setDoOutput(true);
+            http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+            String data = "&apiKey=" + Config.updateApiKey;
+
+            byte[] out = data.getBytes(StandardCharsets.UTF_8);
+
+            OutputStream stream = http.getOutputStream();
+            stream.write(out);
+
+            int responseCode = http.getResponseCode();
+            System.out.println(responseCode + " " + http.getResponseMessage());
+            http.disconnect();
+            guild.getTextChannelById(Config.staffBotChat).sendMessage("Response code for resetting lines was: " + responseCode).queue();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
