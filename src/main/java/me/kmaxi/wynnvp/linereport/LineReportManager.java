@@ -50,6 +50,7 @@ public class LineReportManager {
 
         String yOrN = "none";
 
+        System.out.println(event.getReactionEmote().getAsCodepoints());
         switch (event.getReactionEmote().getAsCodepoints()) {
             case "U+2705":
                 yOrN = "y";
@@ -59,6 +60,9 @@ public class LineReportManager {
                 break;
             case "U+1f399":
                 yOrN = "v";
+                break;
+            case "U+1f5d1":
+                yOrN = "r";
                 break;
         }
         if (yOrN.equals("none")) return;
@@ -89,6 +93,7 @@ public class LineReportManager {
                     message1.addReaction(Config.acceptUnicode).queue();
                     message1.addReaction(Config.declineUnicode).queue();
                     message1.addReaction(Config.microphoneUnicode).queue();
+                    message1.addReaction(Config.trashUnicode).queue();
                 });
             }
         } catch (Exception e) {
@@ -208,7 +213,7 @@ public class LineReportManager {
             guild.getTextChannelById(Config.staffBotChat).sendMessage("Response code for resetting lines was: " + responseCode).queue();
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }   
     }
 
 }
