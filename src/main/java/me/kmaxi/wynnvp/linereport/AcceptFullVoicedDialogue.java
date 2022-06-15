@@ -95,9 +95,13 @@ public class AcceptFullVoicedDialogue {
         line = line.replaceAll("[\\[\\]]", "");
         line = line.split(" ")[0];
         String[] lineOutOfDialogue = line.split("/");
-        int lineNumber = Integer.parseInt(lineOutOfDialogue[0]);
-        int lineCount = Integer.parseInt(lineOutOfDialogue[1]);
-
+        int lineNumber = 0;
+        int lineCount = 0;
+        if (lineOutOfDialogue[0].matches("-?\\d+")
+                && lineOutOfDialogue[1].matches("-?\\d+")){
+             lineNumber = Integer.parseInt(lineOutOfDialogue[0]);
+             lineCount = Integer.parseInt(lineOutOfDialogue[1]);
+        }
         return new int[]{lineNumber, lineCount};
     }
 

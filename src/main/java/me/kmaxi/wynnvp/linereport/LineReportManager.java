@@ -1,6 +1,7 @@
 package me.kmaxi.wynnvp.linereport;
 
 import me.kmaxi.wynnvp.Config;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -38,15 +39,23 @@ public class LineReportManager {
     public static void lineReportReact(MessageReactionAddEvent event) {
         String message = event.retrieveMessage().complete().getContentRaw();
 
-        if (!event.retrieveMessage().complete().getAuthor().getId().equals("821397022250369054")) return;
+        //If reacted to a message that was not sent from this bot or is not admin
+        if (!event.retrieveMessage().complete().getAuthor().getId().equals("821397022250369054")
+                || !event.getMember().hasPermission(Permission.ADMINISTRATOR)) return;
 
-        String[] messageSplitByLine = message.split("\n");
+        String line;
+        if (event.getChannel().getIdLong() == Config.staffBotChat) {
+            line = message;
+        } else {
+            String[] messageSplitByLine = message.split("\n");
 
-        if (messageSplitByLine.length <= 3) return;
+            if (messageSplitByLine.length <= 3) return;
 
-        String str = messageSplitByLine[3];
-        String line = str.substring(str.indexOf(" ") + 1);
-        line = line.replace("`", "");
+            String str = messageSplitByLine[3];
+            line = str.substring(str.indexOf(" ") + 1);
+            line = line.replace("`", "");
+        }
+
 
         String yOrN = "none";
 
@@ -101,9 +110,9 @@ public class LineReportManager {
         }
     }
 
-    public static void sendAllAcceptedReports(MessageChannel messageChannel) {
+    public static void sendAllReports(MessageChannel messageChannel, String url) {
         try {
-            JSONArray jsonArray = getJsonData("http://voicesofwynn.com/api/unvoiced-line-report/accepted?apiKey=" + Config.readingApiKey);
+            JSONArray jsonArray = getJsonData(url);
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -116,6 +125,7 @@ public class LineReportManager {
                 messageChannel.sendMessage(message).queue(message1 -> {
                     message1.addReaction(Config.declineUnicode).queue();
                     message1.addReaction(Config.microphoneUnicode).queue();
+                    message1.addReaction(Config.trashUnicode).queue();
                 });
             }
         } catch (Exception e) {
@@ -213,7 +223,33 @@ public class LineReportManager {
             guild.getTextChannelById(Config.staffBotChat).sendMessage("Response code for resetting lines was: " + responseCode).queue();
         } catch (IOException e) {
             e.printStackTrace();
-        }   
+        }
+    }
+
+    public static void SendAllLinesFromCharacter(String url, MessageChannel messageChannel, boolean addReaction) {
+
+        try {
+            JSONArray jsonArray = getJsonData(url);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                String line = jsonObject.getString("message");
+
+                if (addReaction) {
+                    messageChannel.sendMessage(line).queue(message1 -> {
+                        message1.addReaction(Config.declineUnicode).queue();
+                        message1.addReaction(Config.microphoneUnicode).queue();
+                        message1.addReaction(Config.trashUnicode).queue();
+                    });
+                } else {
+                    messageChannel.sendMessage(line).queue();
+                }
+
+
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

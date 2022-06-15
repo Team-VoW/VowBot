@@ -1,8 +1,8 @@
 package me.kmaxi.wynnvp.listeners;
 
 import me.kmaxi.wynnvp.Config;
-import me.kmaxi.wynnvp.linereport.LineReportManager;
 import me.kmaxi.wynnvp.Utils;
+import me.kmaxi.wynnvp.linereport.LineReportManager;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -54,7 +54,7 @@ public class ChatListener extends ListenerAdapter {
                 LineReportManager.sendAllReports(guild);
                 return;
             case "?get-tasks":
-                LineReportManager.sendAllAcceptedReports(messageChannel);
+                LineReportManager.sendAllReports(messageChannel, "http://voicesofwynn.com/api/unvoiced-line-report/accepted?apiKey=" + Config.readingApiKey);
                 return;
             case "?close":
                 closeChannelImmediately(event);
@@ -62,10 +62,10 @@ public class ChatListener extends ListenerAdapter {
             case "?closed":
                 closeChannelWithCooldown(event);
                 return;
-            case "?setRole":
+            case "?setrole":
                 setRole(splitMessage, messageChannel, guild);
                 return;
-            case "?removeRole":
+            case "?removerole":
                 openRole(splitMessage, messageChannel, guild);
                 return;
             case "?addquest":
@@ -74,12 +74,17 @@ public class ChatListener extends ListenerAdapter {
             case "?resetf":
                 LineReportManager.resetForwarded();
                 break;
+            case "?getlines":
+                GetLinesFromCharacter(splitMessage, messageChannel, false);
+                break;
+            case "?getlinesreact":
+                GetLinesFromCharacter(splitMessage, messageChannel, true);
         }
     }
 
 
     private static void closeChannelImmediately(MessageReceivedEvent event) {
-       if (event.getTextChannel().getParentCategoryIdLong() != Config.categoryID && event.getTextChannel().getParentCategoryIdLong() != Config.closingCategoryID) {
+        if (event.getTextChannel().getParentCategoryIdLong() != Config.categoryID && event.getTextChannel().getParentCategoryIdLong() != Config.closingCategoryID) {
             return;
         }
         event.getChannel().delete().queue();
@@ -204,7 +209,9 @@ public class ChatListener extends ListenerAdapter {
                 + "\n`?setRole <QuestName> <NpcName> <PersonWhoGotRole(CaseSens)>` to assign a role to a person"
                 + "\n`?removeRole <QuestName> <NpcName>(CaseSens)>` to remove an assignation"
                 + "\n`?addquest <QuestName> <Npc> <Npc>...` to add a new quest. Maximum 9 roles." +
-                "\n`?get-tasks` to get all accepted unvoiced lines").queue();
+                "\n`?resetf` sets all lines with status unproccesed to forwarded. WARNING! Clear reported lines channel before doing this!"
+                + "`\n ?getLines <Npc>` to get all accepted lines from a npc"
+                + "`\n ?getLinesReact <Npc>` to get all accepted lines from a npc with reaction options").queue();
     }
 
     private static void addQuest(String[] splitMessage, MessageChannel messageChannel, Guild guild) {
@@ -239,4 +246,18 @@ public class ChatListener extends ListenerAdapter {
             }
         });
     }
+
+    private static void GetLinesFromCharacter(String[] splitMessage, MessageChannel messageChannel, boolean addReaction) {
+        if (splitMessage.length != 2) {
+            messageChannel.sendMessage("Non correct arguments. Use ?getLines <Npc>").queue();
+            return;
+        }
+        String url = "https://voicesofwynn.com/api/unvoiced-line-report/accepted?npc="
+                + splitMessage[1] + "&apiKey=" + Config.readingApiKey;
+
+        LineReportManager.SendAllLinesFromCharacter(url, messageChannel, addReaction);
+
+
+    }
+
 }

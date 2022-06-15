@@ -1,10 +1,13 @@
 package me.kmaxi.wynnvp.listeners;
 
 import me.kmaxi.wynnvp.Config;
-import me.kmaxi.wynnvp.linereport.LineReportManager;
 import me.kmaxi.wynnvp.Utils;
+import me.kmaxi.wynnvp.linereport.LineReportManager;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.GuildChannel;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -22,14 +25,16 @@ public class AddEmoteListener extends ListenerAdapter {
 
         if (event.getChannel().getIdLong() == Config.channelName) {
             voiceApplyReact(event);
-        } else if (event.getChannel().getIdLong() == Config.reportedLines || event.getChannel().getIdLong() == Config.acceptedLines){
+        } else if (event.getChannel().getIdLong() == Config.reportedLines
+                || event.getChannel().getIdLong() == Config.acceptedLines
+                || event.getChannel().getIdLong() == Config.staffBotChat) {
             LineReportManager.lineReportReact(event);
         }
 
     }
 
 
-    private void voiceApplyReact(MessageReactionAddEvent event){
+    private void voiceApplyReact(MessageReactionAddEvent event) {
         String message = event.retrieveMessage().complete().getContentRaw();
 
         int numberReacted = Utils.whichNumberWasReacted(event.getReactionEmote().getName());
@@ -158,9 +163,6 @@ public class AddEmoteListener extends ListenerAdapter {
     private boolean applicationCategoryHas50Channels(Guild guild) {
         return guild.getCategoryById(Config.categoryID).getChannels().size() >= 50;
     }
-
-
-
 
 
 }
