@@ -159,7 +159,7 @@ public class LineReportManager {
             e.printStackTrace();
         }
 
-        if (responseCode != 204) {
+        if (responseCode >= 400) {
             //Failed
             guild.getTextChannelById(Config.staffBotChat).sendMessage("Line: ´" + fullLine + "´ with status **" + acceptedString + "** got response code **" + responseCode + "**").queue();
         } else {
