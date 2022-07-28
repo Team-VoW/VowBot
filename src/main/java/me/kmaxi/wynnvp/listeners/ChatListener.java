@@ -2,6 +2,7 @@ package me.kmaxi.wynnvp.listeners;
 
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.Utils;
+import me.kmaxi.wynnvp.commands.PurgeCommand;
 import me.kmaxi.wynnvp.linereport.LineReportManager;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -79,6 +80,9 @@ public class ChatListener extends ListenerAdapter {
                 break;
             case "?getlinesreact":
                 GetLinesFromCharacter(splitMessage, messageChannel, true);
+            case "?purgereports":
+                PurgeCommand.trigger(splitMessage);
+
         }
     }
 
@@ -211,7 +215,8 @@ public class ChatListener extends ListenerAdapter {
                 + "\n`?addquest <QuestName> <Npc> <Npc>...` to add a new quest. Maximum 9 roles." +
                 "\n`?resetf` sets all lines with status unproccesed to forwarded. WARNING! Clear reported lines channel before doing this!"
                 + "`\n ?getLines <Npc>` to get all accepted lines from a npc"
-                + "`\n ?getLinesReact <Npc>` to get all accepted lines from a npc with reaction options").queue();
+                + "`\n ?getLinesReact <Npc>` to get all accepted lines from a npc with reaction options"
+                + "`\n ?purgereports` clears all messages in reported lines channel").queue();
     }
 
     private static void addQuest(String[] splitMessage, MessageChannel messageChannel, Guild guild) {
