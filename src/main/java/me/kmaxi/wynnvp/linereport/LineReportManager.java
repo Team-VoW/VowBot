@@ -1,7 +1,6 @@
 package me.kmaxi.wynnvp.linereport;
 
 import me.kmaxi.wynnvp.Config;
-import me.kmaxi.wynnvp.WynnVPBotMain;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -17,13 +16,13 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static me.kmaxi.wynnvp.WynnVPBotMain.guild;
 
 public class LineReportManager {
-
 
 
     public static void startTimer() {
@@ -228,7 +227,7 @@ public class LineReportManager {
         }
     }
 
-    public static void SendAllLinesFromCharacter(String url, MessageChannel messageChannel, boolean addReaction) {
+    public static void sendAcceptedLinesWithReaction(String url, MessageChannel messageChannel) {
 
         try {
             JSONArray jsonArray = getJsonData(url);
@@ -236,21 +235,44 @@ public class LineReportManager {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
                 String line = jsonObject.getString("message");
 
-                if (addReaction) {
-                    messageChannel.sendMessage(line).queue(message1 -> {
-                        message1.addReaction(Config.declineUnicode).queue();
-                        message1.addReaction(Config.microphoneUnicode).queue();
-                        message1.addReaction(Config.trashUnicode).queue();
-                    });
-                } else {
-                    messageChannel.sendMessage(line).queue();
-                }
-
+                messageChannel.sendMessage(line).queue(message1 -> {
+                    message1.addReaction(Config.declineUnicode).queue();
+                    message1.addReaction(Config.microphoneUnicode).queue();
+                    message1.addReaction(Config.trashUnicode).queue();
+                });
 
             }
 
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static final int maxLengthInOneMessage = 2000;
+    public static void sendAcceptedLinesWithoutReaction(String url, MessageChannel messageChannel) {
+        ArrayList<StringBuilder> messages = new ArrayList<>();
+        messages.add(new StringBuilder());
+
+        int currentStringBuilder = 0;
+
+        try {
+            JSONArray jsonArray = getJsonData(url);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                String line = jsonObject.getString("message");
+
+                if (messages.get(currentStringBuilder).length() + line.length() > maxLengthInOneMessage){
+                    currentStringBuilder++;
+                    messages.add(new StringBuilder());
+                }
+                messages.get(currentStringBuilder).append("\n").append(line);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        for (int i = 0; i < messages.size(); i++){
+            messageChannel.sendMessage("```" + messages.get(i) + "```").queue();
         }
     }
 

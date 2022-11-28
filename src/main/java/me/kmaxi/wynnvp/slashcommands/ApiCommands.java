@@ -18,6 +18,10 @@ public class ApiCommands {
         event.reply("Sending lines now").setEphemeral(true).queue();
 
 
-        LineReportManager.SendAllLinesFromCharacter(url, event.getMessageChannel(), addReaction);
+        if (addReaction){
+            LineReportManager.sendAcceptedLinesWithReaction(url, event.getMessageChannel());
+        } else {
+            LineReportManager.sendAcceptedLinesWithoutReaction(url, event.getMessageChannel());
+        }
     }
 }
