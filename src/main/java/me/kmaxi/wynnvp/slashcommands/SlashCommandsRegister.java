@@ -33,6 +33,14 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 .addOptions(
                         new OptionData(OptionType.STRING, "npcname", "The exact name of the npc", true),
                         new OptionData(OptionType.BOOLEAN, "addreaction", "If it should send the messages one at a time to allow reaction.", false)));
+        commandData.add(Commands.slash("getactivelines", "Sends all lines marked as index and accepted in the current channel")
+                .addOptions(
+                        new OptionData(OptionType.STRING, "npcname", "The exact name of the npc", true),
+                        new OptionData(OptionType.BOOLEAN, "addreaction", "If it should send the messages one at a time to allow reaction.", false)));
+        commandData.add(Commands.slash("getalllines", "Sends all lines marked as index and accepted in the current channel")
+                .addOptions(
+                        new OptionData(OptionType.STRING, "npcname", "The exact name of the npc", true),
+                        new OptionData(OptionType.BOOLEAN, "addreaction", "If it should send the messages one at a time to allow reaction.", false)));
 
         //Application commands
         commandData.add(Commands.slash("close", "Immediately closes an application channel")
@@ -105,12 +113,14 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 return;
             case "getacceptedlines":
                 ApiCommands.getAcceptedLinesFromCharacter(event);
+                return;
+            case "getactivelines":
+                ApiCommands.getActiveLinesFromCharacter(event);
+                return;
+            case "getalllines":
+                ApiCommands.getAllLinesFromCharacter(event);
                 break;
 
-
-  /*          case "get-tasks":
-                LineReportManager.sendAllReports(messageChannel, "http://voicesofwynn.com/api/unvoiced-line-report/accepted?apiKey=" + Config.readingApiKey);
-                break;*/
         }
     }
 }

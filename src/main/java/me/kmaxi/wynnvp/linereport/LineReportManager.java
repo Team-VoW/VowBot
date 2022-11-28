@@ -227,7 +227,7 @@ public class LineReportManager {
         }
     }
 
-    public static void sendAcceptedLinesWithReaction(String url, MessageChannel messageChannel) {
+    public static void sendLinesWithReaction(String url, MessageChannel messageChannel) {
 
         try {
             JSONArray jsonArray = getJsonData(url);
@@ -249,7 +249,7 @@ public class LineReportManager {
     }
 
     private static final int maxLengthInOneMessage = 2000;
-    public static void sendAcceptedLinesWithoutReaction(String url, MessageChannel messageChannel) {
+    public static void sendLinesWithoutReaction(String url, MessageChannel messageChannel) {
         ArrayList<StringBuilder> messages = new ArrayList<>();
         messages.add(new StringBuilder());
 
