@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp;
 
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -19,6 +20,10 @@ public class Utils {
             }
         }
         return false;
+    }
+
+    public static boolean isAdmin(Member member) {
+        return  member.hasPermission(Permission.ADMINISTRATOR);
     }
 
     public static String convertNumber(int number) {

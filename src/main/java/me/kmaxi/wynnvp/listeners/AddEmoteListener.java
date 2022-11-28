@@ -25,9 +25,9 @@ public class AddEmoteListener extends ListenerAdapter {
 
         if (event.getChannel().getIdLong() == Config.channelName) {
             voiceApplyReact(event);
-        } else if (event.getChannel().getIdLong() == Config.reportedLines
+        } else if ((event.getChannel().getIdLong() == Config.reportedLines
                 || event.getChannel().getIdLong() == Config.acceptedLines
-                || event.getChannel().getIdLong() == Config.staffBotChat) {
+                || event.getChannel().getIdLong() == Config.staffBotChat) && Utils.isAdmin(event.getMember())) {
             LineReportManager.lineReportReact(event);
         }
 

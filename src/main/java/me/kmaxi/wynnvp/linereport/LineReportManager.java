@@ -1,6 +1,7 @@
 package me.kmaxi.wynnvp.linereport;
 
 import me.kmaxi.wynnvp.Config;
+import me.kmaxi.wynnvp.WynnVPBotMain;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -19,10 +20,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static me.kmaxi.wynnvp.WynnVPBotMain.guild;
+
 public class LineReportManager {
 
 
-    public static Guild guild = null;
 
     public static void startTimer() {
         Timer timer = new Timer();
@@ -30,7 +32,7 @@ public class LineReportManager {
             @Override
             public void run() {
                 if (guild == null) return;
-                sendAllReports(guild);
+                sendAllReports();
             }
         }, 0, 10 * 1000);
     }
@@ -82,7 +84,7 @@ public class LineReportManager {
     }
 
 
-    public static void sendAllReports(Guild guild) {
+    public static void sendAllReports() {
         try {
             JSONArray jsonArray = getJsonData("http://voicesofwynn.com/api/unvoiced-line-report/index?apiKey=" + Config.readingApiKey);
 
