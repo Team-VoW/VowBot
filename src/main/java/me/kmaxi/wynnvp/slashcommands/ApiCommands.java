@@ -34,6 +34,6 @@ public class ApiCommands {
 
     private static String getReadingUrl(String keyword, SlashCommandInteractionEvent event){
         return "https://voicesofwynn.com/api/unvoiced-line-report/" + keyword + "?npc="
-                + event.getOption("npcname").getAsString() + "&apiKey=" + Config.readingApiKey;
+                + event.getOption("npcname").getAsString().replace(" ", "%20") + "&apiKey=" + Config.readingApiKey;
     }
 }
