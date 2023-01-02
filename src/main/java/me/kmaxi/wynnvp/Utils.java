@@ -6,6 +6,8 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -142,5 +144,24 @@ public class Utils {
         }
         return false;
 
+    }
+
+    public static Collection<Permission> permissions() {
+        Collection<Permission> permissions = new ArrayList<>();
+        permissions.add(Permission.MESSAGE_SEND);
+        permissions.add(Permission.MESSAGE_HISTORY);
+        permissions.add(Permission.MESSAGE_EMBED_LINKS);
+        permissions.add(Permission.MESSAGE_ATTACH_FILES);
+        permissions.add(Permission.MESSAGE_ADD_REACTION);
+        permissions.add(Permission.MESSAGE_EXT_EMOJI);
+        permissions.add(Permission.VIEW_CHANNEL);
+        return permissions;
+    }
+
+    public static Collection<Permission> traineePerms() {
+        Collection<Permission> permissions = new ArrayList<>();
+        permissions.add(Permission.MESSAGE_HISTORY);
+        permissions.add(Permission.MESSAGE_ADD_REACTION);
+        return permissions;
     }
 }

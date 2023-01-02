@@ -71,6 +71,10 @@ public class SlashCommandsRegister extends ListenerAdapter {
                         new OptionData(OptionType.STRING, "npc8", "The eights npc name", false),
                         new OptionData(OptionType.STRING, "npc9", "The ninths npc name", false)));
 
+        commandData.add(Commands.slash("createchannel", "Creates a text channel in accepted category for a voice actor")
+                .addOptions(new OptionData(OptionType.USER, "user", "The voices actors discord", true))
+                .addOptions(new OptionData(OptionType.STRING, "npc", "The name of the NPC", true)));
+
 
         event.getGuild().updateCommands().addCommands(commandData).queue();
     }
@@ -119,6 +123,10 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 return;
             case "getalllines":
                 ApiCommands.getAllLinesFromCharacter(event);
+                break;
+            case "createchannel":
+                System.out.println("Working");
+                ChannelCommands.CreateChannelForVoiceActor(event);
                 break;
 
         }

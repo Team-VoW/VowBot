@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 
+import static me.kmaxi.wynnvp.Utils.permissions;
+import static me.kmaxi.wynnvp.Utils.traineePerms;
+
 public class AddEmoteListener extends ListenerAdapter {
 
     @Override
@@ -117,24 +120,7 @@ public class AddEmoteListener extends ListenerAdapter {
         return limit;
     }
 
-    private Collection<Permission> permissions() {
-        Collection<Permission> permissions = new ArrayList<>();
-        permissions.add(Permission.MESSAGE_SEND);
-        permissions.add(Permission.MESSAGE_HISTORY);
-        permissions.add(Permission.MESSAGE_EMBED_LINKS);
-        permissions.add(Permission.MESSAGE_ATTACH_FILES);
-        permissions.add(Permission.MESSAGE_ADD_REACTION);
-        permissions.add(Permission.MESSAGE_EXT_EMOJI);
-        permissions.add(Permission.VIEW_CHANNEL);
-        return permissions;
-    }
 
-    private Collection<Permission> traineePerms() {
-        Collection<Permission> permissions = new ArrayList<>();
-        permissions.add(Permission.MESSAGE_HISTORY);
-        permissions.add(Permission.MESSAGE_ADD_REACTION);
-        return permissions;
-    }
 
     private boolean channelExists(String channelname, Guild guild) {
         for (TextChannel textChannel : guild.getTextChannels()) {
