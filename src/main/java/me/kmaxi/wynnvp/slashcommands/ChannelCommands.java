@@ -32,7 +32,7 @@ public class ChannelCommands {
                             + "\n\nBy voicing this character, you agreed to the terms listed in " + guild.getTextChannelById(820027818799792129L).getAsMention()).queue();
                 });
 
-        event.reply("Sucesfully created the \"" + getChannelName(user, npcName) + "\" channel").setEphemeral(true).queue();
+        event.reply("Successfully created the \"" + getChannelName(user, npcName) + "\" channel").setEphemeral(true).queue();
 
     }
 
