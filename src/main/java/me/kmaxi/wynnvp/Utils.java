@@ -17,7 +17,8 @@ public class Utils {
 
     public static boolean isStaff(Member member) {
         for (Role role : member.getRoles()) {
-            if (role.getIdLong() == Config.roleID) {
+            if (role.getIdLong() == Config.roleID
+            || role.getIdLong() == Config.writeRoleId) {
                 return true;
             }
         }
