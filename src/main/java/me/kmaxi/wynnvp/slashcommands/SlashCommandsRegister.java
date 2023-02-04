@@ -1,7 +1,8 @@
 package me.kmaxi.wynnvp.slashcommands;
 
-import me.kmaxi.wynnvp.Utils;
+import me.kmaxi.wynnvp.utils.Utils;
 import me.kmaxi.wynnvp.linereport.LineReportManager;
+import me.kmaxi.wynnvp.websiteuser.SyncWebsite;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -75,6 +76,8 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 .addOptions(new OptionData(OptionType.USER, "user", "The voices actors discord", true))
                 .addOptions(new OptionData(OptionType.STRING, "npc", "The name of the NPC", true)));
 
+        commandData.add(Commands.slash("syncallusers", "Syncs all users data to the website. Warning, this is a heavy command!"));
+
 
         event.getGuild().updateCommands().addCommands(commandData).queue();
     }
@@ -125,8 +128,10 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 ApiCommands.getAllLinesFromCharacter(event);
                 break;
             case "createchannel":
-                System.out.println("Working");
                 ChannelCommands.CreateChannelForVoiceActor(event);
+                break;
+            case "syncallusers":
+                SyncWebsite.SyncAllUsers();
                 break;
 
         }

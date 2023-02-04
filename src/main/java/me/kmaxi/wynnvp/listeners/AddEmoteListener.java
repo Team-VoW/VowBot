@@ -1,9 +1,8 @@
 package me.kmaxi.wynnvp.listeners;
 
 import me.kmaxi.wynnvp.Config;
-import me.kmaxi.wynnvp.Utils;
+import me.kmaxi.wynnvp.utils.Utils;
 import me.kmaxi.wynnvp.linereport.LineReportManager;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
@@ -11,12 +10,10 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 
-import static me.kmaxi.wynnvp.Utils.permissions;
-import static me.kmaxi.wynnvp.Utils.traineePerms;
+import static me.kmaxi.wynnvp.utils.Utils.permissions;
+import static me.kmaxi.wynnvp.utils.Utils.traineePerms;
 
 public class AddEmoteListener extends ListenerAdapter {
 
@@ -119,7 +116,6 @@ public class AddEmoteListener extends ListenerAdapter {
         if (member.getRoles().contains(guild.getRoleById(Config.vipRole))) limit = 4;
         return limit;
     }
-
 
 
     private boolean channelExists(String channelname, Guild guild) {
