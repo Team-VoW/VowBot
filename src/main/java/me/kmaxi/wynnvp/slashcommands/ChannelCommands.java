@@ -5,8 +5,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-import static me.kmaxi.wynnvp.Utils.permissions;
-import static me.kmaxi.wynnvp.Utils.traineePerms;
+import static me.kmaxi.wynnvp.utils.Utils.permissions;
+import static me.kmaxi.wynnvp.utils.Utils.traineePerms;
 
 public class ChannelCommands {
 

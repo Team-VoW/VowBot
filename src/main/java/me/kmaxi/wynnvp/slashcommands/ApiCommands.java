@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.slashcommands;
 
+import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.linereport.LineReportManager;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -34,6 +35,6 @@ public class ApiCommands {
 
     private static String getReadingUrl(String keyword, SlashCommandInteractionEvent event){
         return "https://voicesofwynn.com/api/unvoiced-line-report/" + keyword + "?npc="
-                + event.getOption("npcname").getAsString().replace(" ", "%20") + "&apiKey=" + Config.readingApiKey;
+                + event.getOption("npcname").getAsString().replace(" ", "%20") + "&apiKey=" + APIKeys.readingApiKey;
     }
 }

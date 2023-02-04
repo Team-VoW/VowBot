@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.linereport;
 
+import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -21,6 +22,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static me.kmaxi.wynnvp.WynnVPBotMain.guild;
+import static me.kmaxi.wynnvp.utils.APIUtils.getJsonData;
 
 public class LineReportManager {
 
@@ -85,7 +87,7 @@ public class LineReportManager {
 
     public static void sendAllReports() {
         try {
-            JSONArray jsonArray = getJsonData("http://voicesofwynn.com/api/unvoiced-line-report/index?apiKey=" + Config.readingApiKey);
+            JSONArray jsonArray = getJsonData("http://voicesofwynn.com/api/unvoiced-line-report/index?apiKey=" + APIKeys.readingApiKey);
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -135,20 +137,7 @@ public class LineReportManager {
     }
 
 
-    private static JSONArray getJsonData(String urlToRead) throws Exception {
-        StringBuilder result = new StringBuilder();
-        URL url = new URL(urlToRead);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(conn.getInputStream()))) {
-            for (String line; (line = reader.readLine()) != null; ) {
-                result.append(line);
-            }
-        }
-        return new JSONArray(result.toString());
 
-    }
 
 
     public static void sendLineAndDeleteMessage(String fullLine, String acceptedString, Message message, Guild guild) {
@@ -187,7 +176,7 @@ public class LineReportManager {
         http.setDoOutput(true);
         http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-        String data = "line=" + fullLine + "&answer=" + acceptedString + "&apiKey=" + Config.updateApiKey;
+        String data = "line=" + fullLine + "&answer=" + acceptedString + "&apiKey=" + APIKeys.updateApiKey;
 
         byte[] out = data.getBytes(StandardCharsets.UTF_8);
 
@@ -211,7 +200,7 @@ public class LineReportManager {
             http.setDoOutput(true);
             http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-            String data = "&apiKey=" + Config.updateApiKey;
+            String data = "&apiKey=" + APIKeys.updateApiKey;
 
             byte[] out = data.getBytes(StandardCharsets.UTF_8);
 

@@ -1,7 +1,7 @@
 package me.kmaxi.wynnvp.slashcommands;
 
 import me.kmaxi.wynnvp.Config;
-import me.kmaxi.wynnvp.Utils;
+import me.kmaxi.wynnvp.utils.Utils;
 import me.kmaxi.wynnvp.interfaces.StringIntInterface;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Message;

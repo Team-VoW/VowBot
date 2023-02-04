@@ -1,5 +1,6 @@
-package me.kmaxi.wynnvp;
+package me.kmaxi.wynnvp.utils;
 
+import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
