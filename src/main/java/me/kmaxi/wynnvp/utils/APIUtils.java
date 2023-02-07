@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.utils;
 
+import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import org.json.JSONArray;
 
@@ -8,7 +9,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public class APIUtils {
@@ -33,8 +33,17 @@ public class APIUtils {
         if (append.equals(""))
             return;
 
+        append = append.replace(" ", "%20");
+
+        append += "&apiKey=" + APIKeys.discordIntegrationAPIKey;
+
         // HTTP POST request
         String url = Config.URL_DiscordIntegration + append;
+
+        System.out.println("Complete URL: " + url);
+
+
+
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -66,7 +75,7 @@ public class APIUtils {
         in.close();
 
         //printing result from response
-        System.out.println(response.toString());
+        System.out.println(response);
 
 
     }

@@ -1,7 +1,6 @@
 package me.kmaxi.wynnvp.slashcommands;
 
 import me.kmaxi.wynnvp.APIKeys;
-import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.linereport.LineReportManager;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
