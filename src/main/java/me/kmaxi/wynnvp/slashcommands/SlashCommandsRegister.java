@@ -115,9 +115,6 @@ public class SlashCommandsRegister extends ListenerAdapter {
             case "update":
                 LineReportManager.sendAllReports();
                 return;
-            case "resetforwarded":
-                LineReportManager.resetForwarded();
-                return;
             case "getacceptedlines":
                 ApiCommands.getAcceptedLinesFromCharacter(event);
                 return;
@@ -130,10 +127,20 @@ public class SlashCommandsRegister extends ListenerAdapter {
             case "createchannel":
                 ChannelCommands.CreateChannelForVoiceActor(event);
                 break;
-            case "syncallusers":
-                SyncWebsite.SyncAllUsers();
-                break;
 
+        }
+        if (!(Utils.isAdmin(event.getMember()))) {
+            event.reply("You do not have permission do execute this command.").setEphemeral(true).queue();
+            return;
+        }
+
+        switch (event.getName().toLowerCase().trim()) {
+            case "syncallusers":
+                SyncWebsite.SyncAllUsers(event);
+                break;
+            case "resetforwarded":
+                LineReportManager.resetForwarded();
+                return;
         }
     }
 }
