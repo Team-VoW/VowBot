@@ -4,12 +4,10 @@ import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import org.json.JSONArray;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public class APIUtils {
 
@@ -28,57 +26,38 @@ public class APIUtils {
     }
 
 
-    public static void updateUserDataOnWebsite(String append) throws IOException {
+    public static void updateUserDataOnWebsite(String urlParameters) throws IOException {
 
-        if (append.equals(""))
+        if (urlParameters.equals(""))
             return;
 
-        append = append.replace(" ", "%20");
+        //append = append.replace(" ", "%20");
 
-        append += "&apiKey=" + APIKeys.discordIntegrationAPIKey;
+        urlParameters += "&apiKey=" + APIKeys.discordIntegrationAPIKey;
+        urlParameters += "&action=" + "syncUser";
+        urlParameters = urlParameters.substring(1);
 
-        // HTTP POST request
-        String url = Config.URL_DiscordIntegration + append;
-
-        System.out.println("Complete URL: " + url);
-
+        System.out.println("Post parameters: " + urlParameters);
 
 
-        URL obj = new URL(url);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
-        // Setting basic post request
-        con.setRequestMethod("POST");
-
-        String postParams = "name=value";
-
-        // Send post request
-        con.setDoOutput(true);
-        DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-        wr.writeBytes(postParams);
-        wr.flush();
-        wr.close();
-
-        int responseCode = con.getResponseCode();
-        System.out.println("Sending 'POST' request to URL : " + url);
-        System.out.println("Post parameters : " + postParams);
-        System.out.println("Response Code : " + responseCode);
-
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
-        String output;
-        StringBuilder response = new StringBuilder();
-
-        while ((output = in.readLine()) != null) {
-            response.append(output);
+        //Post Request
+        byte[] postData       = urlParameters.getBytes( StandardCharsets.UTF_8 );
+        int    postDataLength = postData.length;
+        String request        = Config.URL_DiscordIntegration;
+        URL    url            = new URL( request );
+        HttpURLConnection conn= (HttpURLConnection) url.openConnection();
+        conn.setDoOutput( true );
+        conn.setInstanceFollowRedirects( false );
+        conn.setRequestMethod( "POST" );
+        conn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded");
+        conn.setRequestProperty( "charset", "utf-8");
+        conn.setRequestProperty( "Content-Length", Integer.toString( postDataLength ));
+        conn.setUseCaches( false );
+        try( DataOutputStream wr = new DataOutputStream( conn.getOutputStream())) {
+            wr.write( postData );
         }
-        in.close();
-
-        //printing result from response
-        System.out.println(response);
-
-
+        System.out.println("Response code: " + conn.getResponseCode());
     }
-
 
 }

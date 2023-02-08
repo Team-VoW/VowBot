@@ -58,8 +58,6 @@ public class SyncWebsite {
             discordUserName = userInfo.getString("discord");
         }
 
-        System.out.println(userInfo.get("discordId"));
-
         String uuidOnWebsite = "";
 
         //For some reason a regular null check does not work, so we just check the string value
@@ -159,7 +157,7 @@ public class SyncWebsite {
 
         AtomicBoolean updateRoles = new AtomicBoolean(false);
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<[");
+        stringBuilder.append("[");
 
         //For each role user has in discord
         discordMember.getRoles().forEach(role -> {
@@ -185,9 +183,9 @@ public class SyncWebsite {
 
         //Removes the last comma
         stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-        stringBuilder.append("]>");
+        stringBuilder.append("]");
 
-        return addPostArgument(postArguments, stringBuilder.toString());
+        return addPostArgument(postArguments, "roles=" + stringBuilder.toString());
     }
 
 
