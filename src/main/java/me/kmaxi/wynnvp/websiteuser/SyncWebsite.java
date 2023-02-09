@@ -65,8 +65,8 @@ public class SyncWebsite {
         String discordUserName = "";
 
         //For some reason a regular null check does not work, so we just check the string value
-        if (!userInfo.get("discord").toString().equals("null")){
-            discordUserName = userInfo.getString("discord");
+        if (!userInfo.get("discordName").toString().equals("null")){
+            discordUserName = userInfo.getString("discordName");
         }
 
         long uuidOnWebsite = 0;
@@ -80,7 +80,7 @@ public class SyncWebsite {
 
 
         if (member == null){
-            System.out.println("User " + userInfo.getString("displayName") + " with discord: " + discordUserName + " is not ion the discord");
+            System.out.println("User " + userInfo.getString("displayName") + " with discord: " + discordUserName + " is not in the discord");
             return;
         }
         User user = member.getUser();
