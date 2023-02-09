@@ -30,16 +30,13 @@ public class APIUtils {
 
         if (urlParameters.equals(""))
             return;
-
-        //append = append.replace(" ", "%20");
-
-        urlParameters += "&apiKey=" + APIKeys.discordIntegrationAPIKey;
         urlParameters += "&action=" + "syncUser";
-        urlParameters = urlParameters.substring(1);
 
+        //We print before adding apikey to make it easily copyable
         System.out.println("Post parameters: " + urlParameters);
 
-
+        urlParameters += "&apiKey=" + APIKeys.discordIntegrationAPIKey;
+        urlParameters = urlParameters.substring(1);
 
         //Post Request
         byte[] postData       = urlParameters.getBytes( StandardCharsets.UTF_8 );
@@ -57,7 +54,19 @@ public class APIUtils {
         try( DataOutputStream wr = new DataOutputStream( conn.getOutputStream())) {
             wr.write( postData );
         }
-        System.out.println("Response code: " + conn.getResponseCode());
+
+        System.out.println("Response code: " + conn.getResponseCode() + ". Response message: " + conn.getResponseMessage());
+
+        StringBuilder result = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(conn.getInputStream()))) {
+            for (String line; (line = reader.readLine()) != null; ) {
+                result.append(line);
+            }
+        }
+        System.out.println("Result: " + result.toString());
+
     }
 
 }

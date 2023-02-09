@@ -6,6 +6,7 @@ import me.kmaxi.wynnvp.WynnVPBotMain;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -34,16 +35,25 @@ public class SyncWebsite {
         }
     }
 
-    public static void SyncAllUsers() {
+    public static void SyncAllUsers(SlashCommandInteractionEvent event) {
 
         JSONArray userDataArray = getUsersData("getAllUsers");
 
+
+        event.deferReply().queue();
+
         //For each website account
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < userDataArray.length(); i++) {
             JSONObject userInfo = userDataArray.getJSONObject(i);
+
             SyncUser(userInfo);
         }
+
+        event.getHook().setEphemeral(true).editOriginal("Synced all users").queue();
+
     }
+
+
 
     /**
      * Syncs website users if they are in the discord
@@ -54,22 +64,23 @@ public class SyncWebsite {
 
         String discordUserName = "";
 
-        if (userInfo.get("discord") != null){
+        //For some reason a regular null check does not work, so we just check the string value
+        if (!userInfo.get("discord").toString().equals("null")){
             discordUserName = userInfo.getString("discord");
         }
 
-        String uuidOnWebsite = "";
+        long uuidOnWebsite = 0;
 
         //For some reason a regular null check does not work, so we just check the string value
         if (!userInfo.get("discordId").toString().equals("null")){
-            discordUserName = userInfo.getString("discordId");
+            uuidOnWebsite = userInfo.getLong("discordId");
         }
-
 
         Member member = getDiscordMember(uuidOnWebsite, discordUserName);
 
+
         if (member == null){
-            System.out.println("User " + userInfo.getString("display_name") + " with discord: " + discordUserName + " is not ion the discord");
+            System.out.println("User " + userInfo.getString("displayName") + " with discord: " + discordUserName + " is not ion the discord");
             return;
         }
         User user = member.getUser();
@@ -80,16 +91,15 @@ public class SyncWebsite {
 
         postArguments = appendProfilePictureURL(postArguments, userInfo, user);
 
-        postArguments = appendRolesL(postArguments, userInfo, discordUserName, member);
-
+        postArguments = appendRolesL(postArguments, userInfo, member);
 
 
         if (postArguments.equals(""))
             return;
 
         //We always add the discord name and id so that the website can find the correct user.
-        if (!postArguments.contains("discord="))
-            postArguments = addPostArgument(postArguments, "discord=" + user.getAsTag());
+        if (!postArguments.contains("discordName="))
+            postArguments = addPostArgument(postArguments, "discordName=" + user.getAsTag());
         if (!postArguments.contains("discordId="))
             postArguments = addPostArgument(postArguments, "discordId=" + user.getId());
 
@@ -109,12 +119,12 @@ public class SyncWebsite {
      * @param discordUserName The discord name of the member, only used if no person with the UUID was found
      * @return returns the discord member
      */
-    private static Member getDiscordMember(String uuid, String discordUserName){
+    private static Member getDiscordMember(long uuid, String discordUserName){
         Guild guild = WynnVPBotMain.guild;
 
         Member member = null;
 
-        if (!uuid.equals("")){
+        if (uuid != 0){
             member = guild.getMemberById(uuid);
         }
 
@@ -129,8 +139,8 @@ public class SyncWebsite {
         return guild.getMemberByTag(discordUserName);
     }
 
-    private static String appendDiscordUUID(String postArguments, String uuidOnWebsite, User discordMember){
-        if (uuidOnWebsite.equals("") || !discordMember.getId().equals(uuidOnWebsite)) {
+    private static String appendDiscordUUID(String postArguments, long uuidOnWebsite, User discordMember){
+        if (uuidOnWebsite == 0) {
             return addPostArgument(postArguments, "discordId=" + discordMember.getId());
         }
         return postArguments;
@@ -139,15 +149,21 @@ public class SyncWebsite {
     private static String appendProfilePictureURL(String postArguments, JSONObject userInfo, User discordMember){
         String profilePictureURL = userInfo.getString("avatarLink");
         if (profilePictureURL.equals("default.png")) {
-            return addPostArgument(postArguments, "profilePictureURL=" + discordMember.getAvatarUrl());
+            String addition = "imgurl=" + discordMember.getEffectiveAvatarUrl();
+
+            if (addition.contains("null"))
+                return postArguments;
+
+            return addPostArgument(postArguments, addition);
         }
         return postArguments;
     }
 
-    private static String appendRolesL(String postArguments, JSONObject userInfo, String discordUserName, Member discordMember){
+    private static String appendRolesL(String postArguments, JSONObject userInfo, Member discordMember){
         JSONArray roles = userInfo.getJSONArray("roles");
 
         HashSet<String> rolesUserHasOnWebsite = new HashSet<>();
+
         //For each role the user has on website
         for (int i = 0; i < roles.length(); i++) {
             JSONObject role = roles.getJSONObject(i);
@@ -172,13 +188,14 @@ public class SyncWebsite {
 
             //Website currently contains this role already, if it contains all roles already then there is no need to add this to the post
             if (rolesUserHasOnWebsite.contains(roleName)) {
+                rolesUserHasOnWebsite.remove(roleName);
                 //This return is the syntax for continue in a .forEach loop
                 return;
             }
 
             updateRoles.set(true);
         });
-        if (!updateRoles.get())
+        if (!updateRoles.get() && rolesUserHasOnWebsite.isEmpty())
             return postArguments;
 
         //Removes the last comma
