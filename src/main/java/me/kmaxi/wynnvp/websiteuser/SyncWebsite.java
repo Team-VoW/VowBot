@@ -148,7 +148,6 @@ public class SyncWebsite {
 
     private static String appendProfilePictureURL(String postArguments, JSONObject userInfo, User discordMember){
         String profilePictureURL = userInfo.getString("avatarLink");
-        System.out.println(discordMember.getName() + " profile pic is: " + profilePictureURL);
         if (profilePictureURL.equals("default.png") || profilePictureURL.equals("dynamic/avatars/default.png")) {
             String addition = "imgurl=" + discordMember.getEffectiveAvatarUrl();
 
