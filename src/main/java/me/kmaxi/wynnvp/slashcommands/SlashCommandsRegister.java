@@ -2,7 +2,6 @@ package me.kmaxi.wynnvp.slashcommands;
 
 import me.kmaxi.wynnvp.utils.Utils;
 import me.kmaxi.wynnvp.linereport.LineReportManager;
-import me.kmaxi.wynnvp.websiteuser.SyncWebsite;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -77,6 +76,7 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 .addOptions(new OptionData(OptionType.STRING, "npc", "The name of the NPC", true)));
 
         commandData.add(Commands.slash("syncallusers", "Syncs all users data to the website. Warning, this is a heavy command!"));
+        commandData.add(Commands.slash("checked", "Upgrades this users role here and on website and creates an account if they don't have one"));
 
 
         event.getGuild().updateCommands().addCommands(commandData).queue();
@@ -126,6 +126,9 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 break;
             case "createchannel":
                 ChannelCommands.CreateChannelForVoiceActor(event);
+                break;
+            case "checked":
+                SyncWebsite.FinishedRole(event);
                 break;
 
         }

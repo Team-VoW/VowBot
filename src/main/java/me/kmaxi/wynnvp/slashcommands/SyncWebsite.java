@@ -1,8 +1,9 @@
-package me.kmaxi.wynnvp.websiteuser;
+package me.kmaxi.wynnvp.slashcommands;
 
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.WynnVPBotMain;
+import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -12,7 +13,12 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static me.kmaxi.wynnvp.utils.APIUtils.getJsonData;
 import static me.kmaxi.wynnvp.utils.APIUtils.updateUserDataOnWebsite;
@@ -50,36 +56,109 @@ public class SyncWebsite {
         }
 
         event.getHook().setEphemeral(true).editOriginal("Synced all users").queue();
-
     }
 
+    public static void FinishedRole(SlashCommandInteractionEvent event) {
+
+        Member member = Utils.getFirstMemberWithSpecialPermission(event.getGuildChannel());
+
+        if (member == null) {
+
+            event.reply("ERROR! COULD NOT FIND ANY USER THAT THIS CHANNEL WAS MADE FOR!").setEphemeral(true).queue();
+            return;
+        }
+
+
+        CompletableFuture<Void> completableFuture = Utils.upgradeActorRole(member, event.getGuild());
+
+        //Role was not upgraded because person is already at highest role
+        if (completableFuture == null){
+            event.reply("Thanks a lot for voicing this character " + member.getAsMention() + ":heart:. " +
+                    "\nBecause you already are expert actor your role stayed the same this time :grin:").queue();
+            return;
+        }
+
+
+        completableFuture.thenRunAsync(() -> {
+
+            // Role added successfully, wait for 1 second and then check the member's roles because it doesn't update directly
+            Objects.requireNonNull(event.getGuild()).retrieveMemberById(member.getId()).queueAfter(1, TimeUnit.SECONDS, updatedMember -> {
+                String postArguments = "";
+
+                postArguments = addPostArgument(postArguments, "discordName=" + member.getUser().getAsTag());
+
+                postArguments = addPostArgument(postArguments, "discordId=" + member.getUser().getId());
+
+                postArguments = addPostArgument(postArguments, "roles=" + getRolesArguments(member));
+
+                try {
+                    String password = updateUserDataOnWebsite(postArguments);
+
+                    //No new account was created.
+                    if (password.equals("")) {
+
+                        event.reply("Thanks a lot for voicing this character " + member.getAsMention() + ":heart:. " +
+                                "\nYour actor role has been upgraded here and on the Website :partying_face:").queue();
+                        return;
+                    }
+
+                    password = extractPassword(password);
+
+                    //As this is a new account we send another post request with the profile pic
+                    postArguments = appendProfilePictureURL(postArguments, null, member.getUser());
+                    updateUserDataOnWebsite(postArguments);
+
+                    event.reply("Thanks a lot for voicing your very first character for us " + member.getAsMention() + ":heart::partying_face:." +
+                            "\n\n An account with the name " + member.getUser().getName() + " and the temporary password ||" +
+                            password + "|| has been created for you on our website https://voicesofwynn.com/ " +
+                            "" +
+                            "\n\n Once everyone voice actor from this quest has sent in their lines, everything will be " +
+                            " added to all the voice actors accounts. Feel free to go in there and change your bio, profile picture and more! :grin:").queue();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        });
+    }
+
+
+    private static String extractPassword(String input) {
+
+        Pattern pattern = Pattern.compile("\"tempPassword\":\"([a-zA-Z\\d]+)\"");
+        Matcher matcher = pattern.matcher(input);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+
+        return "ERROR! COULD NOT FIND PASSWORD!";
+    }
 
 
     /**
      * Syncs website users if they are in the discord
+     *
      * @param userInfo The Json object of the website user
      */
     private static void SyncUser(JSONObject userInfo) {
-
-
         String discordUserName = "";
 
         //For some reason a regular null check does not work, so we just check the string value
-        if (!userInfo.get("discordName").toString().equals("null")){
+        if (!userInfo.get("discordName").toString().equals("null")) {
             discordUserName = userInfo.getString("discordName");
         }
 
         long uuidOnWebsite = 0;
 
         //For some reason a regular null check does not work, so we just check the string value
-        if (!userInfo.get("discordId").toString().equals("null")){
+        if (!userInfo.get("discordId").toString().equals("null")) {
             uuidOnWebsite = userInfo.getLong("discordId");
         }
 
         Member member = getDiscordMember(uuidOnWebsite, discordUserName);
 
 
-        if (member == null){
+        if (member == null) {
             System.out.println("User " + userInfo.getString("displayName") + " with discord: " + discordUserName + " is not in the discord");
             return;
         }
@@ -115,16 +194,17 @@ public class SyncWebsite {
     /**
      * Gets the discord member from either UUID, if a player with that exists, if no player with
      * the uuid exists then it tries getting the member via the username
-     * @param uuid The uuid of the member
+     *
+     * @param uuid            The uuid of the member
      * @param discordUserName The discord name of the member, only used if no person with the UUID was found
      * @return returns the discord member
      */
-    private static Member getDiscordMember(long uuid, String discordUserName){
+    private static Member getDiscordMember(long uuid, String discordUserName) {
         Guild guild = WynnVPBotMain.guild;
 
         Member member = null;
 
-        if (uuid != 0){
+        if (uuid != 0) {
             member = guild.getMemberById(uuid);
         }
 
@@ -139,15 +219,16 @@ public class SyncWebsite {
         return guild.getMemberByTag(discordUserName);
     }
 
-    private static String appendDiscordUUID(String postArguments, long uuidOnWebsite, User discordMember){
+    private static String appendDiscordUUID(String postArguments, long uuidOnWebsite, User discordMember) {
         if (uuidOnWebsite == 0) {
             return addPostArgument(postArguments, "discordId=" + discordMember.getId());
         }
         return postArguments;
     }
 
-    private static String appendProfilePictureURL(String postArguments, JSONObject userInfo, User discordMember){
-        String profilePictureURL = userInfo.getString("avatarLink");
+    private static String appendProfilePictureURL(String postArguments, JSONObject userInfo, User discordMember) {
+
+        String profilePictureURL = userInfo == null ? "default.png" : userInfo.getString("avatarLink");
         if (profilePictureURL.equals("default.png") || profilePictureURL.equals("dynamic/avatars/default.png")) {
             String addition = "imgurl=" + discordMember.getEffectiveAvatarUrl();
 
@@ -159,7 +240,7 @@ public class SyncWebsite {
         return postArguments;
     }
 
-    private static String appendRolesL(String postArguments, JSONObject userInfo, Member discordMember){
+    private static String appendRolesL(String postArguments, JSONObject userInfo, Member discordMember) {
         JSONArray roles = userInfo.getJSONArray("roles");
 
         HashSet<String> rolesUserHasOnWebsite = new HashSet<>();
@@ -180,7 +261,7 @@ public class SyncWebsite {
             String roleName = role.getName();
 
             //Is a weird role that should not be published to the website
-            if (!Config.discordRolesToUpdateToWebsite.contains(roleName)){
+            if (!Config.discordRolesToUpdateToWebsite.contains(roleName)) {
                 return;
             }
 
@@ -202,7 +283,32 @@ public class SyncWebsite {
         stringBuilder.deleteCharAt(stringBuilder.length() - 1);
         stringBuilder.append("]");
 
-        return addPostArgument(postArguments, "roles=" + stringBuilder.toString());
+        return addPostArgument(postArguments, "roles=" + stringBuilder);
+    }
+
+    private static String getRolesArguments(Member discordMember) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("[");
+
+        //For each role user has in discord
+        discordMember.getRoles().forEach(role -> {
+            String roleName = role.getName();
+
+            //Is a weird role that should not be published to the website
+            if (!Config.discordRolesToUpdateToWebsite.contains(roleName)) {
+                //Return functions as a continue statement in a .forEach loop
+                return;
+            }
+
+            stringBuilder.append("\"").append(roleName).append("\",");
+
+        });
+
+        //Removes the last comma
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        stringBuilder.append("]");
+
+        return stringBuilder.toString();
     }
 
 

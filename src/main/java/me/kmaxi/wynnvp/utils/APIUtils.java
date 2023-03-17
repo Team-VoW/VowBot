@@ -14,8 +14,6 @@ import java.nio.charset.StandardCharsets;
 
 public class APIUtils {
 
-    private static final int createdUserResponseCode = 201;
-
     public static JSONArray getJsonData(String urlToRead) throws Exception {
         StringBuilder result = new StringBuilder();
         URL url = new URL(urlToRead);
@@ -36,7 +34,6 @@ public class APIUtils {
      * or to update roles of an existing user with the bot.
      * The system checks whether a user with the specified discordId exists, if not, it checks against discordName.
      * If both queries return nothing, a new user is registered with the provided displayName and discordId
-     *
      * @param urlParameters Post Parameters to use. If an empty string is provided it will do nothing.
      * @return If a new account was created it returns this Users password, if no user was made it returns an empty string
      * @throws IOException If an error was encountered
@@ -50,24 +47,16 @@ public class APIUtils {
 
         HttpURLConnection conn = sendPostRequest(Config.URL_DiscordIntegration, urlParameters);
 
-        System.out.println("Got response code: " + conn.getResponseCode() + ". Response message: " + conn.getResponseMessage());
+        StringBuilder result = new StringBuilder();
 
-
-        if (conn.getResponseCode() == createdUserResponseCode) {
-
-            StringBuilder result = new StringBuilder();
-
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream()))) {
-                for (String line; (line = reader.readLine()) != null; ) {
-                    result.append(line);
-                }
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(conn.getInputStream()))) {
+            for (String line; (line = reader.readLine()) != null; ) {
+                result.append(line);
             }
-            System.out.println("Result: " + result);
-            return result.toString();
         }
-
-        return "";
+        System.out.println("Result: " + result);
+        return result.toString();
     }
 
     /**

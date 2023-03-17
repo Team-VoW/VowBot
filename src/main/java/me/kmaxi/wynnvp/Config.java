@@ -1,7 +1,9 @@
 package me.kmaxi.wynnvp;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 public class Config {
 
@@ -36,6 +38,6 @@ public class Config {
             "Writer", "Moderator", "Expert Actor", "Skilled Actor", "Top funder",
             "Advanced Actor", "Beginner Actor", "Former Staff"));
 
-
+    public static ArrayList<String> actorRoleList = new ArrayList<>(Arrays.asList("819550145217298452","822008829696933909", "821156730079150131", "821157297908744222"));
 
 }
