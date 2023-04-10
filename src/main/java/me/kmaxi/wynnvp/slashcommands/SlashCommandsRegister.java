@@ -78,6 +78,8 @@ public class SlashCommandsRegister extends ListenerAdapter {
         commandData.add(Commands.slash("syncallusers", "Syncs all users data to the website. Warning, this is a heavy command!"));
         commandData.add(Commands.slash("checked", "Upgrades this users role here and on website and creates an account if they don't have one"));
 
+        commandData.add(Commands.slash("setuppoll", "Sets up the voting poll for the casting call")
+                .addOptions(new OptionData(OptionType.STRING, "url", "The url to the casting call", true)));
 
         event.getGuild().updateCommands().addCommands(commandData).queue();
     }
@@ -143,6 +145,9 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 break;
             case "resetforwarded":
                 LineReportManager.resetForwarded();
+                return;
+            case "setuppoll":
+                SetUpPollCommand.SetUpPoll(event);
                 return;
         }
     }
