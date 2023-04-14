@@ -181,6 +181,6 @@ public class ApplicationCommands {
             }
         });
 
-        event.reply("Succefully created the " + questName + " quest with " + npcs.size() + " npcs.").setEphemeral(true).queue();
+        event.reply("Successfully created the " + questName + " quest with " + npcs.size() + " npcs.").setEphemeral(true).queue();
     }
 }

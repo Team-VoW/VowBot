@@ -2,6 +2,7 @@ package me.kmaxi.wynnvp;
 
 import me.kmaxi.wynnvp.linereport.LineReportManager;
 import me.kmaxi.wynnvp.listeners.AddEmoteListener;
+import me.kmaxi.wynnvp.listeners.ButtonClickedListener;
 import me.kmaxi.wynnvp.slashcommands.SlashCommandsRegister;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -33,6 +34,7 @@ public class WynnVPBotMain {
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .enableIntents(GatewayIntent.GUILD_MEMBERS)
                     .addEventListeners(new AddEmoteListener())
+                    .addEventListeners(new ButtonClickedListener())
                     .addEventListeners(new SlashCommandsRegister())
                     .build();
             jda.awaitReady();

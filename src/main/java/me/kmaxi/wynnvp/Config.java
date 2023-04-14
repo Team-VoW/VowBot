@@ -8,6 +8,10 @@ import java.util.List;
 public class Config {
 
 
+    public static String voteButtonLabel = "Vote";
+    public static String removeVoteButtonLabel = "Unvote";
+
+
     //Wynn Vp Server /*
     public static long channelName = 820417352617033728l;
     public static long roleID = 821772974226407445l;

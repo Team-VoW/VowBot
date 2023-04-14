@@ -28,8 +28,35 @@ public class PollSQL {
         }
     }
 
+    public static boolean doesTableExist(String tableName) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        boolean result = false;
+        try {
+            conn = DatabaseConnection.getConnection();
+            if (conn != null) {
+                // Check if table exists in the database
+                String query = "SHOW TABLES LIKE ?";
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, tableName);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    // If table exists, set result to true
+                    result = true;
+                }
+                rs.close();
+                stmt.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DatabaseConnection.closeConnection(conn, stmt);
+        }
+        return result;
+    }
+
     public static boolean addVote(String pollName, String messageId, String userId) throws SQLException {
-        if (!hasVoted(pollName, messageId, userId))
+        if (!hasVoted(pollName, messageId, userId) || !doesTableExist(pollName))
             return false;
 
         Connection conn = null;
@@ -84,7 +111,7 @@ public class PollSQL {
 
     public static boolean removeVote(String pollName, String messageId, String userId) throws SQLException {
 
-        if (!hasVoted(pollName, messageId, userId))
+        if (!hasVoted(pollName, messageId, userId) || !doesTableExist(pollName))
             return false;
 
         Connection conn = null;

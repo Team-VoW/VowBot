@@ -1,7 +1,10 @@
-package me.kmaxi.wynnvp.slashcommands;
+package me.kmaxi.wynnvp.slashcommands.poll;
 
+import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -21,11 +24,9 @@ import java.util.regex.Pattern;
 
 public class SetUpPollCommand {
 
-    private static String castingCallURL = "https://www.castingcall.club/projects/voices-of-wynn-huge-community-voice-acting-project-hunger-of-the-gerts";
-
     public static void SetUpPoll(SlashCommandInteractionEvent event) {
 
-        event.deferReply().queue();
+        event.deferReply().setEphemeral(true).queue();
 
         String URL = event.getOption("url").getAsString(); // The URL of the project will be provided in the command
         try {
@@ -40,14 +41,19 @@ public class SetUpPollCommand {
 
             System.out.println(castingCallTitle);
 
+
             //For each role
-            for (int i = 0; i < roleIds.size(); i++) {
+            for (int i = 0; i < 1; i++) {
+
                 String roleId = roleIds.get(i);
+                String roleName = roleNames.get(i);
+
+                PollSQL.createPoll(roleName);
 
                 ArrayList<JSONObject> auditions = getAuditions(roleId);
 
                 StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("\n").append("**ROLE: ").append(roleNames.get(i)).append("**");
+                stringBuilder.append("\n").append("**ROLE: ").append(roleName).append("**");
 
                 //For each audition
                 for (int j = 0; j < auditions.size(); j++) {
@@ -60,9 +66,6 @@ public class SetUpPollCommand {
                 }
 
                 event.getTextChannel().sendMessage(stringBuilder).queue();
-
-                System.out.println(stringBuilder);
-
                 sendAudioFiles(auditions, event.getMessageChannel());
             }
 
@@ -80,23 +83,32 @@ public class SetUpPollCommand {
         for (int j = 0; j < auditions.size(); j++) {
             JSONObject audition = auditions.get(j);
             String audioURL = audition.getString("public_audio_url");
-            String audioFileName = audition.getString("username") + ".mp3";
+            String userName = audition.getString("username");
+            String audioFileName = userName + ".mp3";
+            String roleName = audition.getString("role_name");
 
             try {
-
                 URL website = new URL(audioURL);
                 ReadableByteChannel rbc = Channels.newChannel(website.openStream());
                 FileOutputStream fos = new FileOutputStream(audioFileName);
                 fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
                 File file = new File(audioFileName);
-                channel.sendFile(file).queue();
+
+                String messageText = roleName + " " + (j + 1) + " " + userName;
+
+                Button voteButton = Button.primary(
+                        messageText.replace(" ", "-") + "-" + Config.voteButtonLabel, Config.voteButtonLabel);
+                Button removeVoteButton = Button.primary(
+                        messageText.replace(" ", "-") + "-" + Config.removeVoteButtonLabel, Config.removeVoteButtonLabel);
+                ActionRow row = ActionRow.of(voteButton, removeVoteButton);
+                channel.sendMessage(messageText).setActionRows(row).addFile(file).queue();
+
                 file.delete();
 
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-
     }
 
     private static ArrayList<JSONObject> getAuditions(String roleId) {
@@ -105,14 +117,12 @@ public class SetUpPollCommand {
         int page = 1;
         while (true) {
 
-            JSONObject jsonData = null;
+            JSONObject jsonData;
             try {
                 jsonData = getJsonObject("https://www.castingcall.club/api/v1/roles/" + roleId + "/auditions?order_by=updated_at&status=all&page=" + page);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-
-            //auditions.appendArray(jsonParsed.auditions) //Append the array of auditions
 
             JSONArray auditionsArray = jsonData.getJSONArray("auditions");
 
@@ -194,8 +204,3 @@ public class SetUpPollCommand {
     }
 
 }
-
-
-
-
-

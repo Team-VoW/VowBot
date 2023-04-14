@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.slashcommands;
 
+import me.kmaxi.wynnvp.slashcommands.poll.SetUpPollCommand;
 import me.kmaxi.wynnvp.utils.Utils;
 import me.kmaxi.wynnvp.linereport.LineReportManager;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
