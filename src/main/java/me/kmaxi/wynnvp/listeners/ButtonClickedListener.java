@@ -27,6 +27,7 @@ public class ButtonClickedListener extends ListenerAdapter {
     private void processVote(ButtonInteractionEvent event, VoteFunction voteFunction, String action) {
         //The id is in this format: "RoleName-AuditionNumber-VaName-Label"
         //Label is just there so that Vote and Remove vote have different ids
+        System.out.println(event.getUser().getName() + " clicked: " + event.getButton().getId() + " with label: " + event.getButton().getLabel());
         String[] splitID = event.getButton().getId().split("-");
         String roleName = splitID[0];
         String vaName = splitID[2];

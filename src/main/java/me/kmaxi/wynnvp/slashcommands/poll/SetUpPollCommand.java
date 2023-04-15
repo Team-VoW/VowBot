@@ -91,7 +91,7 @@ public class SetUpPollCommand {
             String audioURL = audition.getString("public_audio_url");
             String userName = audition.getString("username");
             String audioFileName = userName + ".mp3";
-            String roleName = audition.getString("role_name");
+            String roleName = audition.getString("role_name").replace(" ", "_");
 
             try {
                 URL website = new URL(audioURL);
