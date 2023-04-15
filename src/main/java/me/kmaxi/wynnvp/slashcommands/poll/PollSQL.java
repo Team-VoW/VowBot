@@ -134,6 +134,12 @@ public class PollSQL {
                         existingUuid = existingUuid.replaceAll(",,", ",");
                         existingUuid = existingUuid.replaceAll("^,", "");
                         existingUuid = existingUuid.replaceAll(",$", "");
+
+                        if (existingUuid.startsWith(",")) {
+                            //Remove the first character if it is a comma
+                            existingUuid = existingUuid.substring(1);
+                        }
+
                         if (existingUuid.isEmpty()) {
                             existingUuid = null;
                         }
