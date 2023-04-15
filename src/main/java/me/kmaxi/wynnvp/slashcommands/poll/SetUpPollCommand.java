@@ -66,7 +66,7 @@ public class SetUpPollCommand {
                     PollSQL.createRowIfNotExists(roleName, username);
 
 
-                    stringBuilder.append("\n").append(j).append(" ").append(username).append(" ").append(audioURL);
+                    stringBuilder.append("\n").append(j).append(" ").append(username);//.append(" ").append(audioURL);
                 }
 
                 event.getTextChannel().sendMessage(stringBuilder).queue();
