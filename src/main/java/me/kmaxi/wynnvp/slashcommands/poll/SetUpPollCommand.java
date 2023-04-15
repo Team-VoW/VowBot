@@ -62,6 +62,9 @@ public class SetUpPollCommand {
                     String username = audition.getString("username");
                     String audioURL = audition.getString("public_audio_url");
 
+                    PollSQL.createRowIfNotExists(roleName, username);
+
+
                     stringBuilder.append("\n").append(j).append(" ").append(username).append(" ").append(audioURL);
                 }
 
@@ -81,6 +84,8 @@ public class SetUpPollCommand {
 
     private static void sendAudioFiles(ArrayList<JSONObject> auditions, MessageChannel channel) {
         for (int j = 0; j < auditions.size(); j++) {
+
+
             JSONObject audition = auditions.get(j);
             String audioURL = audition.getString("public_audio_url");
             String userName = audition.getString("username");
@@ -98,7 +103,7 @@ public class SetUpPollCommand {
 
                 Button voteButton = Button.primary(
                         messageText.replace(" ", "-") + "-" + Config.voteButtonLabel, Config.voteButtonLabel);
-                Button removeVoteButton = Button.primary(
+                Button removeVoteButton = Button.danger(
                         messageText.replace(" ", "-") + "-" + Config.removeVoteButtonLabel, Config.removeVoteButtonLabel);
                 ActionRow row = ActionRow.of(voteButton, removeVoteButton);
                 channel.sendMessage(messageText).setActionRows(row).addFile(file).queue();

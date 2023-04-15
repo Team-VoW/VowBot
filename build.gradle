@@ -29,5 +29,6 @@ dependencies {
     implementation 'net.dv8tion:JDA:5.0.0-alpha.9'
     implementation 'org.jsoup:jsoup:1.15.4'
     implementation 'com.zaxxer:HikariCP:5.0.1'
-    
+    implementation 'mysql:mysql-connector-java:8.0.32'
+
 }

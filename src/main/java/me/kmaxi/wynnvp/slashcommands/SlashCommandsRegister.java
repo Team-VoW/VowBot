@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.slashcommands;
 
+import me.kmaxi.wynnvp.slashcommands.poll.PollDataFetcher;
 import me.kmaxi.wynnvp.slashcommands.poll.SetUpPollCommand;
 import me.kmaxi.wynnvp.utils.Utils;
 import me.kmaxi.wynnvp.linereport.LineReportManager;
@@ -82,6 +83,10 @@ public class SlashCommandsRegister extends ListenerAdapter {
         commandData.add(Commands.slash("setuppoll", "Sets up the voting poll for the casting call")
                 .addOptions(new OptionData(OptionType.STRING, "url", "The url to the casting call", true)));
 
+        commandData.add(Commands.slash("getvotes", "Gets the current votes of the poll")
+                .addOptions(new OptionData(OptionType.STRING, "npc", "The NPC of which to get the poll off", true)));
+
+
         event.getGuild().updateCommands().addCommands(commandData).queue();
     }
 
@@ -149,6 +154,9 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 return;
             case "setuppoll":
                 SetUpPollCommand.SetUpPoll(event);
+                return;
+            case "getvotes":
+                PollDataFetcher.getSingleNpc(event);
                 return;
         }
     }

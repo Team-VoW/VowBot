@@ -56,7 +56,7 @@ public class PollSQL {
     }
 
     public static boolean addVote(String pollName, String messageId, String userId) throws SQLException {
-        if (!hasVoted(pollName, messageId, userId) || !doesTableExist(pollName))
+        if (hasVoted(pollName, messageId, userId) || !doesTableExist(pollName))
             return false;
 
         Connection conn = null;
@@ -161,7 +161,6 @@ public class PollSQL {
 
 
 
-    // Method to check if a user has voted in a poll
     public static boolean hasVoted(String pollName, String messageId, String userId) throws SQLException {
         Connection connection = null;
         PreparedStatement statement = null;
@@ -178,4 +177,39 @@ public class PollSQL {
             DatabaseConnection.closeConnection(connection, statement, resultSet);
         }
     }
+
+    public static void createRowIfNotExists(String tableName, String messageId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            if (conn != null) {
+                // Check if table exists in the database
+                if (doesTableExist(tableName)) {
+                    // Prepare SQL statement
+                    String sql = "INSERT IGNORE INTO " + tableName + " (messageId, votes, userIds) VALUES (?, 0, NULL)";
+                    pstmt = conn.prepareStatement(sql);
+                    pstmt.setString(1, messageId);
+
+                    // Execute SQL statement
+                    int rowsAffected = pstmt.executeUpdate();
+                    if (rowsAffected > 0) {
+                        System.out.println("New row with messageId '" + messageId + "' added to table '" + tableName + "'.");
+                    } else {
+                        System.out.println("Row with messageId '" + messageId + "' already exists in table '" + tableName + "'.");
+                    }
+                    pstmt.close();
+                } else {
+                    System.out.println("Table does not exist.");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DatabaseConnection.closeConnection(conn, pstmt);
+        }
+    }
+
+
+
 }

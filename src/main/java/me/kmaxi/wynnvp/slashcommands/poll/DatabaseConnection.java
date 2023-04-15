@@ -1,53 +1,25 @@
 package me.kmaxi.wynnvp.slashcommands.poll;
 
+import me.kmaxi.wynnvp.APIKeys;
+import me.kmaxi.wynnvp.Config;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DatabaseConnection {
-
-    //private static final HikariDataSource dataSource;
-
-    private static MySQL mySQL;
+    private static final MySQL mySQL;
 
     static {
-
-        mySQL = new MySQL();
-/*        // Configure HikariCP
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:mysql://localhost:3306/polls"); // Replace with your database URL
-        config.setUsername("root"); // Replace with your database username
-        config.setPassword(""); // Replace with your database password
-        config.setMaximumPoolSize(5); // Set maximum pool size as per your requirement
-        dataSource = new HikariDataSource(config);
-        System.out.println("Initialized");*/
+        //mySQL = new MySQL(Config.host, Config.port, Config.database, Config.username, APIKeys.sqlPassword);
+        mySQL = new MySQL("66.11.118.47", "3306", "s10530_polls", "u10530_NJoqWZbXbX", "qB^8awM@vlO8Wx+uovrHf2rN");
     }
 
     // Method to get a database connection
     public static Connection getConnection() throws SQLException {
 
         return mySQL.getConnection();
-
-/*        Connection connection = dataSource.getConnection();
-        checkConnection(connection);
-        return connection;*/
-    }
-
-    public static void checkConnection(Connection connection) {
-        try {
-            if (connection == null) {
-                System.out.println("Connection failed. Reconnecting...");
-            }
-            if (!connection.isValid(3)) {
-                System.out.println("Connection is idle or terminated. Reconnecting...");
-            }
-            if (connection.isClosed()) {
-                System.out.println("Connection is closed. Reconnecting...");
-            }
-        } catch (Exception e) {
-            System.out.println("Could not reconnect to database! Error: " + e.getMessage());
-        }
     }
 
     // Method to close a database connection
@@ -80,7 +52,7 @@ public class DatabaseConnection {
                 e.printStackTrace();
             }
         }
-        closeConnection(connection);
+        //closeConnection(connection);
     }
 
     // Method to close a database connection, and statement

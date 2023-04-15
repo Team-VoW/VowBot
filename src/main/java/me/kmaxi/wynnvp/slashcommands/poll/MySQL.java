@@ -41,7 +41,7 @@ public class MySQL {
         System.out.println("jdbc:mysql://" +
                 host + ":" + port + "/" + database + "?useSSL=false" + username + password);
 
-        Class.forName("com.mysql.jdbc.Driver");
+        //Class.forName("com.mysql.jdbc.Driver");
         connection = DriverManager.getConnection("jdbc:mysql://" +
                 host + ":" + port + "/" + database + "?useSSL=false", username, password);
 
@@ -64,7 +64,7 @@ public class MySQL {
 
     public void checkConnection() {
         try {
-            Class.forName("com.mysql.jdbc.Driver");
+            //Class.forName("com.mysql.jdbc.Driver");
 
             if (connection == null) {
                 System.out.println("Connection failed. Reconnecting...");
@@ -80,6 +80,7 @@ public class MySQL {
             }
         } catch (Exception e) {
             System.out.println("Could not reconnect to database! Error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
