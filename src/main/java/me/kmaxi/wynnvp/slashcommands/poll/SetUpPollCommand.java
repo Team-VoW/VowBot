@@ -47,7 +47,7 @@ public class SetUpPollCommand {
 
                 String roleId = roleIds.get(i);
                 String roleName = roleNames.get(i);
-                roleName = roleName.replace(" ", "_");
+                roleName = roleName.trim().replace(" ", "_");
 
                 PollSQL.createPoll(roleName);
 
@@ -91,7 +91,7 @@ public class SetUpPollCommand {
             String audioURL = audition.getString("public_audio_url");
             String userName = audition.getString("username");
             String audioFileName = userName + ".mp3";
-            String roleName = audition.getString("role_name").replace(" ", "_");
+            String roleName = audition.getString("role_name").trim().replace(" ", "_");
 
             try {
                 URL website = new URL(audioURL);
@@ -107,7 +107,7 @@ public class SetUpPollCommand {
                 Button removeVoteButton = Button.danger(
                         messageText.replace(" ", "-") + "-" + Config.removeVoteButtonLabel, Config.removeVoteButtonLabel);
                 ActionRow row = ActionRow.of(voteButton, removeVoteButton);
-                channel.sendMessage(messageText).setActionRows(row).addFile(file).queue();
+                channel.sendMessage("```" +  messageText + "```").setActionRows(row).addFile(file).queue();
 
                 file.delete();
 

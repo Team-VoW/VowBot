@@ -33,7 +33,7 @@ public class ButtonClickedListener extends ListenerAdapter {
         String vaName = splitID[2];
 
         try {
-            if (voteFunction.apply(roleName, vaName, event.getUser().getId()))
+            if (voteFunction.apply(roleName.replaceAll(".`", ""), vaName, event.getUser().getId()))
                 event.reply(action + "d for " + vaName + " as role " + roleName).setEphemeral(true).queue();
             else
                 event.reply("Could NOT " + action + " for " + roleName + "-" + vaName).setEphemeral(true).queue();
