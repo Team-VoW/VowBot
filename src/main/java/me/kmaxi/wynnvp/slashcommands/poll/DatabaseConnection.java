@@ -1,12 +1,6 @@
 package me.kmaxi.wynnvp.slashcommands.poll;
 
-import me.kmaxi.wynnvp.APIKeys;
-import me.kmaxi.wynnvp.Config;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class DatabaseConnection {
     private static final MySQL mySQL;
@@ -20,6 +14,21 @@ public class DatabaseConnection {
     public static Connection getConnection() throws SQLException {
 
         return mySQL.getConnection();
+    }
+
+    public static void runSQLQuery(String query){
+        Connection connection = null;
+        PreparedStatement statement = null;
+        try {
+            connection = DatabaseConnection.getConnection();
+            statement = connection.prepareStatement(query);
+            statement.executeUpdate();
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+        finally {
+            DatabaseConnection.closeConnection(connection, statement);
+        }
     }
 
     // Method to close a database connection

@@ -7,26 +7,22 @@ import java.sql.SQLException;
 
 public class PollSQL {
 
-    // Method to create a new poll table
+    /**
+     * Method to create a new poll
+     *
+     * @param pollName The name of the poll
+     * @throws SQLException Error
+     */
     public static void createPoll(String pollName) throws SQLException {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        try {
-            connection = DatabaseConnection.getConnection();
-            String createTableQuery = "CREATE TABLE IF NOT EXISTS " + pollName + " ("
-                    + "messageId VARCHAR(255) PRIMARY KEY,"
-                    + "votes INT,"
-                    + "userIds VARCHAR(510)"
-                    + ")";
-            statement = connection.prepareStatement(createTableQuery);
-            statement.executeUpdate();
-        } catch (SQLException e){
-            e.printStackTrace();
-        }
-        finally {
-            DatabaseConnection.closeConnection(connection, statement);
-        }
+
+        String createTableQuery = "CREATE TABLE IF NOT EXISTS " + pollName + " ("
+                + "messageId VARCHAR(255) PRIMARY KEY,"
+                + "votes INT,"
+                + "userIds VARCHAR(510)"
+                + ")";
+        DatabaseConnection.runSQLQuery(createTableQuery);
     }
+
 
     public static boolean doesTableExist(String tableName) {
         Connection conn = null;
@@ -58,6 +54,8 @@ public class PollSQL {
     public static boolean addVote(String pollName, String messageId, String userId) throws SQLException {
         if (hasVoted(pollName, messageId, userId) || !doesTableExist(pollName))
             return false;
+
+        VotersSQL.registerVote(userId, pollName, messageId);
 
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -98,7 +96,6 @@ public class PollSQL {
                     }
                 }
                 rs.close();
-                stmt.close();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -113,6 +110,9 @@ public class PollSQL {
 
         if (!hasVoted(pollName, messageId, userId) || !doesTableExist(pollName))
             return false;
+
+        VotersSQL.UnregisterVote(userId, pollName, messageId);
+
 
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -158,7 +158,6 @@ public class PollSQL {
         }
         return result;
     }
-
 
 
     public static boolean hasVoted(String pollName, String messageId, String userId) throws SQLException {
@@ -209,7 +208,6 @@ public class PollSQL {
             DatabaseConnection.closeConnection(conn, pstmt);
         }
     }
-
 
 
 }

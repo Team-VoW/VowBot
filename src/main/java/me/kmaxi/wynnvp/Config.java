@@ -16,6 +16,7 @@ public class Config {
     public static String database = "s10530_polls";
     public static String username = "u10530_NJoqWZbXbX";
 
+    public static String votesTableName = "votes";
 
     //Wynn Vp Server /*
     public static long channelName = 820417352617033728l;

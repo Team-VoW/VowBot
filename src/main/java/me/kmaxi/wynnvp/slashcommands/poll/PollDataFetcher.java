@@ -12,11 +12,28 @@ import java.util.Objects;
 import static me.kmaxi.wynnvp.slashcommands.poll.PollSQL.doesTableExist;
 
 public class PollDataFetcher {
-    public static void getSingleNpc(SlashCommandInteractionEvent event) {
 
+
+    public static void getVotesForPerson(SlashCommandInteractionEvent event){
+        event.deferReply().setEphemeral(true).queue();
+
+        String toBePrinted;
+
+        if (event.getOption("npc") == null) {
+            toBePrinted = VotersSQL.getAllVotes(event.getUser().getId());
+        } else {
+            toBePrinted = VotersSQL.getVotes(event.getUser().getId(), Objects.requireNonNull(event.getOption("npc")).getAsString().replace(" ", "_"));
+        }
+        event.getHook().editOriginal(toBePrinted).queue();
+
+    }
+    public static void getAllVotes(SlashCommandInteractionEvent event) {
         event.deferReply().setEphemeral(true).queue();
 
         String npcName = Objects.requireNonNull(event.getOption("npc")).getAsString();
+
+        npcName = npcName.replace(" ", "_");
+
         getVotes(npcName, event, ((event1, message) -> event1.getHook().editOriginal(message).queue()));
     }
 
@@ -47,7 +64,7 @@ public class PollDataFetcher {
                             continue;
                         }
 
-                        for (String uuid : voteUUIDs.split("-")) {
+                        for (String uuid : voteUUIDs.split(",")) {
                             Objects.requireNonNull(event.getGuild()).retrieveMemberById(uuid).queue(member -> {
                                 // use member here
                                 toSend.append(member.getEffectiveName()).append(", ");

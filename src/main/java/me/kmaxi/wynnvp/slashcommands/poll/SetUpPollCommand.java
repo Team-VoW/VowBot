@@ -43,10 +43,11 @@ public class SetUpPollCommand {
 
 
             //For each role
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < roleIds.size(); i++) {
 
                 String roleId = roleIds.get(i);
                 String roleName = roleNames.get(i);
+                roleName = roleName.replace(" ", "_");
 
                 PollSQL.createPoll(roleName);
 

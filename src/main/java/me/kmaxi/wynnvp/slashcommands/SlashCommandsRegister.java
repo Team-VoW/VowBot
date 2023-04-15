@@ -1,9 +1,9 @@
 package me.kmaxi.wynnvp.slashcommands;
 
+import me.kmaxi.wynnvp.linereport.LineReportManager;
 import me.kmaxi.wynnvp.slashcommands.poll.PollDataFetcher;
 import me.kmaxi.wynnvp.slashcommands.poll.SetUpPollCommand;
 import me.kmaxi.wynnvp.utils.Utils;
-import me.kmaxi.wynnvp.linereport.LineReportManager;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -83,8 +83,11 @@ public class SlashCommandsRegister extends ListenerAdapter {
         commandData.add(Commands.slash("setuppoll", "Sets up the voting poll for the casting call")
                 .addOptions(new OptionData(OptionType.STRING, "url", "The url to the casting call", true)));
 
-        commandData.add(Commands.slash("getvotes", "Gets the current votes of the poll")
+        commandData.add(Commands.slash("getvotes", "Gets the current for everyone votes")
                 .addOptions(new OptionData(OptionType.STRING, "npc", "The NPC of which to get the poll off", true)));
+
+        commandData.add(Commands.slash("votes", "Gets your current votes")
+                .addOptions(new OptionData(OptionType.STRING, "npc", "The NPC of which to get the poll for. If this is empty it will tell you all your votes", false)));
 
 
         event.getGuild().updateCommands().addCommands(commandData).queue();
@@ -99,15 +102,21 @@ public class SlashCommandsRegister extends ListenerAdapter {
             return;
         }
 
+        switch (event.getName().toLowerCase().trim()) {
+            case "help":
+                HelpCommand.TriggerCommand(event);
+                return;
+            case "votes":
+                PollDataFetcher.getVotesForPerson(event);
+                return;
+        }
+
         if (!(Utils.isStaff(event.getMember()))) {
             event.reply("You do not have permission do execute this command.").setEphemeral(true).queue();
             return;
         }
 
         switch (event.getName().toLowerCase().trim()) {
-            case "help":
-                HelpCommand.TriggerCommand(event);
-                return;
             case "close":
                 ApplicationCommands.close(event);
                 return;
@@ -131,24 +140,24 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 return;
             case "getalllines":
                 ApiCommands.getAllLinesFromCharacter(event);
-                break;
+                return;
             case "createchannel":
                 ChannelCommands.CreateChannelForVoiceActor(event);
-                break;
+                return;
             case "checked":
                 SyncWebsite.FinishedRole(event);
-                break;
+                return;
 
         }
         if (!(Utils.isAdmin(event.getMember()))) {
-            event.reply("You do not have permission do execute this command.").setEphemeral(true).queue();
+            event.reply("You do not have permission do execute this command. You need Admin perms").setEphemeral(true).queue();
             return;
         }
 
         switch (event.getName().toLowerCase().trim()) {
             case "syncallusers":
                 SyncWebsite.SyncAllUsers(event);
-                break;
+                return;
             case "resetforwarded":
                 LineReportManager.resetForwarded();
                 return;
@@ -156,7 +165,7 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 SetUpPollCommand.SetUpPoll(event);
                 return;
             case "getvotes":
-                PollDataFetcher.getSingleNpc(event);
+                PollDataFetcher.getAllVotes(event);
                 return;
         }
     }
