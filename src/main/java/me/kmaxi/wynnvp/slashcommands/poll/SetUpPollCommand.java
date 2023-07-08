@@ -196,17 +196,22 @@ public class SetUpPollCommand {
     }
 
     private static JSONObject getJsonObject(String urlToRead) throws Exception {
-        StringBuilder result = new StringBuilder();
         URL url = new URL(urlToRead);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(conn.getInputStream()))) {
-            for (String line; (line = reader.readLine()) != null; ) {
-                result.append(line);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        // Set the User-Agent header
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
             }
+            return new JSONObject(response.toString());
+        } finally {
+            connection.disconnect();
         }
-        return new JSONObject(result.toString());
     }
 
 }
