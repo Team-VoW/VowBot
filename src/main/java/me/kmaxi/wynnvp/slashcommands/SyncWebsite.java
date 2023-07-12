@@ -60,11 +60,12 @@ public class SyncWebsite {
 
     public static void FinishedRole(SlashCommandInteractionEvent event) {
 
+        event.deferReply().queue();
+
         Member member = Utils.getFirstMemberWithSpecialPermission(event.getGuildChannel());
 
         if (member == null) {
-
-            event.reply("ERROR! COULD NOT FIND ANY USER THAT THIS CHANNEL WAS MADE FOR!").setEphemeral(true).queue();
+            event.getHook().setEphemeral(true).editOriginal("ERROR! COULD NOT FIND ANY USER THAT THIS CHANNEL WAS MADE FOR!").queue();
             return;
         }
 
@@ -73,7 +74,7 @@ public class SyncWebsite {
 
         //Role was not upgraded because person is already at highest role
         if (completableFuture == null){
-            event.reply("Thanks a lot for voicing this character " + member.getAsMention() + ":heart:. " +
+            event.getHook().setEphemeral(false).editOriginal("Thanks a lot for voicing this character " + member.getAsMention() + ":heart:. " +
                     "\nBecause you already are expert actor your role stayed the same this time :grin:").queue();
             return;
         }
@@ -91,13 +92,15 @@ public class SyncWebsite {
 
                 postArguments = addPostArgument(postArguments, "roles=" + getRolesArguments(member));
 
+           //     event.getChannel().sendMessage("Post arguments: " + postArguments).queue();
+
                 try {
                     String password = updateUserDataOnWebsite(postArguments);
 
                     //No new account was created.
                     if (password.equals("")) {
 
-                        event.reply("Thanks a lot for voicing this character " + member.getAsMention() + ":heart:. " +
+                        event.getHook().setEphemeral(false).editOriginal("Thanks a lot for voicing this character " + member.getAsMention() + ":heart:. " +
                                 "\nYour actor role has been upgraded here and on the Website :partying_face:").queue();
                         return;
                     }
@@ -108,7 +111,7 @@ public class SyncWebsite {
                     postArguments = appendProfilePictureURL(postArguments, null, member.getUser());
                     updateUserDataOnWebsite(postArguments);
 
-                    event.reply("Thanks a lot for voicing your very first character for us " + member.getAsMention() + ":heart::partying_face:." +
+                    event.getHook().setEphemeral(false).editOriginal("Thanks a lot for voicing your very first character for us " + member.getAsMention() + ":heart::partying_face:." +
                             "\n\n An account with the name " + member.getUser().getName() + " and the temporary password ||" +
                             password + "|| has been created for you on our website https://voicesofwynn.com/ " +
                             "" +
