@@ -89,6 +89,8 @@ public class SlashCommandsRegister extends ListenerAdapter {
         commandData.add(Commands.slash("votes", "Gets your current votes")
                 .addOptions(new OptionData(OptionType.STRING, "npc", "The NPC of which to get the poll for. If this is empty it will tell you all your votes", false)));
 
+        commandData.add(Commands.slash("token", "Gets your token for the VowCloud (premium) mod"));
+
 
         event.getGuild().updateCommands().addCommands(commandData).queue();
     }
@@ -108,6 +110,9 @@ public class SlashCommandsRegister extends ListenerAdapter {
                 return;
             case "votes":
                 PollDataFetcher.getVotesForPerson(event);
+                return;
+            case "token":
+                VowCloudTokenCommand.getVowCloudToken(event);
                 return;
         }
 

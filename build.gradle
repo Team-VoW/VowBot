@@ -24,7 +24,6 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
     implementation 'org.json:json:20230227'
     implementation 'net.dv8tion:JDA:5.0.0-alpha.9'
     implementation 'org.jsoup:jsoup:1.15.4'
