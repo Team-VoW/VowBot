@@ -1,21 +1,30 @@
-buildscript {
-
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
-    }
-}
-
 plugins {
     id 'java'
-    id 'application'
-}
-mainClassName = "me.kmaxi.wynnvp.WynnVPBotMain"
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
 
+}
 
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group 'org.example'
 version '1.0-SNAPSHOT'
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'me/kmaxi/wynnvp/WynnVPBotMain'
+        )
+    }
+}
+
+
+shadowJar {
+    baseName = 'me.kmaxi'
+    version = '1.0'
+    manifest {
+        attributes 'Main-Class': 'me/kmaxi/wynnvp/WynnVPBotMain'
+    }
+}
 
 
 
@@ -31,3 +40,5 @@ dependencies {
     implementation 'mysql:mysql-connector-java:8.0.32'
 
 }
+sourceCompatibility = JavaVersion.VERSION_14
+targetCompatibility = JavaVersion.VERSION_14
