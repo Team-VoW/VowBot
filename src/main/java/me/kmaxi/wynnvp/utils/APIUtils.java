@@ -83,7 +83,7 @@ public class APIUtils {
      * @return The http connection where you can get response code, response message and other things
      * @throws IOException If an error was encountered
      */
-    private static HttpURLConnection sendPostRequest(String requestURL, String urlParameters) throws IOException {
+    public static HttpURLConnection sendPostRequest(String requestURL, String urlParameters) throws IOException {
         //Post Request
         byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
         int postDataLength = postData.length;
