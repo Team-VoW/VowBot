@@ -5,10 +5,7 @@ import me.kmaxi.wynnvp.Config;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -113,6 +110,28 @@ public class APIUtils {
         urlParameters += "&apiKey=" + APIKeys.discordIntegrationAPIKey;
         urlParameters = urlParameters.substring(1);
         return urlParameters;
+    }
+
+    public static int sendPUT(String urlString, String data, String apiKey) throws IOException {
+
+
+        URL url = new URL(urlString);
+        HttpURLConnection http = (HttpURLConnection) url.openConnection();
+        http.setRequestMethod("PUT");
+        http.setDoOutput(true);
+        http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+        data = data + "&apiKey=" + apiKey;
+
+        byte[] out = data.getBytes(StandardCharsets.UTF_8);
+
+        OutputStream stream = http.getOutputStream();
+        stream.write(out);
+
+        System.out.println(http.getResponseCode() + " " + http.getResponseMessage());
+        http.disconnect();
+
+        return http.getResponseCode();
     }
 
 

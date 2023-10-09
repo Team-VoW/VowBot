@@ -54,7 +54,7 @@ public class Config {
 
     public static ArrayList<String> actorRoleList = new ArrayList<>(Arrays.asList("819550145217298452", "822008829696933909", "821156730079150131", "821157297908744222"));
 
-    public static HashSet<String> vowCloudAccessRoles = new HashSet<>(Arrays.asList(
+    private static HashSet<String> vowCloudAccessRoles = new HashSet<>(Arrays.asList(
             "814439316800667651" //Developer
             , "821772974226407445" //Voice Manager
             , "819850296926666763" //Writer

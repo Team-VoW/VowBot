@@ -24,7 +24,7 @@ public class TokenActivationHandler extends ListenerAdapter {
     @Override
     public void onGuildMemberRoleAdd(GuildMemberRoleAddEvent event) {
         //Do not care about the removal of this role as this role had nothing to do with the vow cloud access
-        if (!Config.vowCloudAccessRoles.contains(event.getRoles()))
+        if (!Config.hasVowCloudAccess(event.getRoles()))
             return;
 
         reactiveToken(event.getMember());
@@ -56,28 +56,25 @@ public class TokenActivationHandler extends ListenerAdapter {
 
 
     private void disableToken(Member member) {
+        System.out.println("Disabling token for " + member.getEffectiveName());
         sendRequest(deactivateURL, member);
     }
 
     private void reactiveToken(Member member) {
+        System.out.println("Enabling token for " + member.getEffectiveName());
+
         sendRequest(reactivateURL, member);
     }
 
     private void sendRequest(String url, Member member) {
 
-        HttpURLConnection conn = APIUtils.sendPostRequest(url, "&discord=" + member.getId() + "&apiKey=" + APIKeys.vowCloudAPIKey);
-
-        StringBuilder result = new StringBuilder();
-
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(conn.getInputStream()))) {
-            for (String line; (line = reader.readLine()) != null; ) {
-                result.append(line);
-            }
+        int resposeCode = 0;
+        try {
+            resposeCode = APIUtils.sendPUT(url, "discord=" + member.getId(), APIKeys.vowCloudAPIKey);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Sent request to: " + url + " with member " + member.getEffectiveName() + " and got result: " + result);
+        System.out.println("Sent request to: " + url + " with member " + member.getEffectiveName() + " and got result: " + resposeCode);
     }
 
 
