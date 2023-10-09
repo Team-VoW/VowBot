@@ -37,7 +37,7 @@ public class VowCloudTokenCommand {
                 return;
             }
 
-            event.reply("Your token is: " + token).setEphemeral(true).queue();
+            event.reply("Your token is: ||" + token + "|| \n" + "If you should share this token with someone then this code will be disabled and you will not be able to get a new one.").setEphemeral(true).queue();
 
         } catch (Exception e) {
             throw new RuntimeException(e);
