@@ -14,7 +14,7 @@ public class DatabaseConnection {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             connection = DriverManager.getConnection(
-                    "jdbc:mysql://aws.connect.psdb.cloud/vowpolls?sslMode=VERIFY_IDENTITY",
+                    "jdbc:mysql://localhost:3306/vowpolls",
                     APIKeys.sqlUsername,
                     APIKeys.sqlPassword);
 
