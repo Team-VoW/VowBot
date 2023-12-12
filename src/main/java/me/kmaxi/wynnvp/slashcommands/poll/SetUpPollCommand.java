@@ -47,7 +47,7 @@ public class SetUpPollCommand {
 
                 String roleId = roleIds.get(i);
                 String roleName = roleNames.get(i);
-                roleName = roleName.trim().replace(" ", "_");
+                roleName = roleName.trim().replaceAll("[ ,.-]", "_");
 
                 PollSQL.createPoll(roleName);
 
@@ -91,7 +91,7 @@ public class SetUpPollCommand {
             String audioURL = audition.getString("public_audio_url");
             String userName = audition.getString("username");
             String audioFileName = userName + ".mp3";
-            String roleName = audition.getString("role_name").trim().replace(" ", "_");
+            String roleName = audition.getString("role_name").trim().replaceAll("[ ,.-]", "_");
 
             try {
                 URL website = new URL(audioURL);
