@@ -1,10 +1,13 @@
 package me.kmaxi.wynnvp.slashcommands.poll;
 
 import me.kmaxi.wynnvp.Config;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.ThreadChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.requests.restaction.ThreadChannelAction;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -29,6 +32,8 @@ public class SetUpPollCommand {
         event.deferReply().setEphemeral(true).queue();
 
         String URL = event.getOption("url").getAsString(); // The URL of the project will be provided in the command
+
+        event.getChannel().sendMessage("Auditions for " + URL).queue();
         try {
             Document doc = Jsoup.connect(URL).get();
 
@@ -44,7 +49,6 @@ public class SetUpPollCommand {
 
             //For each role
             for (int i = 0; i < roleIds.size(); i++) {
-
                 String roleId = roleIds.get(i);
                 String roleName = roleNames.get(i);
                 roleName = roleName.trim().replaceAll("[ ,.-]", "_");
@@ -53,25 +57,14 @@ public class SetUpPollCommand {
 
                 ArrayList<JSONObject> auditions = getAuditions(roleId);
 
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("\n").append("**ROLE: ").append(roleName).append("**");
+                // Create a thread for each role
+                final String threadName = roleName + " Auditions";
+                Message startMessage = event.getTextChannel().sendMessage("Auditions for " + roleName).complete();
+                ThreadChannel threadChannelAction = startMessage.createThreadChannel(threadName).complete();
 
-                //For each audition
-                for (int j = 0; j < auditions.size(); j++) {
-                    JSONObject audition = auditions.get(j);
-
-                    String username = audition.getString("username");
-                    String audioURL = audition.getString("public_audio_url");
-
-                    PollSQL.createRowIfNotExists(roleName, username);
-
-
-                    stringBuilder.append("\n").append(j).append(" ").append(username);//.append(" ").append(audioURL);
-                }
-
-                event.getTextChannel().sendMessage(stringBuilder).queue();
-                sendAudioFiles(auditions, event.getMessageChannel());
+                sendAudioFiles(auditions, threadChannelAction);
             }
+
 
         } catch (IOException e) {
             e.printStackTrace();
