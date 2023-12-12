@@ -6,7 +6,7 @@ import java.sql.*;
 
 public class DatabaseConnection {
  //   private static final MySQL mySQL;
-    private static final Connection connection;
+    private static Connection connection;
 
     static {
 
@@ -27,8 +27,20 @@ public class DatabaseConnection {
        // mySQL = new MySQL("66.11.118.47", "3306", "s10530_polls", "u10530_NJoqWZbXbX", "qB^8awM@vlO8Wx+uovrHf2rN");
     }
 
-    // Method to get a database connection
     public static Connection getConnection() throws SQLException {
+        // Check if the connection is null, closed, or not valid
+        if (connection == null || connection.isClosed() || !connection.isValid(1)) {
+            // Re-establish the connection
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                connection = DriverManager.getConnection(
+                        "jdbc:mysql://localhost:3306/vowpolls",
+                        APIKeys.sqlUsername,
+                        APIKeys.sqlPassword);
+            } catch (ClassNotFoundException e) {
+                throw new SQLException("Driver class not found", e);
+            }
+        }
 
         return connection;
     }
