@@ -74,11 +74,12 @@ public class SlashCommandsRegister extends ListenerAdapter {
                         new OptionData(OptionType.STRING, "npc9", "The ninths npc name", false)));
 
         commandData.add(Commands.slash("createchannel", "Creates a text channel in accepted category for a voice actor")
-                .addOptions(new OptionData(OptionType.USER, "user", "The voices actors discord", true))
+                .addOptions(new OptionData(OptionType.USER, "user", "The voice actors discord", true))
                 .addOptions(new OptionData(OptionType.STRING, "npc", "The name of the NPC", true)));
 
         commandData.add(Commands.slash("syncallusers", "Syncs all users data to the website. Warning, this is a heavy command!"));
-        commandData.add(Commands.slash("checked", "Upgrades this users role here and on website and creates an account if they don't have one"));
+        commandData.add(Commands.slash("checked", "Upgrades this users role here and on website and creates an account if they don't have one")
+                        .addOptions(new OptionData(OptionType.USER, "user", "The voice actors discord", false)));
 
         commandData.add(Commands.slash("setuppoll", "Sets up the voting poll for the casting call")
                 .addOptions(new OptionData(OptionType.STRING, "url", "The url to the casting call", true)));

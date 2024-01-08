@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -62,7 +63,10 @@ public class SyncWebsite {
 
         event.deferReply().queue();
 
-        Member member = Utils.getFirstMemberWithSpecialPermission(event.getGuildChannel());
+
+        OptionMapping taggedUser = event.getOption("user");
+
+        Member member = taggedUser == null ? Utils.getFirstMemberWithSpecialPermission(event.getGuildChannel()) : event.getGuild().getMember(taggedUser.getAsUser());
 
         if (member == null) {
             event.getHook().setEphemeral(true).editOriginal("ERROR! COULD NOT FIND ANY USER THAT THIS CHANNEL WAS MADE FOR!").queue();
