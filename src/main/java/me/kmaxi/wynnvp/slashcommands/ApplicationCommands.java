@@ -5,7 +5,9 @@ import me.kmaxi.wynnvp.utils.Utils;
 import me.kmaxi.wynnvp.interfaces.StringIntInterface;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
@@ -20,7 +22,7 @@ public class ApplicationCommands {
 
     public static void close(SlashCommandInteractionEvent event) {
 
-        if (!isUnderApplicationCategory(event.getTextChannel())) {
+        if (!isUnderApplicationCategory((TextChannel) event.getChannel())) {
             event.reply("Can only do this command in application channels.").setEphemeral(true).queue();
             return;
         }
@@ -41,7 +43,7 @@ public class ApplicationCommands {
     }
 
     private static void closeChannelWithCoolDown(SlashCommandInteractionEvent event) {
-        TextChannel textChannel = event.getTextChannel();
+        MessageChannelUnion textChannel = event.getChannel();
 
         try {
             textChannel.sendMessage("Thank you for applying for the role! " +
@@ -75,7 +77,7 @@ public class ApplicationCommands {
         }
 
         replaceLineWhereNpcIs(message, npcName, questName, ((number, line) -> {
-            message.clearReactions(Utils.getUnicode(number)).queue();
+            message.clearReactions(Emoji.fromUnicode(Utils.getUnicode(number))).queue();
             line = line.replace(Utils.convertNumber(number), "x");
             if (line.contains("(")) {
                 String[] split = line.split("\\(");
@@ -100,7 +102,7 @@ public class ApplicationCommands {
         }
 
         replaceLineWhereNpcIs(message, npcName, questName, ((lineNumber, lineBefore) -> {
-            message.addReaction(Utils.getUnicode(lineNumber)).queue();
+            message.addReaction(Emoji.fromUnicode(Utils.getUnicode(lineNumber))).queue();
             return ":" + Utils.convertNumber(lineNumber) + ": = " + npcName;
         }));
 
@@ -142,7 +144,7 @@ public class ApplicationCommands {
                 continue;
             }
             int number = (int) (((double) i / 2.0) + 0.5);
-            message.addReaction(Utils.getUnicode(number)).queue();
+            message.addReaction(Emoji.fromUnicode(Utils.getUnicode(number))).queue();
             line = lineChange.operation((int) (((double) i / 2.0) + 0.5), line);
             out.append("\n").append(line);
             hasChangedAline = true;
@@ -176,7 +178,7 @@ public class ApplicationCommands {
         event.getGuild().getTextChannelById(Config.channelName).sendMessage(out).queue(message1 -> {
             int index = 1;
             for (String reaction : reactions) {
-                message1.addReaction(Utils.getUnicode(index)).queue();
+                message1.addReaction(Emoji.fromUnicode(Utils.getUnicode(index))).queue();
                 index++;
             }
         });

@@ -34,7 +34,9 @@ repositories {
 
 dependencies {
     implementation 'org.json:json:20230227'
-    implementation 'net.dv8tion:JDA:5.0.0-alpha.9'
+  //  implementation 'net.dv8tion:JDA:5.0.0-alpha.9'
+    implementation group: 'net.dv8tion', name: 'JDA', version: '5.0.0-beta.19'
+
     implementation 'org.jsoup:jsoup:1.15.4'
     implementation 'com.zaxxer:HikariCP:5.0.1'
     implementation 'mysql:mysql-connector-java:8.0.32'

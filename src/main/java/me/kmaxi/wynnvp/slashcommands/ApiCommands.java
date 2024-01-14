@@ -26,9 +26,9 @@ public class ApiCommands {
         event.reply("Sending lines now").setEphemeral(true).queue();
 
         if (addReaction){
-            LineReportManager.sendLinesWithReaction(url, event.getMessageChannel());
+            LineReportManager.sendLinesWithReaction(url, event.getChannel());
         } else {
-            LineReportManager.sendLinesWithoutReaction(url, event.getMessageChannel());
+            LineReportManager.sendLinesWithoutReaction(url, event.getChannel());
         }
     }
 

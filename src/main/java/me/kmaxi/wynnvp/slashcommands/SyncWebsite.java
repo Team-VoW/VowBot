@@ -212,17 +212,15 @@ public class SyncWebsite {
         Member member = null;
 
         if (uuid != 0) {
-            member = guild.getMemberById(uuid);
+            return guild.getMemberById(uuid);
         }
 
-
-        if (member != null)
-            return member;
 
         if (discordUserName.equals(""))
             return null;
 
 
+        System.out.println("Returning by name: " + discordUserName);
         return guild.getMemberByTag(discordUserName);
     }
 

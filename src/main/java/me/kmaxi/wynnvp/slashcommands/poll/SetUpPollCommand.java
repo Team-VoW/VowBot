@@ -2,12 +2,14 @@ package me.kmaxi.wynnvp.slashcommands.poll;
 
 import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.ThreadChannel;
+
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.restaction.ThreadChannelAction;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -59,7 +61,7 @@ public class SetUpPollCommand {
 
                 // Create a thread for each role
                 final String threadName = roleName + " Auditions";
-                Message startMessage = event.getTextChannel().sendMessage("Auditions for " + roleName).complete();
+                Message startMessage = event.getChannel().sendMessage("Auditions for " + roleName).complete();
                 ThreadChannel threadChannelAction = startMessage.createThreadChannel(threadName).complete();
 
                 sendAudioFiles(auditions, threadChannelAction);
@@ -100,7 +102,7 @@ public class SetUpPollCommand {
                 Button removeVoteButton = Button.danger(
                         messageText.replace(" ", "-") + "-" + Config.removeVoteButtonLabel, Config.removeVoteButtonLabel);
                 ActionRow row = ActionRow.of(voteButton, removeVoteButton);
-                channel.sendMessage("```" +  messageText + "```").setActionRows(row).addFile(file).queue();
+                channel.sendMessage("```" +  messageText + "```").addActionRow(voteButton, removeVoteButton).addFiles(FileUpload.fromData(file)).queue();
 
                 file.delete();
 

@@ -29,7 +29,7 @@ public class WynnVPBotMain {
                             GatewayIntent.GUILD_MESSAGE_REACTIONS, // Enabling message reaction events (add, remove, ...)
                             GatewayIntent.GUILD_VOICE_STATES, // Enabling voice events (join, leave, mute, deafen, ...)
                             //GatewayIntent.GUILD_PRESENCES, // Is needed for the CLIENT_STATUS CacheFlag
-                            GatewayIntent.GUILD_EMOJIS) // Enabling emote events (add, update, delete, ...). Also is needed for the CacheFlag.EMOTE)
+                            GatewayIntent.GUILD_EMOJIS_AND_STICKERS) // Enabling emote events (add, update, delete, ...). Also is needed for the CacheFlag.EMOTE)
 
                     .setChunkingFilter(ChunkingFilter.ALL) // enable member chunking for all guilds
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
@@ -44,7 +44,7 @@ public class WynnVPBotMain {
             LineReportManager.startTimer();
             jda.updateCommands().queue();
             guild = jda.getGuildById(814401551292563477L);
-        } catch (LoginException | InterruptedException e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 

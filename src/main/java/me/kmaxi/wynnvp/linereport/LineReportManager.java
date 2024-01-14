@@ -5,7 +5,8 @@ import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -58,23 +59,14 @@ public class LineReportManager {
         }
 
 
-        String yOrN = "none";
+        String yOrN = switch (event.getReaction().getEmoji().asUnicode().getAsCodepoints()) {
+            case "U+2705" -> "y";
+            case "U+274c" -> "n";
+            case "U+1f399" -> "v";
+            case "U+1f5d1" -> "r";
+            default -> "none";
+        };
 
-        System.out.println(event.getReactionEmote().getAsCodepoints());
-        switch (event.getReactionEmote().getAsCodepoints()) {
-            case "U+2705":
-                yOrN = "y";
-                break;
-            case "U+274c":
-                yOrN = "n";
-                break;
-            case "U+1f399":
-                yOrN = "v";
-                break;
-            case "U+1f5d1":
-                yOrN = "r";
-                break;
-        }
         if (yOrN.equals("none")) return;
 
         sendLineAndDeleteMessage(line, yOrN, event.retrieveMessage().complete(), guild);
@@ -100,10 +92,10 @@ public class LineReportManager {
 
 
                 guild.getTextChannelById(Config.reportedLines).sendMessage(message).queue(message1 -> {
-                    message1.addReaction(Config.acceptUnicode).queue();
-                    message1.addReaction(Config.declineUnicode).queue();
-                    message1.addReaction(Config.microphoneUnicode).queue();
-                    message1.addReaction(Config.trashUnicode).queue();
+                    message1.addReaction(Emoji.fromUnicode(Config.acceptUnicode)).queue();
+                    message1.addReaction(Emoji.fromUnicode(Config.declineUnicode)).queue();
+                    message1.addReaction(Emoji.fromUnicode(Config.microphoneUnicode)).queue();
+                    message1.addReaction(Emoji.fromUnicode(Config.trashUnicode)).queue();
                 });
             }
         } catch (Exception e) {
@@ -111,7 +103,7 @@ public class LineReportManager {
         }
     }
 
-    public static void sendAllReports(MessageChannel messageChannel, String url) {
+    public static void sendAllReports(MessageChannelUnion messageChannel, String url) {
         try {
             JSONArray jsonArray = getJsonData(url);
 
@@ -124,9 +116,9 @@ public class LineReportManager {
 
 
                 messageChannel.sendMessage(message).queue(message1 -> {
-                    message1.addReaction(Config.declineUnicode).queue();
-                    message1.addReaction(Config.microphoneUnicode).queue();
-                    message1.addReaction(Config.trashUnicode).queue();
+                    message1.addReaction(Emoji.fromUnicode(Config.declineUnicode)).queue();
+                    message1.addReaction(Emoji.fromUnicode(Config.microphoneUnicode)).queue();
+                    message1.addReaction(Emoji.fromUnicode(Config.trashUnicode)).queue();
                 });
             }
         } catch (Exception e) {
@@ -152,9 +144,9 @@ public class LineReportManager {
             guild.getTextChannelById(Config.staffBotChat).sendMessage("Line: ´" + fullLine + "´ with status **" + acceptedString + "** got response code **" + responseCode + "**").queue();
         } else {
             if (acceptedString.equals("y")) {
-                guild.getTextChannelById(Config.acceptedLines).sendMessage(message).queue(message1 -> {
-                    message1.addReaction(Config.declineUnicode).queue();
-                    message1.addReaction(Config.microphoneUnicode).queue();
+                guild.getTextChannelById(Config.acceptedLines).sendMessage(message.getContentRaw()).queue(message1 -> {
+                    message1.addReaction(Emoji.fromUnicode(Config.declineUnicode)).queue();
+                    message1.addReaction(Emoji.fromUnicode(Config.microphoneUnicode)).queue();
                 });
             }
 
@@ -214,7 +206,7 @@ public class LineReportManager {
         }
     }
 
-    public static void sendLinesWithReaction(String url, MessageChannel messageChannel) {
+    public static void sendLinesWithReaction(String url, MessageChannelUnion messageChannel) {
 
         try {
             JSONArray jsonArray = getJsonData(url);
@@ -223,9 +215,9 @@ public class LineReportManager {
                 String line = jsonObject.getString("message");
 
                 messageChannel.sendMessage(line).queue(message1 -> {
-                    message1.addReaction(Config.declineUnicode).queue();
-                    message1.addReaction(Config.microphoneUnicode).queue();
-                    message1.addReaction(Config.trashUnicode).queue();
+                    message1.addReaction(Emoji.fromUnicode(Config.declineUnicode)).queue();
+                    message1.addReaction(Emoji.fromUnicode(Config.microphoneUnicode)).queue();
+                    message1.addReaction(Emoji.fromUnicode(Config.trashUnicode)).queue();
                 });
 
             }
@@ -236,7 +228,7 @@ public class LineReportManager {
     }
 
     private static final int maxLengthInOneMessage = 2000;
-    public static void sendLinesWithoutReaction(String url, MessageChannel messageChannel) {
+    public static void sendLinesWithoutReaction(String url, MessageChannelUnion messageChannel) {
         ArrayList<StringBuilder> messages = new ArrayList<>();
         messages.add(new StringBuilder());
 

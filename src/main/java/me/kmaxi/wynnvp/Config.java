@@ -30,7 +30,7 @@ public class Config {
     public static long closingCategoryID = 867868540320743485l;
     public static long acceptedCategoryID = 821787630726938674l;
     public static long spamCategoryID = 823489138916720670l;
-    public static long scriptChannelID = 819850275022962729l;
+    public static long scriptChannelID = 819850275022962729L;
     public static long traineeRole = 835558288489578536l;
     public static long donatorPlusRole = 824750375764099073l;
     public static long vipRole = 824752537331826748l;

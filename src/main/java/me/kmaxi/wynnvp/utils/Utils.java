@@ -3,6 +3,8 @@ package me.kmaxi.wynnvp.utils;
 import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 import java.util.ArrayList;
 import java.util.Collection;

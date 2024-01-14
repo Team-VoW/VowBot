@@ -1,19 +1,15 @@
 package me.kmaxi.wynnvp.listeners;
 
+import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.utils.APIUtils;
-import me.kmaxi.wynnvp.APIKeys;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-import javax.annotation.Nonnull;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.util.Objects;
 
 public class TokenActivationHandler extends ListenerAdapter {
@@ -31,7 +27,7 @@ public class TokenActivationHandler extends ListenerAdapter {
     }
 
     @Override
-    public void onGuildMemberRoleRemove(@Nonnull GuildMemberRoleRemoveEvent event) {
+    public void onGuildMemberRoleRemove(GuildMemberRoleRemoveEvent event) {
         //Do not care about the removal of this role as this role had nothing to do with the vow cloud access
         if (!Config.hasVowCloudAccess(event.getRoles()))
             return;
@@ -45,7 +41,7 @@ public class TokenActivationHandler extends ListenerAdapter {
 
     //Indicates that a user was removed from a Guild. This includes kicks, bans, and leaves respectively.
     @Override
-    public void onGuildMemberRemove(@Nonnull GuildMemberRemoveEvent event) {
+    public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
         if (event.getMember() == null) {
             Objects.requireNonNull(event.getGuild().getTextChannelById(Config.staffBotChat)).sendMessage("ERROR! LEAVING MEMBER WAS NULL!").queue();
             return;

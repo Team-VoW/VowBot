@@ -3,7 +3,7 @@ package me.kmaxi.wynnvp.linereport;
 import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.json.JSONObject;
 
 import java.util.*;
