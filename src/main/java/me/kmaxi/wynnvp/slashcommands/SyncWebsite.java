@@ -219,9 +219,13 @@ public class SyncWebsite {
         if (discordUserName.equals(""))
             return null;
 
+        if (discordUserName.contains("#")){
+            return guild.getMemberByTag(discordUserName);
+        }
 
-        System.out.println("Returning by name: " + discordUserName);
-        return guild.getMemberByTag(discordUserName);
+
+        return null;
+
     }
 
     private static String appendDiscordUUID(String postArguments, long uuidOnWebsite, User discordMember) {
