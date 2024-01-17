@@ -6,99 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class VotersSQL {
-    public static void createVoterTableIfNotExists(String userID){
-        String createTableQuery = "CREATE TABLE IF NOT EXISTS _" + userID + " ("
-                + "npc VARCHAR(30) PRIMARY KEY,"
-                + "votes VARCHAR(200)"
-                + ")";
-        DatabaseConnection.runSQLQuery(createTableQuery);
-    }
 
-    public static void registerVote(String userID, String npcName, String vaName){
-        createVoterTableIfNotExists(userID);
-
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        try {
-            conn = DatabaseConnection.getConnection();
-            if (conn != null) {
-                // Check if the npc exists in the userIDs table
-                String checkQuery = "SELECT votes FROM _" + userID + " WHERE npc = ?";
-                stmt = conn.prepareStatement(checkQuery);
-                stmt.setString(1, npcName);
-                ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    // If the npc exists, update the votes
-                    String existingVotes = rs.getString("votes");
-                    if (existingVotes == null || existingVotes.isEmpty()) {
-                        existingVotes = vaName;
-                    } else {
-                        existingVotes += "," + vaName;
-                    }
-                    String updateQuery = "UPDATE _" + userID + " SET votes = ? WHERE npc = ?";
-                    stmt = conn.prepareStatement(updateQuery);
-                    stmt.setString(1, existingVotes);
-                    stmt.setString(2, npcName);
-                    stmt.executeUpdate();
-                } else {
-                    // If npc does not exist, insert a new row in the  table for the given npc
-                    String insertQuery = "INSERT INTO _" + userID + " (npc, votes) VALUES (?, ?)";
-                    stmt = conn.prepareStatement(insertQuery);
-                    stmt.setString(1, npcName);
-                    stmt.setString(2, vaName);
-                    stmt.executeUpdate();
-                }
-                rs.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(conn, stmt);
-        }
-    }
-
-    public static void UnregisterVote(String userID, String npcName, String vaName){
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        try {
-            conn = DatabaseConnection.getConnection();
-            if (conn != null) {
-                // Check if the npc exists in the userIDs table
-                String checkQuery = "SELECT votes FROM _" + userID + " WHERE npc = ?";
-                stmt = conn.prepareStatement(checkQuery);
-                stmt.setString(1, npcName);
-                ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    // If the npc exists, update the votes
-                    String existingVotes = rs.getString("votes");
-                    if (existingVotes != null && !existingVotes.isEmpty()) {
-                        String updateQuery = "UPDATE _" + userID + " SET votes = ? WHERE npc = ?";
-                        stmt = conn.prepareStatement(updateQuery);
-
-                        existingVotes = existingVotes.replace(vaName, "");
-                        existingVotes = existingVotes.replace(",,", ",");
-                        if (existingVotes.contains(",") && existingVotes.lastIndexOf(",") == existingVotes.length() - 1)
-                            existingVotes = existingVotes.substring(0, existingVotes.length() - 1);
-
-                        stmt.setString(1, existingVotes);
-                        stmt.setString(2, npcName);
-                        stmt.executeUpdate();
-                    }
-
-                } else {
-                    System.out.println("ERROR! The " + npcName + " does not exist in _" + userID + " database");
-                }
-                rs.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(conn, stmt);
-        }
-    }
-
-    //A method to get votes for given the userID which is the databaseName and the npcName which is the primary key
-    public static String getVotes(String userID, String npcName) {
+    /**
+     * Method returning the list of autors of auditions that the given user has chosen for the given NPC
+     * @param userID ID of the voice manager
+     * @param npcId ID of the NPC
+     * @return String to send to the command sendere
+     */
+    public static String getVotes(String userID, int npcId) {
         Connection conn = null;
         PreparedStatement stmt = null;
 
@@ -107,15 +22,17 @@ public class VotersSQL {
             conn = DatabaseConnection.getConnection();
             if (conn != null) {
                 // Check if the npc exists in the userIDs table
-                String checkQuery = "SELECT votes FROM _" + userID + " WHERE npc = ?";
+                String checkQuery = "" +
+                        "SELECT GROUP_CONCAT(entry.entry_author SEPARATOR '\n- ') AS 'votes'" +
+                        "FROM vote" +
+                        "JOIN entry ON entry.entry_id = vote.vote_entry_id" +
+                        "WHERE vote.vote_author = ? AND entry.npc_id = ?" +
+                        "ORDER BY entry.entry_id;";
                 stmt = conn.prepareStatement(checkQuery);
-                stmt.setString(1, npcName);
+                stmt.setString(1, userId);
+                stmt.setString(2, npcId);
                 ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    votes = rs.getString("votes");
-                } else {
-                    System.out.println("ERROR! The " + npcName + " does not exist in _" + userID + " database");
-                }
+                votes = rs.getString("votes");
                 rs.close();
             }
         } catch (SQLException e) {
@@ -123,11 +40,16 @@ public class VotersSQL {
         } finally {
             DatabaseConnection.closeConnection(conn, stmt);
         }
-        return "**" + npcName + "** votes: \n" + votes;
+        return "# Votes for this NPC:\n" + votes;
     }
 
-    //A method that prints out everything a user has voted for
-    public static String getAllVotes(String userID) {
+    /**
+     * Method returning the list of autors of auditions that the given user has chosen for all of the NPC in the given poll
+     * @param userID ID of the voice manager
+     * @param pollId ID of the poll
+     * @return String to send to the command sender
+     */
+    public static String getAllVotes(String userID, int pollId) {
         Connection conn = null;
         PreparedStatement stmt = null;
         StringBuilder toSend = new StringBuilder();
@@ -135,15 +57,89 @@ public class VotersSQL {
         try {
             conn = DatabaseConnection.getConnection();
             if (conn != null) {
-                // Check if the npc exists in the userIDs table
-                String checkQuery = "SELECT * FROM _" + userID;
+                String checkQuery = "" +
+                        "SELECT npc.npc_name AS 'role', entry.entry_author AS 'applicant'" +
+                        "FROM vote" +
+                        "JOIN entry ON entry.entry_id = vote.vote_entry_id" +
+                        "JOIN npc ON npc.npc_id = entry.entry_npc_id" +
+                        "WHERE vote.vote_author = ? AND npc.npc_poll_id = ?" +
+                        "ORDER BY npc.npc_id, entry.entry_id;";
                 stmt = conn.prepareStatement(checkQuery);
+                stmt.setString(1, userId);
+                stmt.setString(2, pollId);
                 ResultSet rs = stmt.executeQuery();
-                toSend.append("All Votes:\n ```");
+                /* TODO
+                   The query above will return a table like:
+                   |    role    |   applicant   |
+                   |------------|---------------|
+                   | NPC name 1 | voice actor 3 |
+                   | NPC name 1 | voice actor 1 |
+                   | NPC name 1 | voice actor 2 |
+                   | NPC name 2 | voice actor 1 |
+                   | NPC name 2 | voice actor 3 |
+                   | etc                        |
+                   Somehow process it to output in the correct format, most likely by cycling through the result.
+                   The NPCs are sorted – when you get to a row with a new NPC, you can be sure that you've got
+                   all the votes for the previous one.
+                */
+                toSend.append("# All votes in the poll\n");
                 while (rs.next()) {
-                    toSend.append(rs.getString("npc")).append(": ").append(rs.getString("votes")).append("\n");
+                    /* TODO see above */// toSend.append(rs.getString("npc")).append(": ").append(rs.getString("votes")).append("\n");
                 }
-                toSend.append("```");
+
+                rs.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DatabaseConnection.closeConnection(conn, stmt);
+        }
+        return toSend.toString();
+    }
+
+    /**
+     * Workgroup manage/Admin-only method to get all votes in the given poll sorted by characters/NPCs
+     * @param pollId ID of the poll to evaluate
+     * @return string to send to the command sender
+     */
+    public static String getPollResults(int pollId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        StringBuilder toSend = new StringBuilder();
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            if (conn != null) {
+                String checkQuery = "" +
+                        "SELECT npc.npc_name AS 'role', entry.entry_author AS 'applicant', COUNT(*) AS 'votes'" +
+                        "FROM vote" +
+                        "JOIN entry ON entry.entry_id = vote.vote_entry_id" +
+                        "JOIN npc ON npc.npc_id = entry.entry_npc_id" +
+                        "WHERE npc.npc_poll_id = ?" +
+                        "GROUP BY npc.npc_name, entry.entry_author" +
+                        "ORDER BY npc.npc_id, entry.entry_id;";
+                stmt = conn.prepareStatement(checkQuery);
+                stmt.setString(1, userId);
+                stmt.setString(2, pollId);
+                ResultSet rs = stmt.executeQuery();
+                /* TODO
+                   The query above will return a table like:
+                   |    role    |   applicant   | votes |
+                   |------------|---------------|-------|
+                   | NPC name 1 | voice actor 3 |   2   |
+                   | NPC name 1 | voice actor 1 |   1   |
+                   | NPC name 1 | voice actor 2 |   5   |
+                   | NPC name 2 | voice actor 1 |   1   |
+                   | NPC name 2 | voice actor 3 |   4   |
+                   | etc                                |
+                   Somehow process it to output in the correct format, most likely by cycling through the result.
+                   The NPCs are sorted – when you get to a row with a new NPC, you can be sure that you've got
+                   all the entries for the previous one. Entries with 0 votes do not show.
+                */
+                toSend.append("# All votes in the poll\n");
+                while (rs.next()) {
+                    /* TODO see above */// toSend.append(rs.getString("npc")).append(": ").append(rs.getString("votes")).append("\n");
+                }
 
                 rs.close();
             }

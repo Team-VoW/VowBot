@@ -19,10 +19,19 @@ public class PollDataFetcher {
 
         String toBePrinted;
 
+        /* NOTE
+          This is not an ideal solution, as it doesn't allow the system to work with multiple polls (only with
+          the most recent one). However, for the time being, I think it's sufficient.
+          To make this better, we could add a argument to the relevant commands, in which the poll ID (or its URL)
+          could be set.
+        */
+        int pollId = PollSQL::getLatestPollId();
+
         if (event.getOption("npc") == null) {
-            toBePrinted = VotersSQL.getAllVotes(event.getUser().getId());
+            toBePrinted = VotersSQL.getAllVotes(event.getUser().getId(), pollId);
         } else {
-            toBePrinted = VotersSQL.getVotes(event.getUser().getId(), Objects.requireNonNull(event.getOption("npc")).getAsString().replace(" ", "_"));
+            npcId = PollSql::getNpcId(Objects.requireNonNull(event.getOption("npc")).getAsString(), pollId)
+            toBePrinted = VotersSQL.getVotes(event.getUser().getId(), npcId);
         }
         event.getHook().editOriginal(toBePrinted).queue();
 
@@ -30,63 +39,23 @@ public class PollDataFetcher {
     public static void getAllVotes(SlashCommandInteractionEvent event) {
         event.deferReply().setEphemeral(true).queue();
 
+        /* NOTE
+          This is not an ideal solution, as it doesn't allow the system to work with multiple polls (only with
+          the most recent one). However, for the time being, I think it's sufficient.
+          To make this better, we could add a argument to the relevant commands, in which the poll ID (or its URL)
+          could be set.
+        */
+        int pollId = PollSQL::getLatestPollId();
+
         String npcName = Objects.requireNonNull(event.getOption("npc")).getAsString();
-
-        npcName = npcName.replace(" ", "_");
-
-        getVotes(npcName, event, ((event1, message) -> event1.getHook().editOriginal(message).queue()));
+        int npcId = PollSql::getNpcId(Objects.requireNonNull(event.getOption("npc")).getAsString(), pollId)
+        getVotes(pollId, ((event1, message) -> event1.getHook().editOriginal(message).queue())); //TODO
     }
 
-    private static void getVotes(String tableName, SlashCommandInteractionEvent event, SendFunction sendFunction) {
-        Connection conn = null;
-        PreparedStatement stmt = null;
+    private static void getVotes(int pollId, SendFunction sendFunction) {
+        String toSend = VotersSQL::getPollResults(pollId);
 
-        try {
-            conn = DatabaseConnection.getConnection();
-            if (conn != null) {
-                // Check if table exists in the database
-                if (doesTableExist(tableName)) {
-                    String query = "SELECT messageId, votes, userIds FROM " + tableName;
-                    stmt = conn.prepareStatement(query);
-                    ResultSet rs = stmt.executeQuery();
-
-                    StringBuilder toSend = new StringBuilder();
-                    toSend.append("Votes for: **").append(tableName).append("**:");
-                    toSend.append("```");
-
-                    while (rs.next()) {
-                        String messageID = rs.getString("messageId");
-                        int voteCount = rs.getInt("votes");
-                        String voteUUIDs = rs.getString("userIds");
-                        toSend.append("\n").append(messageID).append(": ").append(voteCount).append(" | ");
-
-                        if (voteUUIDs == null){
-                            continue;
-                        }
-
-                        for (String uuid : voteUUIDs.split(",")) {
-                            Objects.requireNonNull(event.getGuild()).retrieveMemberById(uuid).queue(member -> {
-                                // use member here
-                                toSend.append(member.getEffectiveName()).append(", ");
-                            });
-                        }
-                    }
-                    toSend.append("```");
-
-                    sendFunction.send(event, toSend.toString());
-
-                    rs.close();
-                    stmt.close();
-                } else {
-                    sendFunction.send(event, "Table does not exist");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(conn, stmt);
-        }
+        sendFunction.send(event, toSend);
     }
-
-
 }
+

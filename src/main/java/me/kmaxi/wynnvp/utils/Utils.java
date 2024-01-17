@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 public class Utils {
 
 
-    public static boolean isStaff(Member member) {
+    public static boolean isStaff(Member member) { //TODO: doesn't check for all staff roles
         for (Role role : member.getRoles()) {
             if (role.getIdLong() == Config.roleID
             || role.getIdLong() == Config.writeRoleId) {

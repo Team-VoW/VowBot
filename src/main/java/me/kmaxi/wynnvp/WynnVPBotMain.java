@@ -18,7 +18,6 @@ public class WynnVPBotMain {
 
     //Test bot key: ODIzMjc1ODc5NDM3ODI4MTE2.YFedaQ.HD2kvFNQdNUUhsMe2sbfiKvOeMU
 
-
     public static Guild guild;
     public static void main(String[] args) {
         try {

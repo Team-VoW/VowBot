@@ -34,6 +34,7 @@ public class SetUpPollCommand {
         event.deferReply().setEphemeral(true).queue();
 
         String URL = event.getOption("url").getAsString(); // The URL of the project will be provided in the command
+        int deadline = event.getOption("deadline").getAsInt(); //Get it as timestamp
 
         event.getChannel().sendMessage("Auditions for " + URL).queue();
         try {
@@ -48,6 +49,7 @@ public class SetUpPollCommand {
 
             System.out.println(castingCallTitle);
 
+            int pollId = PollSQL.createPoll(URL, deadline);
 
             //For each role
             for (int i = 0; i < roleIds.size(); i++) {
@@ -55,7 +57,7 @@ public class SetUpPollCommand {
                 String roleName = roleNames.get(i);
                 roleName = roleName.trim().replaceAll("[ ,.-]", "_");
 
-                PollSQL.createPoll(roleName);
+                PollSQL.createNpc(roleName, pollId);
 
                 ArrayList<JSONObject> auditions = getAuditions(roleId);
 
@@ -81,7 +83,6 @@ public class SetUpPollCommand {
     private static void sendAudioFiles(ArrayList<JSONObject> auditions, MessageChannel channel) {
         for (int j = 0; j < auditions.size(); j++) {
 
-
             JSONObject audition = auditions.get(j);
             String audioURL = audition.getString("public_audio_url");
             String userName = audition.getString("username");
@@ -95,12 +96,14 @@ public class SetUpPollCommand {
                 fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
                 File file = new File(audioFileName);
 
-                String messageText = roleName + " " + (j + 1) + " " + userName;
+                int entryId = PollSQL.createEntry(userName, npc);
+
+                String messageText = roleName + " " + (j + 1) + " by " + userName;
 
                 Button voteButton = Button.primary(
-                        messageText.replace(" ", "-") + "-" + Config.voteButtonLabel, Config.voteButtonLabel);
+                        entryId.toString(), Config.voteButtonLabel);
                 Button removeVoteButton = Button.danger(
-                        messageText.replace(" ", "-") + "-" + Config.removeVoteButtonLabel, Config.removeVoteButtonLabel);
+                        (entryId * -1).toString(), Config.removeVoteButtonLabel); //Label of vote and unvote buttons differ in positivity/negativity of the recordId
                 ActionRow row = ActionRow.of(voteButton, removeVoteButton);
                 channel.sendMessage("```" +  messageText + "```").addActionRow(voteButton, removeVoteButton).addFiles(FileUpload.fromData(file)).queue();
 

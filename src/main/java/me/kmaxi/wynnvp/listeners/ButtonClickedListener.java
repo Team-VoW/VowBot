@@ -17,37 +17,38 @@ public class ButtonClickedListener extends ListenerAdapter {
         Button button = event.getButton();
 
         if (button.getLabel().equals(Config.voteButtonLabel)) {
-            processVote(event, PollSQL::addVote, "vote");
+            processVote(event);
         } else if (button.getLabel().equals(Config.removeVoteButtonLabel)) {
-            processVote(event, PollSQL::removeVote, "unvote");
+            processVote(event);
         }
     }
 
 
-    private void processVote(ButtonInteractionEvent event, VoteFunction voteFunction, String action) {
-        //The id is in this format: "RoleName-AuditionNumber-VaName-Label"
-        //Label is just there so that Vote and Remove vote have different ids
+    private void processVote(ButtonInteractionEvent event) {
+        //The id is in this format: "[-]entryId" (if the - is there, the button is "Unvote". Otherwise it's "Vote"
         System.out.println(event.getUser().getName() + " clicked: " + event.getButton().getId() + " with label: " + event.getButton().getLabel());
-        String[] splitID = event.getButton().getId().split("-");
-        String roleName = splitID[0];
+        int buttonId = event.getButton().getId().toInt(); //TODO idk how to parse string to int
+        int entryId = Math.abs(buttonId); //TODO idk how do math functions work in Java – just need to get rid of the minus sign
         String vaName = splitID[2];
 
-        try {
-            if (voteFunction.apply(roleName.replaceAll(".`", ""), vaName, event.getUser().getId()))
-                event.reply(action + "d for " + vaName + " as role " + roleName).setEphemeral(true).queue();
-            else
-                event.reply("Could NOT " + action + " for " + roleName + "-" + vaName).setEphemeral(true).queue();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if (entryId == buttonId) {
+            //Button ID was already positive --> adding vote
+            VoteFunction = PollSQL::addVote;
+            String action = "Vote";
+        } else {
+            //Button ID was negative --> removing vote
+            VoteFunction = PollSQL::removeVote;
+            String action = "Unvote";
         }
 
-        // Execute the passed function with calculated parameters
         try {
-            voteFunction.apply(roleName, vaName, event.getUser().getId());
+            if (voteFunction.apply(entryId, event.getUser().getId()))
+                event.reply(action + "d " + vaName + " for the role of " + roleName + ".").setEphemeral(true).queue();
+            else
+                event.reply("Could **not*** " + action.toLowerCase() + " " + vaName + "for the role of " + roleName + "!").setEphemeral(true).queue(); //TODO idk how to convert action to lowercase
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
-
-
 }
+
