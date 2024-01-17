@@ -16,9 +16,7 @@ public class ButtonClickedListener extends ListenerAdapter {
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
         Button button = event.getButton();
 
-        if (button.getLabel().equals(Config.voteButtonLabel)) {
-            processVote(event);
-        } else if (button.getLabel().equals(Config.removeVoteButtonLabel)) {
+        if (button.getLabel().equals(Config.voteButtonLabel) || button.getLabel().equals(Config.removeVoteButtonLabel)) {
             processVote(event);
         }
     }

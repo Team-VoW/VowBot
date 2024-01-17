@@ -76,8 +76,9 @@ public class PollSQL {
     public static boolean addVote(int entryId, String userId) throws SQLException {
         if (hasVoted(entryId, userId))
             return false;
-
-        VotersSQL.registerVote(userId, entryId);
+        if (!entrysPollActive(entryId)) {
+            return false; //TODO Maybe give the voice manager an error message saying they can't vote because of the deadline?
+        }
 
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -105,8 +106,9 @@ public class PollSQL {
 
 
     public static boolean removeVote(int entryId, String userId) throws SQLException {
-
-        VotersSQL.UnregisterVote(userId, entryId);
+        if (!entrysPollActive(entryId)) {
+            return false; //TODO Maybe give the voice manager an error message saying they can't vote because of the deadline?
+        }
 
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -146,6 +148,58 @@ public class PollSQL {
             statement.setString(2, userId);
             resultSet = statement.executeQuery();
             return resultSet.next(); //TODO return TRUE if the single returned cell contains number higher than 0
+        } finally {
+            DatabaseConnection.closeConnection(connection, statement, resultSet);
+        }
+    }
+
+    /**
+     * Method checking whether the poll in which a given entry is paritcipating is active (not after deadline)
+     * @param entryId ID of the entry whose poll to check
+     * @return TRUE if the deadline hasn't been passed yet
+     */
+    public static boolean entrysPollActive(int entryId) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = DatabaseConnection.getConnection();
+            String selectQuery = "" +
+                    "SELECT poll_deadline" +
+                    "FROM poll" +
+                    "JOIN npc ON poll.poll_id = npc.npc_poll_id" +
+                    "JOIN entry ON npc.npc_id = entry.entry_npc_id" +
+                    "WHERE entry.entry_id = ?;";
+            statement = connection.prepareStatement(selectQuery);
+            statement.setString(1, entryId);
+            resultSet = statement.executeQuery();
+            //TODO load the date string and compare it to the current time. Return TRUE if the value from the databse is in the future
+            return true; //Temporary return value
+        } finally {
+            DatabaseConnection.closeConnection(connection, statement, resultSet);
+        }
+    }
+
+    /**
+     * Method checking whether a given poll is active (not after deadline)
+     * @param pollId ID of the poll
+     * @return TRUE if the deadline hasn't been passed yet
+     */
+    public static boolean pollActive(int pollId) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = DatabaseConnection.getConnection();
+            String selectQuery = "" +
+                    "SELECT poll_deadline" +
+                    "FROM poll" +
+                    "WHERE poll_id = ?;";
+            statement = connection.prepareStatement(selectQuery);
+            statement.setString(1, pollId);
+            resultSet = statement.executeQuery();
+            //TODO load the date string and compare it to the current time. Return TRUE if the value from the databse is in the future
+            return true; //Temporary return value
         } finally {
             DatabaseConnection.closeConnection(connection, statement, resultSet);
         }

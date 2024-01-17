@@ -103,6 +103,10 @@ public class VotersSQL {
      * @return string to send to the command sender
      */
     public static String getPollResults(int pollId) {
+        if (PollSQL::pollActive(pollId)) {
+            return "Can't display the total evaluation of this poll, as it is still running.";
+        }
+
         Connection conn = null;
         PreparedStatement stmt = null;
         StringBuilder toSend = new StringBuilder();
