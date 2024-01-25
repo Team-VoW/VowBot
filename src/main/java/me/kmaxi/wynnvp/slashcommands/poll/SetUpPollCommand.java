@@ -2,13 +2,11 @@ package me.kmaxi.wynnvp.slashcommands.poll;
 
 import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.entities.Message;
-
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.requests.restaction.ThreadChannelAction;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,8 +21,6 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class SetUpPollCommand {
@@ -41,9 +37,8 @@ public class SetUpPollCommand {
 
             String castingCallTitle = doc.title();
             ArrayList<String> roleIds = getIDS(doc);
-            ArrayList<String> roleNames = getRoleNames(doc);
 
-            roleNames.forEach(System.out::println);
+
             roleIds.forEach(System.out::println);
 
             System.out.println(castingCallTitle);
@@ -52,12 +47,14 @@ public class SetUpPollCommand {
             //For each role
             for (int i = 0; i < roleIds.size(); i++) {
                 String roleId = roleIds.get(i);
-                String roleName = roleNames.get(i);
-                roleName = roleName.trim().replaceAll("[ ,.-]", "_");
+
+
+                ArrayList<JSONObject> auditions = getAuditions(roleId);
+
+                String roleName = auditions.get(0).getString("roleName").trim().replaceAll("[ ,.-]", "_");
 
                 PollSQL.createPoll(roleName);
 
-                ArrayList<JSONObject> auditions = getAuditions(roleId);
 
                 // Create a thread for each role
                 final String threadName = roleName + " Auditions";
@@ -83,10 +80,10 @@ public class SetUpPollCommand {
 
 
             JSONObject audition = auditions.get(j);
-            String audioURL = audition.getString("public_audio_url");
+            String audioURL = audition.getString("audioUrl");
             String userName = audition.getString("username");
             String audioFileName = userName + ".mp3";
-            String roleName = audition.getString("role_name").trim().replaceAll("[ ,.-]", "_");
+            String roleName = audition.getString("roleName").trim().replaceAll("[ ,.-]", "_");
 
             try {
                 URL website = new URL(audioURL);
@@ -102,7 +99,7 @@ public class SetUpPollCommand {
                 Button removeVoteButton = Button.danger(
                         messageText.replace(" ", "-") + "-" + Config.removeVoteButtonLabel, Config.removeVoteButtonLabel);
                 ActionRow row = ActionRow.of(voteButton, removeVoteButton);
-                channel.sendMessage("```" +  messageText + "```").addActionRow(voteButton, removeVoteButton).addFiles(FileUpload.fromData(file)).queue();
+                channel.sendMessage("```" + messageText + "```").addActionRow(voteButton, removeVoteButton).addFiles(FileUpload.fromData(file)).queue();
 
                 file.delete();
 
@@ -115,20 +112,25 @@ public class SetUpPollCommand {
     private static ArrayList<JSONObject> getAuditions(String roleId) {
         ArrayList<JSONObject> auditions = new ArrayList<>(); //Array of objects
 
+        JSONArray lastJsonArray = null;
         int page = 1;
         while (true) {
 
             JSONObject jsonData;
             try {
-                jsonData = getJsonObject("https://www.castingcall.club/api/v1/roles/" + roleId + "/auditions?order_by=updated_at&status=all&page=" + page);
+                String url = "https://www.castingcall.club/api/v3/roles/" + roleId + "/submissions?page=" + page;
+                System.out.println(url);
+                jsonData = getJsonObject(url);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            JSONArray auditionsArray = jsonData.getJSONArray("auditions");
+            JSONArray auditionsArray = jsonData.getJSONArray("submissions");
 
-            if (auditionsArray.length() == 0)
+            if (auditionsArray.isEmpty() || ( lastJsonArray != null && auditionsArray.toString().equals(lastJsonArray.toString())))
                 break;
+
+            lastJsonArray = auditionsArray;
 
             for (int j = 0; j < auditionsArray.length(); j++) {
                 JSONObject audition = auditionsArray.getJSONObject(j);
@@ -141,33 +143,6 @@ public class SetUpPollCommand {
         }
 
         return auditions;
-    }
-
-    private static ArrayList<String> getRoleNames(Document doc) {
-        ArrayList<String> names = new ArrayList<>();
-
-
-        Elements roles = doc.select(".panel");
-
-        for (Element role : roles) {
-
-            String classAttr = role.attr("class");
-
-            if (!classAttr.equals("panel panel-success")) {
-                continue;
-            }
-
-            Element data = role.getElementsByClass("panel-heading").get(0);
-
-            String namePattern = "<div[^>]*>([^<]*)<\\/div>";
-            Pattern r = Pattern.compile(namePattern);
-            Matcher m = r.matcher(data.toString());
-
-            if (m.find()) {
-                names.add(m.group(1).trim());
-            }
-        }
-        return names;
     }
 
     private static ArrayList<String> getIDS(Document doc) {
@@ -183,6 +158,10 @@ public class SetUpPollCommand {
                 continue;
 
             String result = src.substring(src.indexOf("attachment/") + "attachment/".length(), src.indexOf("/", src.indexOf("attachment/") + "attachment/".length()));
+
+            //If result is not made up of 7 numbers, continue
+            if (!result.matches("\\d{7}"))
+                continue;
 
             roleIds.add(result);
         }

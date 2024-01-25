@@ -14,7 +14,7 @@ public class DatabaseConnection {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/vowpolls",
+                    APIKeys.sqlUrl,
                     APIKeys.sqlUsername,
                     APIKeys.sqlPassword);
 
@@ -34,7 +34,7 @@ public class DatabaseConnection {
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 connection = DriverManager.getConnection(
-                        "jdbc:mysql://localhost:3306/vowpolls",
+                        APIKeys.sqlUrl,
                         APIKeys.sqlUsername,
                         APIKeys.sqlPassword);
             } catch (ClassNotFoundException e) {
