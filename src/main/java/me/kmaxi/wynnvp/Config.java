@@ -35,8 +35,8 @@ public class Config {
     public static long donatorPlusRole = 824750375764099073l;
     public static long vipRole = 824752537331826748l;
     public static long mutedRole = 897624515985686558l;
-    public static long reportedLines = 1135090965938450433l;
-    public static long acceptedLines = 955155625296420894l;
+    public static long reportedLines = 1207008643288145980l;
+    public static long acceptedLines = 1135090932954447913l;
     public static long staffBotChat = 956849386489532436l;
 
 
