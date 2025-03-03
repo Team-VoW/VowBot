@@ -5,7 +5,10 @@ import me.kmaxi.wynnvp.utils.Utils;
 import me.kmaxi.wynnvp.interfaces.StringIntInterface;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.concrete.NewsChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.unions.GuildChannelUnion;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -111,7 +114,7 @@ public class ApplicationCommands {
 
 
     private static Message getCastingMessage(String quest, String npcName) {
-        for (Message message : Objects.requireNonNull(guild.getTextChannelById(Config.channelName)).getHistoryFromBeginning(100).complete().getRetrievedHistory()) {
+        for (Message message : Objects.requireNonNull(guild.getNewsChannelById(Config.channelName)).getHistoryFromBeginning(100).complete().getRetrievedHistory()) {
             String messageAsString = message.getContentRaw();
             if (!message.getAuthor().isBot()) {
                 continue;
@@ -157,6 +160,11 @@ public class ApplicationCommands {
         List<OptionMapping> options = event.getOptions();
         String questName = options.get(0).getAsString();
 
+        if (questName.contains(" ")){
+            event.reply("Quest name cannot contain spaces. Use - instead").setEphemeral(true).queue();
+            return;
+        }
+
 
         ArrayList<String> npcs = new ArrayList<>();
         for (int i = 1; i < options.size(); i++) {
@@ -175,7 +183,14 @@ public class ApplicationCommands {
             i++;
         }
 
-        event.getGuild().getTextChannelById(Config.channelName).sendMessage(out).queue(message1 -> {
+        NewsChannel textChannel = event.getGuild().getNewsChannelById(Config.channelName);
+        System.out.println(textChannel);
+        if (textChannel == null) {
+            event.reply("The channel with ID " + Config.channelName + " could not be found. Please check the channel ID and bot permissions.").setEphemeral(true).queue();
+            return;
+        }
+
+        textChannel.sendMessage(out).queue(message1 -> {
             int index = 1;
             for (String reaction : reactions) {
                 message1.addReaction(Emoji.fromUnicode(Utils.getUnicode(index))).queue();

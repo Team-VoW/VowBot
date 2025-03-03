@@ -23,7 +23,7 @@ public class Config {
     public static String votesTableName = "votes";
 
     //Wynn Vp Server /*
-    public static long channelName = 820417352617033728l;
+    public static long channelName = 1304017023684050975l;
     public static long roleID = 821772974226407445l;
     public static long writeRoleId = 819850296926666763l;
     public static long categoryID = 821335417000951858l;
