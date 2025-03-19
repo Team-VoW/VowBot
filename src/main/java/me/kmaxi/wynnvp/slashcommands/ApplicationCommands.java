@@ -63,7 +63,7 @@ public class ApplicationCommands {
     }
 
     private static boolean isUnderApplicationCategory(TextChannel textChannel) {
-        return textChannel.getParentCategoryIdLong() == Config.categoryID || textChannel.getParentCategoryIdLong() == Config.closingCategoryID;
+        return textChannel.getParentCategoryIdLong() == Config.categoryID || textChannel.getParentCategoryIdLong() == Config.closingCategoryID || textChannel.getParentCategoryIdLong() == Config.categoryID2;
     }
 
 
