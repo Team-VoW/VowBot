@@ -27,6 +27,7 @@ public class Config {
     public static long roleID = 821772974226407445l;
     public static long writeRoleId = 819850296926666763l;
     public static long categoryID = 821335417000951858l;
+    public static long categoryID2 = 1348201751165272074l;
     public static long closingCategoryID = 867868540320743485l;
     public static long acceptedCategoryID = 821787630726938674l;
     public static long spamCategoryID = 823489138916720670l;
