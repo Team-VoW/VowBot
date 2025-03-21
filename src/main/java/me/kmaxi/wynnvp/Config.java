@@ -49,7 +49,7 @@ public class Config {
     public static String trashUnicode = "\uD83D\uDDD1";
 
     public static HashSet<String> discordRolesToUpdateToWebsite = new HashSet<>(Arrays.asList(
-            "Owner", "Admin", "Developer", "Head Voice Manager", "Voice Manager", "Voice Editor",
+            "Owner", "Admin", "Developer", "Cast Manager", "Voice Manager", "Sound Editor",
             "Writer", "Moderator", "Expert Actor", "Skilled Actor", "Top funder",
             "Advanced Actor", "Beginner Actor", "Former Staff"));
 
