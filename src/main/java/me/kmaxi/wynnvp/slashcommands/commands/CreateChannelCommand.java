@@ -1,17 +1,34 @@
-package me.kmaxi.wynnvp.slashcommands;
+package me.kmaxi.wynnvp.slashcommands.commands;
 
 import me.kmaxi.wynnvp.Config;
+import me.kmaxi.wynnvp.PermissionLevel;
+import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import static me.kmaxi.wynnvp.utils.Utils.permissions;
 import static me.kmaxi.wynnvp.utils.Utils.traineePerms;
 
-public class ChannelCommands {
+public class CreateChannelCommand implements ICommandImpl {
+    @Override
+    public CommandData getCommandData() {
+        return Commands.slash("createchannel", "Creates a text channel in accepted category for a voice actor")
+                .addOptions(new OptionData(OptionType.USER, "user", "The voice actors discord", true))
+                .addOptions(new OptionData(OptionType.STRING, "npc", "The name of the NPC", true));
+    }
 
+    @Override
+    public PermissionLevel getPermissionLevel() {
+        return PermissionLevel.STAFF;
+    }
 
-    public static void CreateChannelForVoiceActor(SlashCommandInteractionEvent event){
+    @Override
+    public void execute(SlashCommandInteractionEvent event) {
         User user = event.getOption("user").getAsUser();
         String npcName = event.getOption("npc").getAsString();
 
@@ -36,11 +53,11 @@ public class ChannelCommands {
 
     }
 
-    private static String getChannelName(User user, String npcName){
+    private String getChannelName(User user, String npcName){
         return npcName + "-" + user.getName();
     }
 
-    private static String getTopic (User user, String npcName) {
+    private String getTopic (User user, String npcName) {
         return user.getName() + "s channel for the role of " + npcName;
     }
 }
