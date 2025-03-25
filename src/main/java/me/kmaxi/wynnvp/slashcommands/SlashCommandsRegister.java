@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class SlashCommandsRegister extends ListenerAdapter {
@@ -41,6 +42,13 @@ public class SlashCommandsRegister extends ListenerAdapter {
         for (ICommandImpl command : commandData) {
             commands.put(command.getCommandData().getName(), command);
         }
+
+        // Register commands in the guild
+        event.getGuild().updateCommands().addCommands(
+                commandData.stream()
+                        .map(ICommandImpl::getCommandData)
+                        .collect(Collectors.toList())
+        ).queue();
     }
 
 
