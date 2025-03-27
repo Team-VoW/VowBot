@@ -55,30 +55,6 @@ public class Config {
 
     public static ArrayList<String> actorRoleList = new ArrayList<>(Arrays.asList("819550145217298452", "822008829696933909", "821156730079150131", "821157297908744222"));
 
-    private static HashSet<String> vowCloudAccessRoles = new HashSet<>(Arrays.asList(
-            "814439316800667651" //Developer
-            , "821772974226407445" //Voice Manager
-            , "819850296926666763" //Writer
-            , "866762348634177616" //Moderator
-            , "908327222954328094" //VIP+
-            , "824752537331826748" //VIP
-            , "824750375764099073" //Donator+
-            , "824747069121888266" //Donator
-            , "821157297908744222" //Expert Actor
-            , "821156730079150131" //Skilled Actor
-            , "822008829696933909" //Advanced Actor
-            , "819550145217298452" //Beginner Actor
-            , "871314322402455582" //Former Staff
-            , "868122873003380737" //Official Wynn team
-    ));
 
-    public static boolean hasVowCloudAccess(List<Role> roles) {
-        for (Role role : roles) {
-            if (vowCloudAccessRoles.contains(role.getId())) {
-                return true;
-            }
-        }
-        return false;
-    }
 
 }
