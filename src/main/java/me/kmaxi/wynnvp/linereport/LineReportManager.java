@@ -103,32 +103,6 @@ public class LineReportManager {
         }
     }
 
-    public static void sendAllReports(MessageChannelUnion messageChannel, String url) {
-        try {
-            JSONArray jsonArray = getJsonData(url);
-
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-
-                String message = "\uD83E\uDDD1\u200D\uD83C\uDF3E `" + jsonObject.getString("NPC") + "`\n"
-                        + "\uD83D\uDDFA `" + jsonObject.getInt("X") + "|" + jsonObject.getInt("Y") + "|" + jsonObject.getInt("Z") + "`\n"
-                        + "> `" + jsonObject.getString("message") + "`";
-
-
-                messageChannel.sendMessage(message).queue(message1 -> {
-                    message1.addReaction(Emoji.fromUnicode(Config.declineUnicode)).queue();
-                    message1.addReaction(Emoji.fromUnicode(Config.microphoneUnicode)).queue();
-                    message1.addReaction(Emoji.fromUnicode(Config.trashUnicode)).queue();
-                });
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-
-
 
     public static void sendLineAndDeleteMessage(String fullLine, String acceptedString, Message message, Guild guild) {
 
@@ -177,33 +151,6 @@ public class LineReportManager {
         http.disconnect();
 
         return http.getResponseCode();
-    }
-
-    public static void resetForwarded() {
-        System.out.println("Resseting all forwarded");
-
-        URL url = null;
-        try {
-            url = new URL("https://voicesofwynn.com/api/unvoiced-line-report/reset");
-            HttpURLConnection http = (HttpURLConnection) url.openConnection();
-            http.setRequestMethod("PUT");
-            http.setDoOutput(true);
-            http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-            String data = "&apiKey=" + APIKeys.updateApiKey;
-
-            byte[] out = data.getBytes(StandardCharsets.UTF_8);
-
-            OutputStream stream = http.getOutputStream();
-            stream.write(out);
-
-            int responseCode = http.getResponseCode();
-            System.out.println(responseCode + " " + http.getResponseMessage());
-            http.disconnect();
-            guild.getTextChannelById(Config.staffBotChat).sendMessage("Response code for resetting lines was: " + responseCode).queue();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void sendLinesWithReaction(String url, MessageChannelUnion messageChannel) {

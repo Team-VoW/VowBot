@@ -1,99 +1,54 @@
 package me.kmaxi.wynnvp.slashcommands;
 
-import me.kmaxi.wynnvp.linereport.LineReportManager;
-import me.kmaxi.wynnvp.slashcommands.poll.PollDataFetcher;
-import me.kmaxi.wynnvp.slashcommands.poll.SetUpPollCommand;
+import me.kmaxi.wynnvp.PermissionLevel;
+import me.kmaxi.wynnvp.interfaces.ICommandImpl;
+import me.kmaxi.wynnvp.slashcommands.commands.*;
 import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class SlashCommandsRegister extends ListenerAdapter {
 
 
+    Map<String, ICommandImpl> commands;
+
     @Override
-    public void onGuildReady(GuildReadyEvent event) {
+    public void onGuildReady(@NotNull GuildReadyEvent event) {
 
-        List<CommandData> commandData = new ArrayList<>();
+        List<ICommandImpl> commandData = new ArrayList<>();
+        commandData.add(new HelpCommand());
+        commandData.add(new CloseAuditionCommand());
+        commandData.add(new CreateChannelCommand());
+        commandData.add(new FinishedRoleCommand());
+        commandData.add(new GetLinesCommand());
+        commandData.add(new GetVotesCommand());
+        commandData.add(new OpenCastingCommand());
+        commandData.add(new ResetForwardedCommand());
+        commandData.add(new RoleCommand());
+        commandData.add(new SetupPollCommand());
+        commandData.add(new SynAllUsersCommand());
+        commandData.add(new VotesCommand());
 
-        commandData.add(Commands.slash("help", "Get all vow bot commands"));
+        commands = new HashMap<>();
+        for (ICommandImpl command : commandData) {
+            commands.put(command.getCommandData().getName(), command);
+        }
 
-        //Api commands
-        commandData.add(Commands.slash("update", "Manually checks if there are any lines in the index api"));
-        commandData.add(Commands.slash("resetforwarded", "Moves all forwarded api entries back to index so they will be sent again."));
-        commandData.add(Commands.slash("getacceptedlines", "Sends all lines marked as accepted in the current channel")
-                .addOptions(
-                        new OptionData(OptionType.STRING, "npcname", "The exact name of the npc", true),
-                        new OptionData(OptionType.BOOLEAN, "addreaction", "If it should send the messages one at a time to allow reaction.", false)));
-        commandData.add(Commands.slash("getactivelines", "Sends all lines marked as index and accepted in the current channel")
-                .addOptions(
-                        new OptionData(OptionType.STRING, "npcname", "The exact name of the npc", true),
-                        new OptionData(OptionType.BOOLEAN, "addreaction", "If it should send the messages one at a time to allow reaction.", false)));
-        commandData.add(Commands.slash("getalllines", "Sends all lines marked as index and accepted in the current channel")
-                .addOptions(
-                        new OptionData(OptionType.STRING, "npcname", "The exact name of the npc", true),
-                        new OptionData(OptionType.BOOLEAN, "addreaction", "If it should send the messages one at a time to allow reaction.", false)));
-
-        //Application commands
-        commandData.add(Commands.slash("close", "Immediately closes an application channel")
-                .addSubcommands(new SubcommandData("immediately", "Directly deletes this application channel"))
-                .addSubcommands(new SubcommandData("soon", "Closes an application channel in 24h"))
-        );
-        commandData.add(Commands.slash("setrole", "Sets a role that is open in #vocice-apply")
-                .addOptions(
-                        new OptionData(OptionType.STRING, "questname", "The exact name of the quest as it is in the application channel", true),
-                        new OptionData(OptionType.STRING, "npcname", "The exact name of the npc  exactly as it is in the application channel", true),
-                        new OptionData(OptionType.USER, "user", "The person that you want to cast for this role", true)));
-
-        commandData.add(Commands.slash("openrole", "Sets an already set role tp open in #vocice-apply")
-                .addOptions(
-                        new OptionData(OptionType.STRING, "questname", "The exact name of the quest as it is in the application channel", true),
-                        new OptionData(OptionType.STRING, "npcname", "The exact name of the npc  exactly as it is in the application channel", true)));
-
-        commandData.add(Commands.slash("addquest", "Opens casting for a new quest")
-                .addOptions(
-                        new OptionData(OptionType.STRING, "questname", "The name of the quest with no spaces. Use - between words", true),
-                        new OptionData(OptionType.STRING, "npc1", "The firsts npc name", true),
-                        new OptionData(OptionType.STRING, "npc2", "The seconds npc name", false),
-                        new OptionData(OptionType.STRING, "npc3", "The thirds npc name", false),
-                        new OptionData(OptionType.STRING, "npc4", "The fourths npc name", false),
-                        new OptionData(OptionType.STRING, "npc5", "The fifths npc name", false),
-                        new OptionData(OptionType.STRING, "npc6", "The sixths npc name", false),
-                        new OptionData(OptionType.STRING, "npc7", "The sevenths npc name", false),
-                        new OptionData(OptionType.STRING, "npc8", "The eights npc name", false),
-                        new OptionData(OptionType.STRING, "npc9", "The ninths npc name", false)));
-
-        commandData.add(Commands.slash("createchannel", "Creates a text channel in accepted category for a voice actor")
-                .addOptions(new OptionData(OptionType.USER, "user", "The voice actors discord", true))
-                .addOptions(new OptionData(OptionType.STRING, "npc", "The name of the NPC", true)));
-
-        commandData.add(Commands.slash("syncallusers", "Syncs all users data to the website. Warning, this is a heavy command!"));
-        commandData.add(Commands.slash("checked", "Upgrades this users role here and on website and creates an account if they don't have one")
-                        .addOptions(new OptionData(OptionType.USER, "user", "The voice actors discord", false)));
-
-        commandData.add(Commands.slash("setuppoll", "Sets up the voting poll for the casting call")
-                .addOptions(new OptionData(OptionType.STRING, "url", "The url to the casting call", true)));
-
-        commandData.add(Commands.slash("getvotes", "Gets the current for everyone votes")
-                .addOptions(new OptionData(OptionType.STRING, "npc", "The NPC of which to get the poll off", true)));
-
-        commandData.add(Commands.slash("votes", "Gets your current votes")
-                .addOptions(new OptionData(OptionType.STRING, "npc", "The NPC of which to get the poll for. If this is empty it will tell you all your votes", false)));
-
-        commandData.add(Commands.slash("token", "Gets your token for the VowCloud (premium) mod"));
-
-
-        event.getGuild().updateCommands().addCommands(commandData).queue();
+        // Register commands in the guild
+        event.getGuild().updateCommands().addCommands(
+                commandData.stream()
+                        .map(ICommandImpl::getCommandData)
+                        .collect(Collectors.toList())
+        ).queue();
     }
 
 
@@ -104,75 +59,25 @@ public class SlashCommandsRegister extends ListenerAdapter {
             event.reply("Error. User was null").setEphemeral(true).queue();
             return;
         }
+        String commandString = event.getName().toLowerCase().trim();
 
-        switch (event.getName().toLowerCase().trim()) {
-            case "help":
-                HelpCommand.TriggerCommand(event);
-                return;
-            case "votes":
-                PollDataFetcher.getVotesForPerson(event);
-                return;
-            case "token":
-                VowCloudTokenCommand.getVowCloudToken(event);
-                return;
+        if (!commands.containsKey(commandString)) {
+            event.reply("Command not found").setEphemeral(true).queue();
+            return;
         }
 
-        if (!(Utils.isStaff(event.getMember()))) {
+        ICommandImpl command = commands.get(commandString);
+
+        if (command.getPermissionLevel() == PermissionLevel.STAFF && !Utils.isStaff(event.getMember())) {
             event.reply("You do not have permission do execute this command.").setEphemeral(true).queue();
             return;
         }
 
-        switch (event.getName().toLowerCase().trim()) {
-            case "close":
-                ApplicationCommands.close(event);
-                return;
-            case "setrole":
-                ApplicationCommands.setRoleAsTaken(event);
-                return;
-            case "openrole":
-                ApplicationCommands.setRoleAsAvailable(event);
-                return;
-            case "addquest":
-                ApplicationCommands.addQuest(event);
-                return;
-            case "update":
-                LineReportManager.sendAllReports();
-                return;
-            case "getacceptedlines":
-                ApiCommands.getAcceptedLinesFromCharacter(event);
-                return;
-            case "getactivelines":
-                ApiCommands.getActiveLinesFromCharacter(event);
-                return;
-            case "getalllines":
-                ApiCommands.getAllLinesFromCharacter(event);
-                return;
-            case "createchannel":
-                ChannelCommands.CreateChannelForVoiceActor(event);
-                return;
-            case "checked":
-                SyncWebsite.FinishedRole(event);
-                return;
-
-        }
-        if (!(Utils.isAdmin(event.getMember()))) {
+        if (command.getPermissionLevel() == PermissionLevel.ADMIN && !Utils.isAdmin(event.getMember())) {
             event.reply("You do not have permission do execute this command. You need Admin perms").setEphemeral(true).queue();
             return;
         }
 
-        switch (event.getName().toLowerCase().trim()) {
-            case "syncallusers":
-                SyncWebsite.SyncAllUsers(event);
-                return;
-            case "resetforwarded":
-                LineReportManager.resetForwarded();
-                return;
-            case "setuppoll":
-                SetUpPollCommand.SetUpPoll(event);
-                return;
-            case "getvotes":
-                PollDataFetcher.getAllVotes(event);
-                return;
-        }
+        command.execute(event);
     }
 }

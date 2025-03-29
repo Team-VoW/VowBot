@@ -1,70 +1,61 @@
-package me.kmaxi.wynnvp.slashcommands;
+package me.kmaxi.wynnvp.slashcommands.commands;
 
 import me.kmaxi.wynnvp.Config;
-import me.kmaxi.wynnvp.utils.Utils;
+import me.kmaxi.wynnvp.PermissionLevel;
+import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import me.kmaxi.wynnvp.interfaces.StringIntInterface;
+import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import static me.kmaxi.wynnvp.WynnVPBotMain.guild;
 
-public class ApplicationCommands {
+public class RoleCommand implements ICommandImpl {
 
-    public static void close(SlashCommandInteractionEvent event) {
+    private final String openSubCommand = "open";
+    private final String setSubCommand = "set";
+    @Override
+    public CommandData getCommandData() {
 
-        if (!isUnderApplicationCategory((TextChannel) event.getChannel())) {
-            event.reply("Can only do this command in application channels.").setEphemeral(true).queue();
-            return;
-        }
+        return Commands.slash("role", "Handles setting of roles of castings.")
+                .addSubcommands(new SubcommandData(openSubCommand, "Sets an already set role for castings")
+                        .addOptions(
+                                new OptionData(OptionType.STRING, "questname", "The exact name of the quest as it is in the application channel", true),
+                                new OptionData(OptionType.STRING, "npcname", "The exact name of the npc  exactly as it is in the application channel", true)))
+                .addSubcommands(new SubcommandData(setSubCommand, "Sets a role that is open in the casting")
+                        .addOptions(
+                                new OptionData(OptionType.STRING, "questname", "The exact name of the quest as it is in the application channel", true),
+                                new OptionData(OptionType.STRING, "npcname", "The exact name of the npc  exactly as it is in the application channel", true),
+                                new OptionData(OptionType.USER, "user", "The person that you want to cast for this role", true)));
 
+    }
+
+    @Override
+    public PermissionLevel getPermissionLevel() {
+        return PermissionLevel.STAFF;
+    }
+
+    @Override
+    public void execute(SlashCommandInteractionEvent event) {
         switch (Objects.requireNonNull(event.getSubcommandName())) {
-            case "immediately":
-                closeChannelImmediately(event);
+            case openSubCommand:
+                setRoleAsAvailable(event);
                 break;
-            case "soon":
-                closeChannelWithCoolDown(event);
+            case setSubCommand:
+                setRoleAsTaken(event);
         }
     }
 
-    private static void closeChannelImmediately(SlashCommandInteractionEvent event) {
-
-        event.reply("Closing channel").setEphemeral(true).queue();
-        event.getChannel().delete().queue();
-    }
-
-    private static void closeChannelWithCoolDown(SlashCommandInteractionEvent event) {
-        MessageChannelUnion textChannel = event.getChannel();
-
-        try {
-            textChannel.sendMessage("Thank you for applying for the role! " +
-                    "Sadly, someone else was chosen for it. There are plenty of more chances to come,"
-                    + " and we will be glad to evaluate your auditions for any future roles! This application channel will be closed in 24 hours."
-                    + "\nIf you want to close it directly say ?close and a staff member will close it").queue();
-
-            event.reply("Channel will be deleted in 24h.").setEphemeral(true).queue();
-
-            textChannel.delete().queueAfter(1, TimeUnit.DAYS);
-
-        } catch (Exception ignored) {
-        }
-    }
-
-    private static boolean isUnderApplicationCategory(TextChannel textChannel) {
-        return textChannel.getParentCategoryIdLong() == Config.categoryID || textChannel.getParentCategoryIdLong() == Config.closingCategoryID;
-    }
-
-
-    public static void setRoleAsTaken(SlashCommandInteractionEvent event) {
+    private  void setRoleAsTaken(SlashCommandInteractionEvent event) {
 
         IMentionable personWhoGotIt = Objects.requireNonNull(event.getOption("user")).getAsMentionable();
         String questName = Objects.requireNonNull(event.getOption("questname")).getAsString();
@@ -90,7 +81,7 @@ public class ApplicationCommands {
 
     }
 
-    public static void setRoleAsAvailable(SlashCommandInteractionEvent event) {
+    private void setRoleAsAvailable(SlashCommandInteractionEvent event) {
 
         String questName = Objects.requireNonNull(event.getOption("questname")).getAsString();
         String npcName = Objects.requireNonNull(event.getOption("npcname")).getAsString();
@@ -110,8 +101,8 @@ public class ApplicationCommands {
     }
 
 
-    private static Message getCastingMessage(String quest, String npcName) {
-        for (Message message : Objects.requireNonNull(guild.getTextChannelById(Config.channelName)).getHistoryFromBeginning(100).complete().getRetrievedHistory()) {
+    private Message getCastingMessage(String quest, String npcName) {
+        for (Message message : Objects.requireNonNull(guild.getNewsChannelById(Config.channelName)).getHistoryFromBeginning(100).complete().getRetrievedHistory()) {
             String messageAsString = message.getContentRaw();
             if (!message.getAuthor().isBot()) {
                 continue;
@@ -129,7 +120,7 @@ public class ApplicationCommands {
         return null;
     }
 
-    private static void replaceLineWhereNpcIs(Message message, String npcName, String questName, StringIntInterface lineChange) {
+    private void replaceLineWhereNpcIs(Message message, String npcName, String questName, StringIntInterface lineChange) {
         String[] messageArray = message.getContentRaw().split("\n");
         StringBuilder out = new StringBuilder(">>> **React to apply for a role in " + questName + "**");
 
@@ -153,36 +144,4 @@ public class ApplicationCommands {
     }
 
 
-    public static void addQuest(SlashCommandInteractionEvent event) {
-        List<OptionMapping> options = event.getOptions();
-        String questName = options.get(0).getAsString();
-
-
-        ArrayList<String> npcs = new ArrayList<>();
-        for (int i = 1; i < options.size(); i++) {
-            npcs.add(options.get(i).getAsString());
-        }
-
-        ArrayList<String> reactions = new ArrayList<>();
-        String out = ">>> **React to apply for a role in " + questName + "**";
-        int i = 1;
-        for (String npc : npcs) {
-            if (i == 10) {
-                break;
-            }
-            out += "\n:" + Utils.convertNumber(i) + ": = " + npc + "\n";
-            reactions.add(String.valueOf(i));
-            i++;
-        }
-
-        event.getGuild().getTextChannelById(Config.channelName).sendMessage(out).queue(message1 -> {
-            int index = 1;
-            for (String reaction : reactions) {
-                message1.addReaction(Emoji.fromUnicode(Utils.getUnicode(index))).queue();
-                index++;
-            }
-        });
-
-        event.reply("Successfully created the " + questName + " quest with " + npcs.size() + " npcs.").setEphemeral(true).queue();
-    }
 }

@@ -1,7 +1,14 @@
-package me.kmaxi.wynnvp.slashcommands.poll;
+package me.kmaxi.wynnvp.slashcommands.commands;
 
+import me.kmaxi.wynnvp.PermissionLevel;
+import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import me.kmaxi.wynnvp.interfaces.SendFunction;
+import me.kmaxi.wynnvp.slashcommands.poll.DatabaseConnection;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,23 +18,21 @@ import java.util.Objects;
 
 import static me.kmaxi.wynnvp.slashcommands.poll.PollSQL.doesTableExist;
 
-public class PollDataFetcher {
-
-
-    public static void getVotesForPerson(SlashCommandInteractionEvent event){
-        event.deferReply().setEphemeral(true).queue();
-
-        String toBePrinted;
-
-        if (event.getOption("npc") == null) {
-            toBePrinted = VotersSQL.getAllVotes(event.getUser().getId());
-        } else {
-            toBePrinted = VotersSQL.getVotes(event.getUser().getId(), Objects.requireNonNull(event.getOption("npc")).getAsString().replace(" ", "_"));
-        }
-        event.getHook().editOriginal(toBePrinted).queue();
-
+public class GetVotesCommand implements ICommandImpl {
+    @Override
+    public CommandData getCommandData() {
+        return Commands.slash("getvotes", "Gets the current for everyone votes")
+                .addOptions(new OptionData(OptionType.STRING, "npc", "The NPC of which to get the poll off", true));
     }
-    public static void getAllVotes(SlashCommandInteractionEvent event) {
+
+    @Override
+    public PermissionLevel getPermissionLevel() {
+        return PermissionLevel.ADMIN;
+    }
+
+    @Override
+    public void execute(SlashCommandInteractionEvent event) {
+
         event.deferReply().setEphemeral(true).queue();
 
         String npcName = Objects.requireNonNull(event.getOption("npc")).getAsString();
@@ -37,7 +42,7 @@ public class PollDataFetcher {
         getVotes(npcName, event, ((event1, message) -> event1.getHook().editOriginal(message).queue()));
     }
 
-    private static void getVotes(String tableName, SlashCommandInteractionEvent event, SendFunction sendFunction) {
+    private void getVotes(String tableName, SlashCommandInteractionEvent event, SendFunction sendFunction) {
         Connection conn = null;
         PreparedStatement stmt = null;
 
@@ -87,6 +92,5 @@ public class PollDataFetcher {
             DatabaseConnection.closeConnection(conn, stmt);
         }
     }
-
 
 }

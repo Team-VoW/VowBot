@@ -1,10 +1,17 @@
-package me.kmaxi.wynnvp.slashcommands.poll;
+package me.kmaxi.wynnvp.slashcommands.commands;
 
 import me.kmaxi.wynnvp.Config;
+import me.kmaxi.wynnvp.PermissionLevel;
+import me.kmaxi.wynnvp.interfaces.ICommandImpl;
+import me.kmaxi.wynnvp.slashcommands.poll.PollSQL;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -22,11 +29,20 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 
+public class SetupPollCommand implements ICommandImpl {
+    @Override
+    public CommandData getCommandData() {
+        return Commands.slash("setuppoll", "Sets up the voting poll from a casting club call casting")
+                .addOptions(new OptionData(OptionType.STRING, "url", "The url to the casting call", true));
+    }
 
-public class SetUpPollCommand {
+    @Override
+    public PermissionLevel getPermissionLevel() {
+        return PermissionLevel.ADMIN;
+    }
 
-    public static void SetUpPoll(SlashCommandInteractionEvent event) {
-
+    @Override
+    public void execute(SlashCommandInteractionEvent event) {
         event.deferReply().setEphemeral(true).queue();
 
         String URL = event.getOption("url").getAsString(); // The URL of the project will be provided in the command
@@ -75,7 +91,7 @@ public class SetUpPollCommand {
     }
 
 
-    private static void sendAudioFiles(ArrayList<JSONObject> auditions, MessageChannel channel) {
+    private void sendAudioFiles(ArrayList<JSONObject> auditions, MessageChannel channel) {
         for (int j = 0; j < auditions.size(); j++) {
 
 
@@ -109,7 +125,7 @@ public class SetUpPollCommand {
         }
     }
 
-    private static ArrayList<JSONObject> getAuditions(String roleId) {
+    private ArrayList<JSONObject> getAuditions(String roleId) {
         ArrayList<JSONObject> auditions = new ArrayList<>(); //Array of objects
 
         JSONArray lastJsonArray = null;
@@ -145,7 +161,7 @@ public class SetUpPollCommand {
         return auditions;
     }
 
-    private static ArrayList<String> getIDS(Document doc) {
+    private ArrayList<String> getIDS(Document doc) {
 
         ArrayList<String> roleIds = new ArrayList<>();
 
@@ -169,7 +185,7 @@ public class SetUpPollCommand {
         return roleIds;
     }
 
-    private static JSONObject getJsonObject(String urlToRead) throws Exception {
+    private JSONObject getJsonObject(String urlToRead) throws Exception {
         URL url = new URL(urlToRead);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
