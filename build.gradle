@@ -1,7 +1,8 @@
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '7.0.0'
-
+    id 'org.springframework.boot' version '3.2.1' // Add Spring Boot plugin
+    id 'io.spring.dependency-management' version '1.1.4' // Add dependency management
 }
 
 apply plugin: 'com.github.johnrengelman.shadow'
@@ -12,35 +13,53 @@ version '1.0-SNAPSHOT'
 jar {
     manifest {
         attributes(
-                'Main-Class': 'me/kmaxi/wynnvp/WynnVPBotMain'
+                'Main-Class': 'me.kmaxi.wynnvp.WynnVPBotMain'
         )
     }
 }
 
-
 shadowJar {
-    baseName = 'me.kmaxi'
-    version = '1.0'
     manifest {
         attributes 'Main-Class': 'me/kmaxi/wynnvp/WynnVPBotMain'
     }
 }
-
-
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.json:json:20230227'
-  //  implementation 'net.dv8tion:JDA:5.0.0-alpha.9'
-    implementation("net.dv8tion:JDA:5.3.0")
+    // Spring Boot Core
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
+    // JDA (Java Discord API)
+    implementation 'net.dv8tion:JDA:5.0.0-beta.20'
+
+    // JSON handling
+    implementation 'org.json:json:20231013'
+
+    // Web scraping
     implementation 'org.jsoup:jsoup:1.15.4'
-    implementation 'com.zaxxer:HikariCP:5.0.1'
-    implementation 'mysql:mysql-connector-java:8.0.32'
 
+    // MySQL Database Driver
+    implementation 'mysql:mysql-connector-java:8.0.33'
+
+    // Lombok (Optional)
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // Spring Boot Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
-sourceCompatibility = JavaVersion.VERSION_14
-targetCompatibility = JavaVersion.VERSION_14
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}
+
+// Change Java Version to 17 (Spring Boot 3+ requires Java 17 or higher)
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
