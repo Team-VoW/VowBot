@@ -1,9 +1,9 @@
-package me.kmaxi.wynnvp.slashcommands.commands;
+package me.kmaxi.wynnvp.controller.discordcommands;
 
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
-import me.kmaxi.wynnvp.WynnVPBotMain;
+import me.kmaxi.wynnvp.BotRegister;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -20,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static me.kmaxi.wynnvp.utils.APIUtils.getJsonData;
 import static me.kmaxi.wynnvp.utils.APIUtils.updateUserDataOnWebsite;
-
+@Component
 public class SynAllUsersCommand implements ICommandImpl {
     @Override
     public CommandData getCommandData() {
@@ -128,7 +129,7 @@ public class SynAllUsersCommand implements ICommandImpl {
      * @return returns the discord member
      */
     private Member getDiscordMember(long uuid, String discordUserName) {
-        Guild guild = WynnVPBotMain.guild;
+        Guild guild = BotRegister.guild;
 
         Member member = null;
 

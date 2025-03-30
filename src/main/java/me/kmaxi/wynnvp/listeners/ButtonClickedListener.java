@@ -7,9 +7,11 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Controller;
 
 import java.sql.SQLException;
 
+@Controller
 public class ButtonClickedListener extends ListenerAdapter {
 
     @Override

@@ -1,4 +1,4 @@
-package me.kmaxi.wynnvp.slashcommands.commands;
+package me.kmaxi.wynnvp.controller.discordcommands;
 
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
@@ -9,10 +9,12 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+@Component
 public class CloseAuditionCommand implements ICommandImpl {
     @Override
     public CommandData getCommandData() {

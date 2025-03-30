@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static me.kmaxi.wynnvp.WynnVPBotMain.guild;
+import static me.kmaxi.wynnvp.BotRegister.guild;
 import static me.kmaxi.wynnvp.utils.APIUtils.getJsonData;
 
 public class LineReportManager {

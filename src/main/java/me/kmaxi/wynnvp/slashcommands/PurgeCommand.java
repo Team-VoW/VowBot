@@ -1,7 +1,6 @@
 package me.kmaxi.wynnvp.slashcommands;
 
 import me.kmaxi.wynnvp.Config;
-import me.kmaxi.wynnvp.linereport.LineReportManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -12,7 +11,7 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static me.kmaxi.wynnvp.WynnVPBotMain.guild;
+import static me.kmaxi.wynnvp.BotRegister.guild;
 
 public class PurgeCommand {
 

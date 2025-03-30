@@ -1,4 +1,4 @@
-package me.kmaxi.wynnvp.slashcommands.commands;
+package me.kmaxi.wynnvp.controller.discordcommands;
 
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,6 +19,7 @@ import java.util.Objects;
 
 import static me.kmaxi.wynnvp.slashcommands.poll.PollSQL.doesTableExist;
 
+@Component
 public class GetVotesCommand implements ICommandImpl {
     @Override
     public CommandData getCommandData() {

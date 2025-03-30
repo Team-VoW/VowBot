@@ -1,26 +1,12 @@
 package me.kmaxi.wynnvp;
 
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 
 public class Config {
-
-
     public static String voteButtonLabel = "Vote";
     public static String removeVoteButtonLabel = "Unvote";
-
-    //My sql
-    public static String host = "66.11.118.47";
-    public static String port = "3306";
-    public static String database = "s10530_polls";
-    public static String username = "u10530_NJoqWZbXbX";
-
-    public static String votesTableName = "votes";
 
     //Wynn Vp Server /*
     public static long channelName = 1304017023684050975l;
@@ -40,7 +26,6 @@ public class Config {
     public static long acceptedLines = 955155625296420894l;
     public static long staffBotChat = 956849386489532436l;
 
-
     public static String URL_DiscordIntegration = "https://voicesofwynn.com/api/discord-integration";
 
     public static String acceptUnicode = "\u2705";
@@ -54,7 +39,6 @@ public class Config {
             "Advanced Actor", "Beginner Actor", "Former Staff"));
 
     public static ArrayList<String> actorRoleList = new ArrayList<>(Arrays.asList("819550145217298452", "822008829696933909", "821156730079150131", "821157297908744222"));
-
 
 
 }
