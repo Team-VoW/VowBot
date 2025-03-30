@@ -5,7 +5,9 @@ import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import org.springframework.stereotype.Component;
 
+@Component
 public class HelpCommand implements ICommandImpl {
     @Override
     public CommandData getCommandData() {

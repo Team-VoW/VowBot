@@ -14,11 +14,13 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-import static me.kmaxi.wynnvp.WynnVPBotMain.guild;
+import static me.kmaxi.wynnvp.BotRegister.guild;
 
+@Component
 public class RoleCommand implements ICommandImpl {
 
     private final String openSubCommand = "open";

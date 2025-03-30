@@ -1,12 +1,12 @@
 package me.kmaxi.wynnvp.slashcommands.commands;
 
 import me.kmaxi.wynnvp.APIKeys;
-import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -14,8 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-import static me.kmaxi.wynnvp.WynnVPBotMain.guild;
-
+@Component
 public class ResetForwardedCommand implements ICommandImpl {
     @Override
     public CommandData getCommandData() {

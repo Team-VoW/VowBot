@@ -10,10 +10,12 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import org.springframework.stereotype.Component;
 
 import static me.kmaxi.wynnvp.utils.Utils.permissions;
 import static me.kmaxi.wynnvp.utils.Utils.traineePerms;
 
+@Component
 public class CreateChannelCommand implements ICommandImpl {
     @Override
     public CommandData getCommandData() {

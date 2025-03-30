@@ -1,4 +1,4 @@
-package me.kmaxi.wynnvp.slashcommands;
+package me.kmaxi.wynnvp.listeners;
 
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,9 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
+@Component
 public class SlashCommandsRegister extends ListenerAdapter {
-
 
     Map<String, ICommandImpl> commands;
 

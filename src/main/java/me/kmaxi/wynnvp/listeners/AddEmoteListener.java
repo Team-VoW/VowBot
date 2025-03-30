@@ -9,12 +9,14 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.springframework.stereotype.Controller;
 
 import java.util.Comparator;
 
 import static me.kmaxi.wynnvp.utils.Utils.permissions;
 import static me.kmaxi.wynnvp.utils.Utils.traineePerms;
 
+@Controller
 public class AddEmoteListener extends ListenerAdapter {
 
     @Override
