@@ -1,4 +1,4 @@
-package me.kmaxi.wynnvp.slashcommands.commands;
+package me.kmaxi.wynnvp.controller.discordcommands;
 
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
