@@ -27,7 +27,7 @@ public class ApiService {
     public String createAccount(Member member) throws IOException {
         String postArguments = "";
 
-        postArguments = addPostArgument(postArguments, "discordName=" + member.getUser().getAsMention());
+        postArguments = addPostArgument(postArguments, "discordName=" + member.getUser().getAsTag());
         postArguments = addPostArgument(postArguments, "discordId=" + member.getUser().getId());
         postArguments = addPostArgument(postArguments, "roles=" + getRolesArguments(member));
 
