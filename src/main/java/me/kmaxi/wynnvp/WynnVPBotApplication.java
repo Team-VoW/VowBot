@@ -1,6 +1,7 @@
 package me.kmaxi.wynnvp;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
@@ -8,6 +9,8 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 public class WynnVPBotApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(WynnVPBotApplication.class, args);
+        SpringApplication app = new SpringApplication(WynnVPBotApplication.class);
+        app.setWebApplicationType(WebApplicationType.NONE);
+        app.run(args);
     }
 }

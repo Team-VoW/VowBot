@@ -2,7 +2,7 @@ package me.kmaxi.wynnvp.controller.discordcommands;
 
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
-import me.kmaxi.wynnvp.services.ApiService;
+import me.kmaxi.wynnvp.services.data.AccountService;
 import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class FinishedRoleCommand implements ICommandImpl {
 
     @Autowired
-    private ApiService apiService;
+    private AccountService accountService;
 
     @Override
     public CommandData getCommandData() {
@@ -67,7 +67,7 @@ public class FinishedRoleCommand implements ICommandImpl {
             // Role added successfully, wait for 1 second and then check the member's roles because it doesn't update directly
             Objects.requireNonNull(event.getGuild()).retrieveMemberById(member.getId()).queueAfter(1, TimeUnit.SECONDS, updatedMember -> {
                 try {
-                    String password = apiService.createAccount(member);
+                    String password = accountService.createAccount(member);
 
                     if (password.isEmpty()) {
                         event.getHook().setEphemeral(false).editOriginal("Thanks a lot for voicing this character " + member.getAsMention() + ":heart:. " +

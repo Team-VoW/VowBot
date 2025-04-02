@@ -153,53 +153,5 @@ public class LineReportManager {
         return http.getResponseCode();
     }
 
-    public static void sendLinesWithReaction(String url, MessageChannelUnion messageChannel) {
-
-        try {
-            JSONArray jsonArray = getJsonData(url);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                String line = jsonObject.getString("message");
-
-                messageChannel.sendMessage(line).queue(message1 -> {
-                    message1.addReaction(Emoji.fromUnicode(Config.declineUnicode)).queue();
-                    message1.addReaction(Emoji.fromUnicode(Config.microphoneUnicode)).queue();
-                    message1.addReaction(Emoji.fromUnicode(Config.trashUnicode)).queue();
-                });
-
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static final int maxLengthInOneMessage = 2000;
-    public static void sendLinesWithoutReaction(String url, MessageChannelUnion messageChannel) {
-        ArrayList<StringBuilder> messages = new ArrayList<>();
-        messages.add(new StringBuilder());
-
-        int currentStringBuilder = 0;
-
-        try {
-            JSONArray jsonArray = getJsonData(url);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                String line = jsonObject.getString("message");
-
-                if (messages.get(currentStringBuilder).length() + line.length() > maxLengthInOneMessage){
-                    currentStringBuilder++;
-                    messages.add(new StringBuilder());
-                }
-                messages.get(currentStringBuilder).append("\n").append(line);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        for (int i = 0; i < messages.size(); i++){
-            messageChannel.sendMessage("```" + messages.get(i) + "```").queue();
-        }
-    }
 
 }

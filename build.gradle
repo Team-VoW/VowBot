@@ -32,6 +32,7 @@ dependencies {
     // Spring Boot Core
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web' // Add Spring Boot Web dependency
 
     // JDA (Java Discord API)
     implementation 'net.dv8tion:JDA:5.0.0-beta.20'

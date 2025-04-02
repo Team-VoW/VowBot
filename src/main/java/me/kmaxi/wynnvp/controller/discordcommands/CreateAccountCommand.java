@@ -2,7 +2,7 @@ package me.kmaxi.wynnvp.controller.discordcommands;
 
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
-import me.kmaxi.wynnvp.services.ApiService;
+import me.kmaxi.wynnvp.services.data.AccountService;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -20,7 +20,7 @@ import java.util.Objects;
 public class CreateAccountCommand implements ICommandImpl {
 
     @Autowired
-    private ApiService apiService;
+    private AccountService accountService;
 
     @Override
     public CommandData getCommandData() {
@@ -53,7 +53,7 @@ public class CreateAccountCommand implements ICommandImpl {
         }
 
         try {
-            String password = apiService.createAccount(member);
+            String password = accountService.createAccount(member);
 
             if (password.isEmpty()) {
                 event.getHook().setEphemeral(true).editOriginal("This person already has an account.").queue();

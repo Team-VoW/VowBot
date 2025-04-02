@@ -1,5 +1,5 @@
 
-package me.kmaxi.wynnvp.services;
+package me.kmaxi.wynnvp.services.data;
 
 import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.entities.Member;
@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 import static me.kmaxi.wynnvp.utils.APIUtils.updateUserDataOnWebsite;
 
 @Service
-public class ApiService {
+public class AccountService {
 
     /**
      * Creates an account for the given member and returns the password.
