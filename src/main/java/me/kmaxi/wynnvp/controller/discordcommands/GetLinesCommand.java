@@ -2,6 +2,7 @@ package me.kmaxi.wynnvp.controller.discordcommands;
 
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.PermissionLevel;
+import me.kmaxi.wynnvp.enums.LineType;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import me.kmaxi.wynnvp.linereport.LineReportManager;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -12,6 +13,8 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Component
 public class GetLinesCommand implements ICommandImpl {
     @Override
@@ -21,25 +24,25 @@ public class GetLinesCommand implements ICommandImpl {
                         new OptionData(OptionType.STRING, "npcname", "The exact name of the npc", true),
                         new OptionData(OptionType.BOOLEAN, "addreaction", "If it should send the messages one at a time to allow reaction.", false),
                         new OptionData(OptionType.STRING, "type", "The type of lines to retrieve (accepted, active, all)", false)
-                                .addChoice("accepted", "accepted")
-                                .addChoice("active", "active")
-                                .addChoice("all", "all"));
+                                .addChoice("accepted", LineType.ACCEPTED.name().toLowerCase())
+                                .addChoice("active", LineType.ACTIVE.name().toLowerCase())
+                                .addChoice("all", LineType.ALL.name().toLowerCase()));
     }
 
     @Override
     public PermissionLevel getPermissionLevel() {
         return PermissionLevel.STAFF;
     }
-
     @Override
     public void execute(SlashCommandInteractionEvent event) {
         OptionMapping typeOption = event.getOption("type");
-        String type = (typeOption != null) ? typeOption.getAsString() : "all";
-        String apiKeyword = getApiKeyword(type);
+        LineType type = (typeOption != null) ? LineType.valueOf(typeOption.getAsString().toUpperCase()) : LineType.ALL;
 
         OptionMapping addReactionOption = event.getOption("addreaction");
         boolean addReaction = addReactionOption != null && addReactionOption.getAsBoolean();
-        String url = getReadingUrl(apiKeyword, event);
+        String npcName = Objects.requireNonNull(event.getOption("npcname")).getAsString();
+
+        String url = getReadingUrl(type, npcName);
 
         event.reply("Sending lines now").setEphemeral(true).queue();
 
@@ -50,20 +53,8 @@ public class GetLinesCommand implements ICommandImpl {
         }
     }
 
-    private static String getApiKeyword(String type) {
-        switch (type) {
-            case "accepted":
-                return "accepted";
-            case "active":
-                return "active";
-            case "all":
-            default:
-                return "valid";
-        }
-    }
-
-    private static String getReadingUrl(String keyword, SlashCommandInteractionEvent event) {
-        return "https://voicesofwynn.com/api/unvoiced-line-report/" + keyword + "?npc="
-                + event.getOption("npcname").getAsString().replace(" ", "%20") + "&apiKey=" + APIKeys.readingApiKey;
+    private static String getReadingUrl(LineType type, String npcName) {
+        return "https://voicesofwynn.com/api/unvoiced-line-report/" + type.getApiKeyword() + "?npc="
+                + npcName.replace(" ", "%20") + "&apiKey=" + APIKeys.readingApiKey;
     }
 }
