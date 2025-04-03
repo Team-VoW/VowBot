@@ -2,6 +2,7 @@ package me.kmaxi.wynnvp.controller.discordcommands;
 
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
+import me.kmaxi.wynnvp.services.AuditionsHandler;
 import me.kmaxi.wynnvp.services.data.AccountService;
 import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.entities.Member;
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class FinishedRoleCommand implements ICommandImpl {
 
     @Autowired
-    private AccountService accountService;
+    private AuditionsHandler auditionsHandler;
 
     @Override
     public CommandData getCommandData() {
@@ -53,36 +54,9 @@ public class FinishedRoleCommand implements ICommandImpl {
             event.getHook().setEphemeral(true).editOriginal("ERROR! COULD NOT FIND THE USER!!").queue();
             return;
         }
-
-        CompletableFuture<Void> completableFuture = Utils.upgradeActorRole(member, event.getGuild());
-
-        //Role was not upgraded because person is already at highest role
-        if (completableFuture == null) {
-            event.getHook().setEphemeral(false).editOriginal("Thanks a lot for voicing this character " + member.getAsMention() + ":heart:. " +
-                    "\nBecause you already are expert actor your role stayed the same this time :grin:").queue();
-            return;
-        }
-
-        completableFuture.thenRunAsync(() -> {
-            // Role added successfully, wait for 1 second and then check the member's roles because it doesn't update directly
-            Objects.requireNonNull(event.getGuild()).retrieveMemberById(member.getId()).queueAfter(1, TimeUnit.SECONDS, updatedMember -> {
-                try {
-                    String password = accountService.createAccount(member);
-
-                    if (password.isEmpty()) {
-                        event.getHook().setEphemeral(false).editOriginal("Thanks a lot for voicing this character " + member.getAsMention() + ":heart:. " +
-                                "\nYour actor role has been upgraded here and on the Website :partying_face:").queue();
-                    } else {
-                        event.getHook().setEphemeral(false).editOriginal("Thanks a lot for voicing your very first character for us " + member.getAsMention() + ":heart::partying_face:." +
-                                "\n\n An account with the name " + member.getUser().getName() + " and the temporary password ||" +
-                                password + "|| has been created for you on our website https://voicesofwynn.com/ " +
-                                "\n\n Once everyone voice actor from this quest has sent in their lines, everything will be " +
-                                " added to all the voice actors accounts. Feel free to go in there and change your bio, profile picture and more! :grin:").queue();
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        auditionsHandler.finishedRole(member, event.getGuild()).thenAccept(message -> {
+            // Place your code here to handle the message once it finishes
+            event.getHook().setEphemeral(false).editOriginal(message).queue();
         });
     }
 }
