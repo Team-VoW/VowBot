@@ -3,9 +3,11 @@ package me.kmaxi.wynnvp.controller.discordcommands;
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
+import me.kmaxi.wynnvp.services.data.LineReportService;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -16,6 +18,10 @@ import java.nio.charset.StandardCharsets;
 
 @Component
 public class ResetForwardedCommand implements ICommandImpl {
+
+    @Autowired
+    private LineReportService lineReportService;
+
     @Override
     public CommandData getCommandData() {
         return Commands.slash("resetforwarded", "Moves all forwarded api entries back to index so they will be sent again.");
@@ -30,27 +36,12 @@ public class ResetForwardedCommand implements ICommandImpl {
     public void execute(SlashCommandInteractionEvent event) {
         System.out.println("Reseting all forwarded");
 
-        try {
-            URL url = new URL("https://voicesofwynn.com/api/unvoiced-line-report/reset");
-            HttpURLConnection http = (HttpURLConnection) url.openConnection();
-            http.setRequestMethod("PUT");
-            http.setDoOutput(true);
-            http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        boolean successful = lineReportService.resetForwarded();
 
-            String data = "&apiKey=" + APIKeys.updateApiKey;
-
-            byte[] out = data.getBytes(StandardCharsets.UTF_8);
-
-            OutputStream stream = http.getOutputStream();
-            stream.write(out);
-
-            int responseCode = http.getResponseCode();
-            System.out.println(responseCode + " " + http.getResponseMessage());
-            http.disconnect();
-            event.reply("Response code for resetting lines was: " + responseCode).setEphemeral(true).queue();
-
-        } catch (IOException e) {
-            event.reply("Failed: " + e.getMessage()).setEphemeral(true).queue();
+        if (successful) {
+            event.reply("Resetting all forwarded lines was successful.").setEphemeral(true).queue();
+        } else {
+            event.reply("Failed to reset all forwarded lines. Check the log for more details.").setEphemeral(true).queue();
         }
     }
 }
