@@ -5,6 +5,7 @@ import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import me.kmaxi.wynnvp.services.AuditionsHandler;
 import me.kmaxi.wynnvp.utils.Utils;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.NewsChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -39,7 +40,9 @@ public class OpenCastingCommand implements ICommandImpl {
                         new OptionData(OptionType.STRING, "npc6", "The sixths npc name", false),
                         new OptionData(OptionType.STRING, "npc7", "The sevenths npc name", false),
                         new OptionData(OptionType.STRING, "npc8", "The eights npc name", false),
-                        new OptionData(OptionType.STRING, "npc9", "The ninths npc name", false));
+                        new OptionData(OptionType.STRING, "npc9", "The ninths npc name", false),
+                        new OptionData(OptionType.CHANNEL, "channel", "The channel to send the poll to", false)
+                                .setChannelTypes(ChannelType.NEWS, ChannelType.TEXT));
     }
 
     @Override
@@ -62,8 +65,20 @@ public class OpenCastingCommand implements ICommandImpl {
             npcs.add(options.get(i).getAsString());
         }
 
-        //MessageChannel textChannel = event.getGuild().getNewsChannelById(Config.channelName);
-        MessageChannel textChannel = event.getChannel();
+        // Get the channel option
+        OptionMapping channelOption = event.getOption("channel");
+        // Check if the channel option is provided
+        MessageChannel textChannel;
+        if (channelOption != null) {
+            // Get the channel by ID
+            textChannel = channelOption.getAsChannel().asTextChannel();
+
+            //Remove last npc since it is the channel id
+            npcs.remove(npcs.size() - 1);
+        } else {
+            // If no channel is provided, use the current channel
+            textChannel = event.getChannel();
+        }
 
         auditionsHandler.setupPoll(questName, npcs, textChannel);
 
