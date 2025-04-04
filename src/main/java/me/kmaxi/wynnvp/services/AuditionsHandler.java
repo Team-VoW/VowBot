@@ -3,13 +3,17 @@ package me.kmaxi.wynnvp.services;
 
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.services.data.AccountService;
+import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -20,6 +24,28 @@ public class AuditionsHandler {
 
     @Autowired
     private AccountService accountService;
+
+    public void setupPoll(String questName, List<String> npcs, MessageChannel channel){
+        ArrayList<String> reactions = new ArrayList<>();
+        String out = ">>> **React to apply for a role in " + questName + "**";
+        int i = 1;
+        for (String npc : npcs) {
+            if (i == 10) {
+                break;
+            }
+            out += "\n:" + Utils.convertNumber(i) + ": = " + npc + "\n";
+            reactions.add(String.valueOf(i));
+            i++;
+        }
+
+        channel.sendMessage(out).queue(message1 -> {
+            int index = 1;
+            for (String reaction : reactions) {
+                message1.addReaction(Emoji.fromUnicode(Utils.getUnicode(index))).queue();
+                index++;
+            }
+        });
+    }
 
     public CompletableFuture<String> finishedRole(Member member, Guild guild) {
         CompletableFuture<Void> completableFuture = upgradeActorRole(member, guild);
