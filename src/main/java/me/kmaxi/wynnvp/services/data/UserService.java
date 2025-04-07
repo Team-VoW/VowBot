@@ -1,21 +1,36 @@
 
 package me.kmaxi.wynnvp.services.data;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
+import me.kmaxi.wynnvp.dtos.UserDTO;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static me.kmaxi.wynnvp.utils.APIUtils.updateUserDataOnWebsite;
 
 @Service
-public class AccountService {
+public class UserService {
 
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+
+    public UserService() {
+        this.restTemplate = new RestTemplate();
+        this.objectMapper = new ObjectMapper();
+    }
     /**
      * Creates an account for the given member and returns the password.
      * The password is empty if the account already exists.
@@ -44,6 +59,21 @@ public class AccountService {
         updateUserDataOnWebsite(postArguments);
 
         return password;
+    }
+
+    /**
+     * Fetches all users and returns them as a list of UserDTO objects.
+     *
+     * @return List of UserDTO objects representing all users.
+     */
+    public List<UserDTO> getAllUsers() {
+        String url = Config.URL_DiscordIntegration + "?action=getAllUsers&apiKey=" + APIKeys.discordIntegrationAPIKey;
+        String response = restTemplate.getForObject(url, String.class);
+        try {
+            return objectMapper.readValue(response, new TypeReference<List<UserDTO>>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse user data", e);
+        }
     }
 
     private String extractPassword(String input) {

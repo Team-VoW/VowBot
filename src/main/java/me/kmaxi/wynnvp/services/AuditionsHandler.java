@@ -3,15 +3,16 @@ package me.kmaxi.wynnvp.services;
 
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.interfaces.StringIntInterface;
-import me.kmaxi.wynnvp.services.data.AccountService;
 import me.kmaxi.wynnvp.utils.Utils;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -24,9 +25,9 @@ import static me.kmaxi.wynnvp.BotRegister.guild;
 public class AuditionsHandler {
 
     @Autowired
-    private AccountService accountService;
+    MemberHandler memberHandler;
 
-    public void setupPoll(String questName, List<String> npcs, MessageChannel channel){
+    public void setupPoll(String questName, List<String> npcs, MessageChannel channel) {
         ArrayList<String> reactions = new ArrayList<>();
         String out = ">>> **React to apply for a role in " + questName + "**";
         int i = 1;
@@ -49,7 +50,7 @@ public class AuditionsHandler {
     }
 
     public CompletableFuture<String> finishedRole(Member member, Guild guild) {
-        CompletableFuture<Void> completableFuture = upgradeActorRole(member, guild);
+        CompletableFuture<Void> completableFuture = memberHandler.upgradeActorRole(member, guild);
 
         // Role was not upgraded because person is already at highest role
         if (completableFuture == null) {
@@ -60,50 +61,27 @@ public class AuditionsHandler {
         return completableFuture.thenComposeAsync(v -> {
             CompletableFuture<String> resultFuture = new CompletableFuture<>();
             guild.retrieveMemberById(member.getId()).queueAfter(1, TimeUnit.SECONDS, updatedMember -> {
-                try {
-                    String password = accountService.createAccount(member);
 
-                    if (password.isEmpty()) {
-                        resultFuture.complete("Thanks a lot for voicing this character " + member.getAsMention() + ":heart:. " +
-                                "\nYour actor role has been upgraded here and on the Website :partying_face:");
-                    } else {
-                        resultFuture.complete("Thanks a lot for voicing your very first character for us " + member.getAsMention() + ":heart::partying_face:." +
-                                "\n\n An account with the name " + member.getUser().getName() + " and the temporary password ||" +
-                                password + "|| has been created for you on our website https://voicesofwynn.com/ " +
-                                "\n\n Once everyone voice actor from this quest has sent in their lines, everything will be " +
-                                " added to all the voice actors accounts. Feel free to go in there and change your bio, profile picture and we appreciate if you could fill out your **e-mail** so we can contact you easily if needed (feel free to make it private)! :grin:");
-                    }
-                } catch (IOException e) {
+                String password = memberHandler.createAccount(member);
+
+                if (password.isEmpty()) {
+                    resultFuture.complete("Thanks a lot for voicing this character " + member.getAsMention() + ":heart:. " +
+                            "\nYour actor role has been upgraded here and on the Website :partying_face:");
+                } else {
+                    resultFuture.complete("Thanks a lot for voicing your very first character for us " + member.getAsMention() + ":heart::partying_face:." +
+                            "\n\n An account with the name " + member.getUser().getName() + " and the temporary password ||" +
+                            password + "|| has been created for you on our website https://voicesofwynn.com/ " +
+                            "\n\n Once everyone voice actor from this quest has sent in their lines, everything will be " +
+                            " added to all the voice actors accounts. Feel free to go in there and change your bio, profile picture and we appreciate if you could fill out your **e-mail** so we can contact you easily if needed (feel free to make it private)! :grin:");
                 }
+
             });
             return resultFuture;
         });
     }
 
-    private CompletableFuture<Void> upgradeActorRole(Member member, Guild guild) {
-        List<Role> roleList = member.getRoles();
-        for (Role role : roleList) {
-            if (!Config.actorRoleList.contains(role.getId()))
-                continue;
 
-            int indexOfRole = Config.actorRoleList.indexOf(role.getId());
-
-            //If the user is at the highest role already
-            if (indexOfRole == Config.actorRoleList.size() - 1) {
-                return null;
-            }
-            guild.removeRoleFromMember(member, role).queue();
-
-            System.out.println("Upgraded role of " + member.getEffectiveName() + " to actor tier " + indexOfRole + 1);
-
-            return guild.addRoleToMember(member, Objects.requireNonNull(guild.getRoleById(Config.actorRoleList.get(indexOfRole + 1)))).submit();
-        }
-
-        System.out.println("Added first actor role to " + member.getEffectiveName());
-        return guild.addRoleToMember(member, Objects.requireNonNull(guild.getRoleById(Config.actorRoleList.get(0)))).submit();
-    }
-
-    public String setRole(String questName, String npcName, User user){
+    public String setRole(String questName, String npcName, User user) {
         Message message = getCastingMessage(questName, npcName);
 
         if (message == null) {
@@ -123,7 +101,7 @@ public class AuditionsHandler {
         return "Assigned role " + npcName + " in " + questName + " quest.";
     }
 
-    public String openRole(String questName, String npcName){
+    public String openRole(String questName, String npcName) {
         Message message = getCastingMessage(questName, npcName);
 
         if (message == null) {
@@ -137,7 +115,6 @@ public class AuditionsHandler {
 
         return "Cleared role " + npcName + " in " + questName + " quest.";
     }
-
 
 
     private Message getCastingMessage(String quest, String npcName) {

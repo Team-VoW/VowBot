@@ -1,15 +1,9 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
-import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
-import me.kmaxi.wynnvp.interfaces.StringIntInterface;
 import me.kmaxi.wynnvp.services.AuditionsHandler;
-import me.kmaxi.wynnvp.utils.Utils;
-import net.dv8tion.jda.api.entities.IMentionable;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -20,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
-
-import static me.kmaxi.wynnvp.BotRegister.guild;
 
 @Component
 public class RoleCommand implements ICommandImpl {
@@ -77,4 +69,4 @@ public class RoleCommand implements ICommandImpl {
     private String setRoleAsAvailable(String questName, String npcName) {
         return auditionsHandler.openRole(questName, npcName);
     }
-    }
+}

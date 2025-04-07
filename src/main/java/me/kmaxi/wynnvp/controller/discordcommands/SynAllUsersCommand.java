@@ -4,7 +4,9 @@ import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.BotRegister;
+import me.kmaxi.wynnvp.dtos.UserDTO;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
+import me.kmaxi.wynnvp.services.data.UserService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -13,16 +15,21 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static me.kmaxi.wynnvp.utils.APIUtils.getJsonData;
 import static me.kmaxi.wynnvp.utils.APIUtils.updateUserDataOnWebsite;
 @Component
 public class SynAllUsersCommand implements ICommandImpl {
+
+    @Autowired
+    private UserService userService;
     @Override
     public CommandData getCommandData() {
         return Commands.slash("syncallusers", "Syncs all users data to the website. Warning, this is a heavy command!");
@@ -35,60 +42,40 @@ public class SynAllUsersCommand implements ICommandImpl {
 
     @Override
     public void execute(SlashCommandInteractionEvent event) {
-        JSONArray userDataArray = getUsersData("getAllUsers");
+        List<UserDTO> users = userService.getAllUsers();
 
 
         event.deferReply().queue();
 
         //For each website account
-        for (int i = 0; i < userDataArray.length(); i++) {
-            JSONObject userInfo = userDataArray.getJSONObject(i);
-
-            SyncUser(userInfo);
+        for (UserDTO user : users) {
+            SyncUser(user);
         }
 
         event.getHook().setEphemeral(true).editOriginal("Synced all users").queue();
     }
 
-    /**
-     * @param action "getAllUsers" returns all
-     * @return Returns the users' data from the website
-     */
-    private JSONArray getUsersData(String action) {
-
-        try {
-            return getJsonData(Config.URL_DiscordIntegration + "?action=" + action + "&apiKey=" + APIKeys.discordIntegrationAPIKey);
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     /**
      * Syncs website users if they are in the discord
      *
      * @param userInfo The Json object of the website user
      */
-    private void SyncUser(JSONObject userInfo) {
+    private void SyncUser(UserDTO userInfo) {
+
         String discordUserName = "";
 
         //For some reason a regular null check does not work, so we just check the string value
-        if (!userInfo.get("discordName").toString().equals("null")) {
-            discordUserName = userInfo.getString("discordName");
+        if (userInfo.getDiscordName() != null) {
+            discordUserName = userInfo.getDiscordName();
         }
 
-        long uuidOnWebsite = 0;
-
-        //For some reason a regular null check does not work, so we just check the string value
-        if (!userInfo.get("discordId").toString().equals("null")) {
-            uuidOnWebsite = userInfo.getLong("discordId");
-        }
+        long uuidOnWebsite = userInfo.getDiscordId();
 
         Member member = getDiscordMember(uuidOnWebsite, discordUserName);
 
-
         if (member == null) {
-            System.out.println("User " + userInfo.getString("displayName") + " with discord: " + discordUserName + " is not in the discord");
+            System.out.println("User " + userInfo.getDisplayName() + " with discord: " + discordUserName + " is not in the discord");
             return;
         }
         User user = member.getUser();
@@ -104,6 +91,7 @@ public class SynAllUsersCommand implements ICommandImpl {
 
         if (postArguments.equals(""))
             return;
+        System.out.println("Updating user " + user.getAsTag() + " with id: " + user.getId() + " with the following arguments: " + postArguments);
 
         //We always add the discord name and id so that the website can find the correct user.
         if (!postArguments.contains("discordName="))
@@ -148,15 +136,14 @@ public class SynAllUsersCommand implements ICommandImpl {
         return null;
     }
 
-    private String appendRolesL(String postArguments, JSONObject userInfo, Member discordMember) {
-        JSONArray roles = userInfo.getJSONArray("roles");
+    private String appendRolesL(String postArguments, UserDTO userInfo, Member discordMember) {
+        List<UserDTO.RoleDTO> roles = userInfo.getRoles();
 
         HashSet<String> rolesUserHasOnWebsite = new HashSet<>();
 
         //For each role the user has on website
-        for (int i = 0; i < roles.length(); i++) {
-            JSONObject role = roles.getJSONObject(i);
-            rolesUserHasOnWebsite.add(role.getString("name"));
+        for (UserDTO.RoleDTO role : roles) {
+            rolesUserHasOnWebsite.add(role.getName());
         }
 
 
@@ -208,9 +195,9 @@ public class SynAllUsersCommand implements ICommandImpl {
             return currentArguments + "?" + addition;
     }
 
-    private  String appendProfilePictureURL(String postArguments, JSONObject userInfo, User discordMember) {
+    private  String appendProfilePictureURL(String postArguments, UserDTO userInfo, User discordMember) {
 
-        String profilePictureURL = userInfo == null ? "default.png" : userInfo.getString("avatarLink");
+        String profilePictureURL = userInfo.getAvatarLink() == null ? "default.png" : userInfo.getAvatarLink();
         if (profilePictureURL.equals("default.png") || profilePictureURL.equals("dynamic/avatars/default.png")) {
             String addition = "imgurl=" + discordMember.getEffectiveAvatarUrl();
 

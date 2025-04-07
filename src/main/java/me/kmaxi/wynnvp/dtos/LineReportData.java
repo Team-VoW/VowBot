@@ -20,6 +20,4 @@ public class LineReportData {
         this.Y = Y;
         this.Z = Z;
     }
-
-
 }
