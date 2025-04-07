@@ -71,7 +71,7 @@ public class AuditionsHandler {
                                 "\n\n An account with the name " + member.getUser().getName() + " and the temporary password ||" +
                                 password + "|| has been created for you on our website https://voicesofwynn.com/ " +
                                 "\n\n Once everyone voice actor from this quest has sent in their lines, everything will be " +
-                                " added to all the voice actors accounts. Feel free to go in there and change your bio, profile picture and more! :grin:");
+                                " added to all the voice actors accounts. Feel free to go in there and change your bio, profile picture and we appreciate if you could fill out your **e-mail** so we can contact you easily if needed (feel free to make it private)! :grin:");
                     }
                 } catch (IOException e) {
                 }
