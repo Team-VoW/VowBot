@@ -4,13 +4,11 @@ import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class Utils {
@@ -18,7 +16,7 @@ public class Utils {
 
     public static boolean isStaff(Member member) {
         for (Role role : member.getRoles()) {
-            if (role.getIdLong() == Config.roleID
+            if (role.getIdLong() == Config.voiceMangerId
             || role.getIdLong() == Config.writeRoleId) {
                 return true;
             }

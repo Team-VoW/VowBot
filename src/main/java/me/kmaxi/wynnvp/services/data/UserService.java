@@ -48,6 +48,23 @@ public class UserService {
         return setUser(userDTO);
     }
 
+    /**
+     * Fetches all users and returns them as a list of UserDTO objects.
+     *
+     * @return List of UserDTO objects representing all users.
+     */
+    public List<UserDTO> getAllUsers() {
+        String url = Config.URL_DiscordIntegration + "?action=getAllUsers&apiKey=" + APIKeys.discordIntegrationAPIKey;
+        String response = restTemplate.getForObject(url, String.class);
+        try {
+            return objectMapper.readValue(response, new TypeReference<List<UserDTO>>() {
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse user data", e);
+        }
+    }
+
+
 
     public void SetUserIfNeeded(Member discordMember, UserDTO userDTO) {
 
@@ -60,10 +77,27 @@ public class UserService {
         userDTO.setRoles(MemberUtils.getRoles(discordMember));
 
         setUser(userDTO);
-
     }
 
-    public boolean shouldUpdate(Member discordMember, UserDTO userDTO) {
+    private String setUser(UserDTO userDTO) {
+        String postArguments = userDTO.getChangingArguments();
+
+        String password = updateUserDataOnWebsite(postArguments);
+
+        // No new account was created.
+        if (password.isEmpty()) {
+            return "";
+        }
+        password = extractPassword(password);
+
+        // As this is a new account we send another post request with the profile pic
+        postArguments = userDTO.getFullPostArguments();
+        updateUserDataOnWebsite(postArguments);
+
+        return password;
+    }
+
+    private boolean shouldUpdate(Member discordMember, UserDTO userDTO) {
         if (userDTO.getDiscordId() == 0 || discordMember.getIdLong() != userDTO.getDiscordId()) {
             System.out.println("Discord ID has changed for " + discordMember.getUser().getName() + " was " + userDTO.getDiscordId() + " now " + discordMember.getIdLong());
             return true;
@@ -95,23 +129,6 @@ public class UserService {
         return true;
     }
 
-    public String setUser(UserDTO userDTO) {
-        String postArguments = userDTO.getChangingArguments();
-
-        String password = updateUserDataOnWebsite(postArguments);
-
-        // No new account was created.
-        if (password.isEmpty()) {
-            return "";
-        }
-        password = extractPassword(password);
-
-        // As this is a new account we send another post request with the profile pic
-        postArguments = userDTO.getFullPostArguments();
-        updateUserDataOnWebsite(postArguments);
-
-        return password;
-    }
 
     /**
      * Can be used both to register a new user based on their Discord account,
@@ -171,7 +188,7 @@ public class UserService {
      * @return The http connection where you can get response code, response message and other things
      * @throws IOException If an error was encountered
      */
-    public static HttpURLConnection sendPostRequest(String requestURL, String urlParameters) throws IOException {
+    private static HttpURLConnection sendPostRequest(String requestURL, String urlParameters) throws IOException {
         //Post Request
         byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
         int postDataLength = postData.length;
@@ -189,23 +206,6 @@ public class UserService {
         }
 
         return conn;
-    }
-
-
-    /**
-     * Fetches all users and returns them as a list of UserDTO objects.
-     *
-     * @return List of UserDTO objects representing all users.
-     */
-    public List<UserDTO> getAllUsers() {
-        String url = Config.URL_DiscordIntegration + "?action=getAllUsers&apiKey=" + APIKeys.discordIntegrationAPIKey;
-        String response = restTemplate.getForObject(url, String.class);
-        try {
-            return objectMapper.readValue(response, new TypeReference<List<UserDTO>>() {
-            });
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse user data", e);
-        }
     }
 
     private String extractPassword(String input) {

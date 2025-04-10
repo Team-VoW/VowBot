@@ -45,7 +45,7 @@ public class CloseAuditionCommand implements ICommandImpl {
     }
 
     private static boolean isUnderApplicationCategory(TextChannel textChannel) {
-        return textChannel.getParentCategoryIdLong() == Config.categoryID || textChannel.getParentCategoryIdLong() == Config.closingCategoryID || textChannel.getParentCategoryIdLong() == Config.categoryID2;
+        return textChannel.getParentCategoryIdLong() == Config.applyCategoryId || textChannel.getParentCategoryIdLong() == Config.closingCategoryID || textChannel.getParentCategoryIdLong() == Config.categoryID2;
     }
 
     private static void closeChannelImmediately(SlashCommandInteractionEvent event) {

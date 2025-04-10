@@ -38,7 +38,7 @@ public class CreateChannelCommand implements ICommandImpl {
         guild.createTextChannel(getChannelName(user, npcName), guild.getCategoryById(Config.acceptedCategoryID))
                 .setTopic(getTopic(user, npcName))
                 .addMemberPermissionOverride(user.getIdLong(), permissions(), null)
-                .addRolePermissionOverride(Config.roleID, permissions(), null)
+                .addRolePermissionOverride(Config.voiceMangerId, permissions(), null)
                 .addRolePermissionOverride(820690089427861535l, null, permissions())
                 .addRolePermissionOverride(Config.traineeRole, traineePerms(), null)
                 .addPermissionOverride(guild.getPublicRole(), null, permissions())

@@ -10,9 +10,9 @@ public class Config {
 
     //Wynn Vp Server /*
     public static long channelName = 1304017023684050975l;
-    public static long roleID = 821772974226407445l;
+    public static long voiceMangerId = 821772974226407445L;
     public static long writeRoleId = 819850296926666763l;
-    public static long categoryID = 821335417000951858l;
+    public static long applyCategoryId = 821335417000951858L;
     public static long categoryID2 = 1348201751165272074l;
     public static long closingCategoryID = 867868540320743485l;
     public static long acceptedCategoryID = 821787630726938674l;
@@ -25,6 +25,7 @@ public class Config {
     public static long reportedLines = 1135090965938450433l;
     public static long acceptedLines = 955155625296420894l;
     public static long staffBotChat = 956849386489532436l;
+    public static long recordingCollectionId = 821787630726938674L;
 
     public static String URL_DiscordIntegration = "https://voicesofwynn.com/api/discord-integration";
 

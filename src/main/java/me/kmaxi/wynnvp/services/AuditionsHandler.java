@@ -27,26 +27,31 @@ public class AuditionsHandler {
     @Autowired
     MemberHandler memberHandler;
 
+    @Autowired
+    AuditionsChannelHandler auditionsChannelHandler;
     public void setupPoll(String questName, List<String> npcs, MessageChannel channel) {
         ArrayList<String> reactions = new ArrayList<>();
-        String out = ">>> **React to apply for a role in " + questName + "**";
+        StringBuilder out = new StringBuilder(">>> **React to apply for a role in " + questName + "**");
         int i = 1;
         for (String npc : npcs) {
             if (i == 10) {
                 break;
             }
-            out += "\n:" + Utils.convertNumber(i) + ": = " + npc + "\n";
+            out.append("\n:").append(Utils.convertNumber(i)).append(": = ").append(npc).append("\n");
             reactions.add(String.valueOf(i));
             i++;
         }
 
-        channel.sendMessage(out).queue(message1 -> {
+        channel.sendMessage(out.toString()).queue(message1 -> {
             int index = 1;
             for (String reaction : reactions) {
                 message1.addReaction(Emoji.fromUnicode(Utils.getUnicode(index))).queue();
                 index++;
             }
         });
+
+        auditionsChannelHandler.createQuestChannels(questName, npcs);
+
     }
 
     public CompletableFuture<String> finishedRole(Member member, Guild guild) {
