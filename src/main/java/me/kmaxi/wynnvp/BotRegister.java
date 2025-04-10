@@ -2,6 +2,7 @@ package me.kmaxi.wynnvp;
 
 import me.kmaxi.wynnvp.linereport.LineReportManager;
 
+import me.kmaxi.wynnvp.services.GuildService;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -20,6 +21,9 @@ import java.util.List;
 public class BotRegister {
 
     public static Guild guild;
+
+    @Autowired
+    private GuildService guildService;
 
     @Autowired
     private List<ListenerAdapter> eventListeners;
@@ -45,6 +49,7 @@ public class BotRegister {
         LineReportManager.startTimer();
         jda.updateCommands().queue();
         guild = jda.getGuildById(814401551292563477L);
+        guildService.setGuild(jda.getGuildById(814401551292563477L));
         return jda;
     }
 }

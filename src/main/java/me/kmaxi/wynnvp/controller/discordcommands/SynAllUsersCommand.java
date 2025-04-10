@@ -4,6 +4,7 @@ import me.kmaxi.wynnvp.BotRegister;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.dtos.UserDTO;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
+import me.kmaxi.wynnvp.services.GuildService;
 import me.kmaxi.wynnvp.services.data.UserService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -21,6 +22,9 @@ public class SynAllUsersCommand implements ICommandImpl {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private GuildService guildService;
 
     @Override
     public CommandData getCommandData() {
@@ -82,7 +86,7 @@ public class SynAllUsersCommand implements ICommandImpl {
      * @return returns the discord member
      */
     private Member getDiscordMember(long uuid, String discordUserName) {
-        Guild guild = BotRegister.guild;
+        Guild guild = guildService.getGuild();
 
         if (uuid != 0) {
             return guild.getMemberById(uuid);

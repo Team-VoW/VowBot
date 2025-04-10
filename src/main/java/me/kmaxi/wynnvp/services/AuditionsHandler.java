@@ -19,13 +19,15 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static me.kmaxi.wynnvp.BotRegister.guild;
 
 @Service
 public class AuditionsHandler {
 
     @Autowired
     MemberHandler memberHandler;
+
+    @Autowired
+    private GuildService guildService;
 
     @Autowired
     AuditionsChannelHandler auditionsChannelHandler;
@@ -125,7 +127,7 @@ public class AuditionsHandler {
     private Message getCastingMessage(String quest, String npcName) {
         npcName = npcName.toLowerCase();
         System.out.println("Quest input: " + quest);
-        for (Message message : Objects.requireNonNull(guild.getNewsChannelById(Config.channelName)).getHistoryFromBeginning(100).complete().getRetrievedHistory()) {
+        for (Message message : Objects.requireNonNull(guildService.getGuild().getNewsChannelById(Config.channelName)).getHistoryFromBeginning(100).complete().getRetrievedHistory()) {
             System.out.println("Message: " + message.getContentRaw());
             String messageAsString = message.getContentRaw();
             if (!message.getAuthor().isBot()) {

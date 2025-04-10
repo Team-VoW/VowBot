@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +17,9 @@ import java.util.Objects;
 
 @Service
 public class AuditionsChannelHandler {
+
+    @Autowired
+    private GuildService guildService;
 
     public void openAudition(String questName, String npcName, Member member) {
 
@@ -30,7 +34,7 @@ public class AuditionsChannelHandler {
 
         String channelName = npcName + "-" + user.getName().replace(".", "");
 
-        Guild guild = BotRegister.guild;
+        Guild guild = guildService.getGuild();
 
         if (auditionThreadExists(channelName, questChannel)) {
             Utils.sendPrivateMessage(user, "You already have an application for " + npcName + " running. Type `?close` in the application channel to close it");
@@ -66,7 +70,7 @@ public class AuditionsChannelHandler {
     private TextChannel getQuestChannel(String questName, String npcName) {
 
         String channelName = getChannelName(questName, npcName);
-        Guild guild = BotRegister.guild;
+        Guild guild = guildService.getGuild();
         List<TextChannel> channels = Objects.requireNonNull(guild.getCategoryById(Config.applyCategoryId)).getTextChannels();
 
         return channels.stream()
@@ -81,7 +85,7 @@ public class AuditionsChannelHandler {
     }
 
     public void createQuestChannels(String questName, List<String> roles) {
-        Guild guild = BotRegister.guild;
+        Guild guild = guildService.getGuild();
 
         for (String role : roles) {
             createQuestChannel(questName, role, guild.getCategoryById(Config.applyCategoryId));
@@ -89,13 +93,13 @@ public class AuditionsChannelHandler {
     }
 
     public TextChannel createQuestChannel(String questName, String role) {
-        Guild guild = BotRegister.guild;
+        Guild guild = guildService.getGuild();
 
         return createQuestChannel(questName, role, guild.getCategoryById(Config.applyCategoryId));
     }
 
     private TextChannel createQuestChannel(String questName, String role, Category category) {
-        Guild guild = BotRegister.guild;
+        Guild guild = guildService.getGuild();
 
         String channelName = getChannelName(questName, role);
         TextChannel channel = guild.createTextChannel(channelName, category)
