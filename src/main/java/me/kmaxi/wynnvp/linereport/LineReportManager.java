@@ -36,42 +36,6 @@ public class LineReportManager {
     }
 
 
-    public static void lineReportReact(MessageReactionAddEvent event) {
-        String message = event.retrieveMessage().complete().getContentRaw();
-
-        //If reacted to a message that was not sent from this bot or is not admin
-        if (!event.retrieveMessage().complete().getAuthor().getId().equals("821397022250369054")
-                || !event.getMember().hasPermission(Permission.ADMINISTRATOR)) return;
-
-        String line;
-        if (event.getChannel().getIdLong() == Config.staffBotChat) {
-            line = message;
-        } else {
-            String[] messageSplitByLine = message.split("\n");
-
-            if (messageSplitByLine.length <= 3) return;
-
-            String str = messageSplitByLine[3];
-            line = str.substring(str.indexOf(" ") + 1);
-            line = line.replace("`", "");
-        }
-
-
-        String yOrN = switch (event.getReaction().getEmoji().asUnicode().getAsCodepoints()) {
-            case "U+2705" -> "y";
-            case "U+274c" -> "n";
-            case "U+1f399" -> "v";
-            case "U+1f5d1" -> "r";
-            default -> "none";
-        };
-
-        if (yOrN.equals("none")) return;
-
-        sendLineAndDeleteMessage(line, yOrN, event.retrieveMessage().complete(), guild);
-
-
-    }
-
 
     public static void sendAllReports() {
         try {
@@ -102,54 +66,7 @@ public class LineReportManager {
     }
 
 
-    public static void sendLineAndDeleteMessage(String fullLine, String acceptedString, Message message, Guild guild) {
 
-        int responseCode = 0;
-        try {
-            responseCode = declineOrAcceptLine(fullLine, acceptedString);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (responseCode >= 400) {
-            //Failed
-            guild.getTextChannelById(Config.staffBotChat).sendMessage("Line: ´" + fullLine + "´ with status **" + acceptedString + "** got response code **" + responseCode + "**").queue();
-        } else {
-            if (acceptedString.equals("y")) {
-                guild.getTextChannelById(Config.acceptedLines).sendMessage(message.getContentRaw()).queue(message1 -> {
-                    message1.addReaction(Emoji.fromUnicode(Config.declineUnicode)).queue();
-                    message1.addReaction(Emoji.fromUnicode(Config.microphoneUnicode)).queue();
-                });
-            }
-
-            message.delete().queue();
-
-        }
-
-    }
-
-    private static int declineOrAcceptLine(String fullLine, String acceptedString) throws IOException {
-
-        System.out.println("Line: " + fullLine + " has been marked as " + acceptedString);
-
-        URL url = new URL("https://voicesofwynn.com/api/unvoiced-line-report/resolve");
-        HttpURLConnection http = (HttpURLConnection) url.openConnection();
-        http.setRequestMethod("PUT");
-        http.setDoOutput(true);
-        http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-        String data = "line=" + fullLine + "&answer=" + acceptedString + "&apiKey=" + APIKeys.updateApiKey;
-
-        byte[] out = data.getBytes(StandardCharsets.UTF_8);
-
-        OutputStream stream = http.getOutputStream();
-        stream.write(out);
-
-        System.out.println(http.getResponseCode() + " " + http.getResponseMessage());
-        http.disconnect();
-
-        return http.getResponseCode();
-    }
 
 
 }
