@@ -12,8 +12,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public class Utils {
-
-
     public static boolean isStaff(Member member) {
         for (Role role : member.getRoles()) {
             if (role.getIdLong() == Config.voiceMangerId
@@ -103,20 +101,6 @@ public class Utils {
     }
 
 
-    public static void formatName(String name, Guild guild, Consumer<String> callback) {
-
-        if (guild.getCategoryById(Config.spamCategoryID) == null) {
-            System.out.println("ERROR! SPAM CATEGORY IS NULL");
-            return;
-        }
-
-        RemoveMutePerms(guild);
-
-
-        Objects.requireNonNull(guild.getCategoryById(Config.spamCategoryID))
-                .createTextChannel(name)
-                .queue(textChannel -> callback.accept(textChannel.getName()));
-    }
 
 
     public static void sendPrivateMessage(User user, String content) {
@@ -126,13 +110,7 @@ public class Utils {
                 channel.sendMessage(content).queue());
     }
 
-    public static void RemoveMutePerms(Guild guild) {
-        Objects.requireNonNull(guild.getCategoryById(Config.spamCategoryID)).getRolePermissionOverrides().forEach(permissionOverride -> {
-            if (Objects.requireNonNull(permissionOverride.getRole()).getIdLong() == Config.mutedRole) {
-                permissionOverride.delete().queue();
-            }
-        });
-    }
+
 
     public static boolean hasRole(Member member, long roleToCheck) {
         List<Role> rolesList = member.getRoles();
@@ -164,18 +142,4 @@ public class Utils {
         permissions.add(Permission.MESSAGE_ADD_REACTION);
         return permissions;
     }
-
-    public static Member getFirstMemberWithSpecialPermission(GuildChannel channel) {
-        for (PermissionOverride override : channel.getPermissionContainer().getMemberPermissionOverrides()) {
-            if (override.isMemberOverride()) {
-                Member member = override.getMember();
-                if (member != null && !override.getAllowed().isEmpty()) {
-                    return member;
-                }
-            }
-        }
-        return null;
-    }
-
-
 }

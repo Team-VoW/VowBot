@@ -17,9 +17,7 @@ public class LineReportScheduler {
 
     @Scheduled(fixedRate = 10000) // Runs every 10 seconds
     public void sendAllReportsPeriodically() {
-        System.out.println("Checking if guild is null...");
         if (guildService.getGuild() == null) return;
-        System.out.println("Sending all reports...");
         lineReportHandler.sendAllNewReports();
     }
 }

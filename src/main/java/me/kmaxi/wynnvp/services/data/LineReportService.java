@@ -1,10 +1,10 @@
 package me.kmaxi.wynnvp.services.data;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.kmaxi.wynnvp.APIKeys;
-import me.kmaxi.wynnvp.dtos.LineReportData;
+import me.kmaxi.wynnvp.dtos.LineReportDTO;
 import me.kmaxi.wynnvp.enums.LineType;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -12,42 +12,29 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
-
 
 @Service
 public class LineReportService {
 
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     public LineReportService() {
         this.restTemplate = new RestTemplate();
+        this.objectMapper = new ObjectMapper();
     }
 
-    public List<LineReportData> fetchMessages(LineType type, String npcName) {
-        String url = getReadingUrl(type, npcName);
-        String response = restTemplate.getForObject(url, String.class);
-        JSONArray jsonArray = new JSONArray(response);
-        List<LineReportData> messages = new ArrayList<>();
+    public List<LineReportDTO> fetchMessages(LineType type, String npcName) {
+        try {
+            String url = getReadingUrl(type, npcName);
+            String response = restTemplate.getForObject(url, String.class);
 
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject jsonObject = jsonArray.getJSONObject(i);
-            LineReportData messageData = new LineReportData(
-                    jsonObject.getString("message"),
-                    jsonObject.getString("NPC"),
-                    jsonObject.getString("X"),
-                    jsonObject.getString("Y"),
-                    jsonObject.getString("Z")
-            );
-            messages.add(messageData);
+            return objectMapper.readValue(response, new TypeReference<List<LineReportDTO>>() {});
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of(); // Return an empty list in case of an error
         }
-        return messages;
     }
 
     public boolean resetForwarded() {
@@ -60,12 +47,22 @@ public class LineReportService {
             HttpEntity<String> entity = new HttpEntity<>(data, headers);
 
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
-            boolean isError = response.getStatusCode().isError();
-
-            return !isError;
+            return !response.getStatusCode().isError();
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public List<LineReportDTO> getNewReports() {
+        try {
+            String url = "http://voicesofwynn.com/api/unvoiced-line-report/index?apiKey=" + APIKeys.readingApiKey;
+            String response = restTemplate.getForObject(url, String.class);
+
+            return objectMapper.readValue(response, new TypeReference<List<LineReportDTO>>() {});
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of(); // Return an empty list in case of an error
         }
     }
 
