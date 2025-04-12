@@ -1,7 +1,5 @@
 package me.kmaxi.wynnvp;
 
-import me.kmaxi.wynnvp.linereport.LineReportManager;
-
 import me.kmaxi.wynnvp.services.GuildService;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -46,7 +44,7 @@ public class BotRegister {
         JDA jda = builder.build();
         jda.awaitReady();
         System.out.println("Finished building JDA!");
-        LineReportManager.startTimer();
+        //LineReportManager.startTimer();
         jda.updateCommands().queue();
         guild = jda.getGuildById(814401551292563477L);
         guildService.setGuild(jda.getGuildById(814401551292563477L));

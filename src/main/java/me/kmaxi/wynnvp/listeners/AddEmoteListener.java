@@ -2,13 +2,11 @@ package me.kmaxi.wynnvp.listeners;
 
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
-import me.kmaxi.wynnvp.linereport.LineReportManager;
 import me.kmaxi.wynnvp.services.AuditionsChannelHandler;
 import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -20,7 +18,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Comparator;
 import java.util.Objects;
 
 import static me.kmaxi.wynnvp.BotRegister.guild;
@@ -151,20 +148,6 @@ public class AddEmoteListener extends ListenerAdapter {
         return http.getResponseCode();
     }
 
-    private void sortChannels(Guild guild) {
-        if (guild.getCategoryById(Config.applyCategoryId).getChannels().isEmpty()) {
-            System.out.println("Tried to sort empty category.");
-            return;
-        }
-        guild.getCategoryById(Config.applyCategoryId)
-                .modifyTextChannelPositions()
-                .sortOrder(new Comparator<GuildChannel>() {
-                    @Override
-                    public int compare(GuildChannel o1, GuildChannel o2) {
-                        return o1.getName().compareTo(o2.getName());
-                    }
-                }).queue();
-    }
 }
 
 
