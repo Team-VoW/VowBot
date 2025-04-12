@@ -25,19 +25,6 @@ public class LineReportHandler {
     @Autowired
     private GuildService guildService;
 
-    public void sendLinesWithReaction(LineType type, String npcName, MessageChannelUnion messageChannel) {
-
-        List<LineReportDTO> messages = lineReportService.fetchMessages(type, npcName);
-
-        for (LineReportDTO message : messages) {
-            messageChannel.sendMessage(message.getMessage()).queue(message1 -> {
-                message1.addReaction(Emoji.fromUnicode(Config.declineUnicode)).queue();
-                message1.addReaction(Emoji.fromUnicode(Config.microphoneUnicode)).queue();
-                message1.addReaction(Emoji.fromUnicode(Config.trashUnicode)).queue();
-            });
-        }
-    }
-
     public void sendLinesWithoutReaction(LineType type, String npcName, MessageChannelUnion messageChannel) {
         List<LineReportDTO> messages = lineReportService.fetchMessages(type, npcName);
         ArrayList<StringBuilder> messageChunks = new ArrayList<>();
