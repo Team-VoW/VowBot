@@ -1,26 +1,14 @@
 package me.kmaxi.wynnvp.listeners;
 
-import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.services.AuditionsChannelHandler;
 import me.kmaxi.wynnvp.utils.Utils;
-import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-
-import static me.kmaxi.wynnvp.BotRegister.guild;
 
 @Controller
 public class AddEmoteListener extends ListenerAdapter {
@@ -29,18 +17,13 @@ public class AddEmoteListener extends ListenerAdapter {
     private AuditionsChannelHandler auditionsChannelHandler;
     @Override
     public void onMessageReactionAdd(MessageReactionAddEvent event) {
-        if (event.getUser().isBot()) {
+        if (Objects.requireNonNull(event.getUser()).isBot()) {
             return;
         }
 
-        if (event.getChannel().getIdLong() == Config.channelName) {
+        if (event.getChannel().getIdLong() == Config.voiceApplyChannelId) {
             voiceApplyReact(event);
-        } else if ((event.getChannel().getIdLong() == Config.reportedLines
-                || event.getChannel().getIdLong() == Config.acceptedLines
-                || event.getChannel().getIdLong() == Config.staffBotChat) && Utils.isAdmin(event.getMember())) {
-            lineReportReact(event);
         }
-
     }
 
     private void voiceApplyReact(MessageReactionAddEvent event) {
@@ -63,14 +46,17 @@ public class AddEmoteListener extends ListenerAdapter {
     }
 
 
+       /*else if ((event.getChannel().getIdLong() == Config.reportedLines
+                || event.getChannel().getIdLong() == Config.acceptedLines
+                || event.getChannel().getIdLong() == Config.staffBotChat) && Utils.isAdmin(event.getMember())) {
+            lineReportReact(event);
+        }*/
 
-
-    private static void lineReportReact(MessageReactionAddEvent event) {
+  /*  private static void lineReportReact(MessageReactionAddEvent event) {
         String message = event.retrieveMessage().complete().getContentRaw();
 
         //If reacted to a message that was not sent from this bot or is not admin
-        if (!event.retrieveMessage().complete().getAuthor().getId().equals("821397022250369054")
-                || !event.getMember().hasPermission(Permission.ADMINISTRATOR)) return;
+        if (!event.retrieveMessage().complete().getAuthor().getId().equals("821397022250369054")) return;
 
         String line;
         if (event.getChannel().getIdLong() == Config.staffBotChat) {
@@ -146,7 +132,7 @@ public class AddEmoteListener extends ListenerAdapter {
         http.disconnect();
 
         return http.getResponseCode();
-    }
+    }*/
 
 }
 

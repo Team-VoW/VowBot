@@ -9,7 +9,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 @EnableScheduling
 public class WynnVPBotApplication {
-
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(WynnVPBotApplication.class);
         app.setWebApplicationType(WebApplicationType.NONE);
