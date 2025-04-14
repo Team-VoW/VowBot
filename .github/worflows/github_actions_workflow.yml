@@ -1,21 +1,24 @@
-name: "sonar_cloud_scan_github_actions"
 on:
-  workflow_dispatch:
+  # Trigger analysis when pushing to your main branches, and when creating a pull request.
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - 'releases/**'
+  pull_request:
+      types: [opened, synchronize, reopened]
 
+name: Main Workflow
 jobs:
-  SonarCloudSCan:
+  sonarqube:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-            fetch-depth: 0
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
-        env:
-            GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-              -Dsonar.organization=team-vow
-              -Dsonar.projectKey=SonarCloudCodeAnalyisis
-              -Dsonar.python.coverage.reportPaths=coverage.xml
+    - uses: actions/checkout@v4
+      with:
+        # Disabling shallow clones is recommended for improving the relevancy of reporting
+        fetch-depth: 0
+    - name: SonarQube Scan
+      uses: sonarsource/sonarcloud-github-action@<action version> # Ex: v4.0.0, See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
