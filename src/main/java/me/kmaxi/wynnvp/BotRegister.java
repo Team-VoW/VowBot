@@ -17,18 +17,18 @@ import java.util.List;
 
 @Configuration
 public class BotRegister {
-
-    public static Guild guild;
-
     @Autowired
     private GuildService guildService;
 
     @Autowired
     private List<ListenerAdapter> eventListeners;
 
+    @Autowired
+    private APIKeys apiKeys;
+
     @Bean
     public JDA jda() throws LoginException, InterruptedException {
-        JDABuilder builder = JDABuilder.createDefault(APIKeys.BotToken,
+        JDABuilder builder = JDABuilder.createDefault(apiKeys.botToken,
                         GatewayIntent.GUILD_MEMBERS,
                         GatewayIntent.GUILD_MESSAGE_REACTIONS,
                         GatewayIntent.GUILD_VOICE_STATES,
@@ -46,7 +46,6 @@ public class BotRegister {
         System.out.println("Finished building JDA!");
         //LineReportManager.startTimer();
         jda.updateCommands().queue();
-        guild = jda.getGuildById(814401551292563477L);
         guildService.setGuild(jda.getGuildById(814401551292563477L));
         return jda;
     }

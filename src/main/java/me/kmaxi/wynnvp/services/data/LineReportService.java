@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.dtos.LineReportDTO;
 import me.kmaxi.wynnvp.enums.LineType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,6 +20,9 @@ public class LineReportService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+
+    @Autowired
+    private APIKeys apiKeys;
 
     public LineReportService() {
         this.restTemplate = new RestTemplate();
@@ -43,7 +47,7 @@ public class LineReportService {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Content-Type", "application/x-www-form-urlencoded");
 
-            String data = "apiKey=" + APIKeys.updateApiKey;
+            String data = "apiKey=" + apiKeys.updateApiKey;
             HttpEntity<String> entity = new HttpEntity<>(data, headers);
 
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
@@ -56,7 +60,7 @@ public class LineReportService {
 
     public List<LineReportDTO> getNewReports() {
         try {
-            String url = "http://voicesofwynn.com/api/unvoiced-line-report/index?apiKey=" + APIKeys.readingApiKey;
+            String url = "http://voicesofwynn.com/api/unvoiced-line-report/index?apiKey=" + apiKeys.readingApiKey;
             String response = restTemplate.getForObject(url, String.class);
 
             return objectMapper.readValue(response, new TypeReference<List<LineReportDTO>>() {});
@@ -66,8 +70,8 @@ public class LineReportService {
         }
     }
 
-    private static String getReadingUrl(LineType type, String npcName) {
+    private String getReadingUrl(LineType type, String npcName) {
         return "https://voicesofwynn.com/api/unvoiced-line-report/" + type.getApiKeyword() + "?npc="
-                + npcName.replace(" ", "%20") + "&apiKey=" + APIKeys.readingApiKey;
+                + npcName.replace(" ", "%20") + "&apiKey=" + apiKeys.readingApiKey;
     }
 }

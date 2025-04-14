@@ -8,6 +8,7 @@ import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.dtos.UserDTO;
 import me.kmaxi.wynnvp.utils.MemberUtils;
 import net.dv8tion.jda.api.entities.Member;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -27,6 +28,8 @@ import java.util.regex.Pattern;
 @Service
 public class UserService {
 
+    @Autowired
+    private APIKeys apiKeys;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
@@ -54,7 +57,7 @@ public class UserService {
      * @return List of UserDTO objects representing all users.
      */
     public List<UserDTO> getAllUsers() {
-        String url = Config.URL_DiscordIntegration + "?action=getAllUsers&apiKey=" + APIKeys.discordIntegrationAPIKey;
+        String url = Config.URL_DiscordIntegration + "?action=getAllUsers&apiKey=" + apiKeys.discordIntegrationApiKey;
         String response = restTemplate.getForObject(url, String.class);
         try {
             return objectMapper.readValue(response, new TypeReference<List<UserDTO>>() {
@@ -63,7 +66,6 @@ public class UserService {
             throw new RuntimeException("Failed to parse user data", e);
         }
     }
-
 
 
     public void SetUserIfNeeded(Member discordMember, UserDTO userDTO) {
@@ -170,13 +172,13 @@ public class UserService {
         }
     }
 
-    private static String addActionAndAPIKey(String urlParameters) {
+    private String addActionAndAPIKey(String urlParameters) {
         urlParameters += "&action=syncUser";
 
         // We print before adding the API key to make it easily copyable
         System.out.println("Post parameters: " + urlParameters);
 
-        urlParameters += "&apiKey=" + APIKeys.discordIntegrationAPIKey;
+        urlParameters += "&apiKey=" + apiKeys.discordIntegrationApiKey;
         return urlParameters;
     }
 
