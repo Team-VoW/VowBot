@@ -3,6 +3,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'org.springframework.boot' version '3.2.1' // Add Spring Boot plugin
     id 'io.spring.dependency-management' version '1.1.4' // Add dependency management
+    id "org.sonarqube" version "6.0.1.5171"
 }
 
 apply plugin: 'com.github.johnrengelman.shadow'
@@ -53,6 +54,15 @@ dependencies {
     // Spring Boot Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
+
+sonar {
+  properties {
+    property "sonar.projectKey", "Team-VoW_VowBot"
+    property "sonar.organization", "team-vow"
+    property "sonar.host.url", "https://sonarcloud.io"
+  }
+}
+
 
 tasks.withType(Test) {
     useJUnitPlatform()
