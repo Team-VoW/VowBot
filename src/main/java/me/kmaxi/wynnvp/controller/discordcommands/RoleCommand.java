@@ -2,7 +2,7 @@ package me.kmaxi.wynnvp.controller.discordcommands;
 
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
-import me.kmaxi.wynnvp.services.AuditionsHandler;
+import me.kmaxi.wynnvp.services.audition.AuditionsHandler;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;

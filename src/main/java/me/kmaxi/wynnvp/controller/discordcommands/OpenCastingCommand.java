@@ -1,14 +1,10 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
-import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
-import me.kmaxi.wynnvp.services.AuditionsHandler;
-import me.kmaxi.wynnvp.utils.Utils;
+import me.kmaxi.wynnvp.services.audition.AuditionsHandler;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.concrete.NewsChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;

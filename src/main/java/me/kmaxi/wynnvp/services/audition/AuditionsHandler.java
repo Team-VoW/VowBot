@@ -1,8 +1,10 @@
-package me.kmaxi.wynnvp.services;
+package me.kmaxi.wynnvp.services.audition;
 
 
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.interfaces.StringIntInterface;
+import me.kmaxi.wynnvp.services.GuildService;
+import me.kmaxi.wynnvp.services.MemberHandler;
 import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;

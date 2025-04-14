@@ -1,7 +1,7 @@
 package me.kmaxi.wynnvp.listeners;
 
 import me.kmaxi.wynnvp.Config;
-import me.kmaxi.wynnvp.services.AuditionsChannelHandler;
+import me.kmaxi.wynnvp.services.audition.AuditionsChannelHandler;
 import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;

@@ -2,20 +2,19 @@ package me.kmaxi.wynnvp.utils;
 
 import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
 
 public class Utils {
     public static boolean isStaff(Member member) {
         for (Role role : member.getRoles()) {
             if (role.getIdLong() == Config.voiceMangerId
-            || role.getIdLong() == Config.writeRoleId) {
+                    || role.getIdLong() == Config.writeRoleId) {
                 return true;
             }
         }
@@ -23,7 +22,7 @@ public class Utils {
     }
 
     public static boolean isAdmin(Member member) {
-        return  member.hasPermission(Permission.ADMINISTRATOR);
+        return member.hasPermission(Permission.ADMINISTRATOR);
     }
 
     public static String convertNumber(int number) {
@@ -101,15 +100,12 @@ public class Utils {
     }
 
 
-
-
     public static void sendPrivateMessage(User user, String content) {
         // openPrivateChannel provides a RestAction<PrivateChannel>
         // which means it supplies you with the resulting channel
         user.openPrivateChannel().queue((channel) ->
                 channel.sendMessage(content).queue());
     }
-
 
 
     public static boolean hasRole(Member member, long roleToCheck) {
