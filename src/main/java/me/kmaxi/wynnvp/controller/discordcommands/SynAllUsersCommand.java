@@ -1,6 +1,5 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
-import me.kmaxi.wynnvp.BotRegister;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.dtos.UserDTO;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
@@ -8,11 +7,9 @@ import me.kmaxi.wynnvp.services.GuildService;
 import me.kmaxi.wynnvp.services.data.UserService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -20,11 +17,14 @@ import java.util.List;
 @Component
 public class SynAllUsersCommand implements ICommandImpl {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private GuildService guildService;
+    private final GuildService guildService;
+
+    public SynAllUsersCommand(UserService userService, GuildService guildService) {
+        this.userService = userService;
+        this.guildService = guildService;
+    }
 
     @Override
     public CommandData getCommandData() {
@@ -71,7 +71,6 @@ public class SynAllUsersCommand implements ICommandImpl {
             System.out.println("User " + userInfo.getDisplayName() + " with discord: " + discordUserName + " is not in the discord");
             return;
         }
-        User user = member.getUser();
 
         userService.SetUserIfNeeded(member, userInfo);
     }
@@ -92,14 +91,11 @@ public class SynAllUsersCommand implements ICommandImpl {
             return guild.getMemberById(uuid);
         }
 
-        if (discordUserName.equals(""))
+        if (discordUserName.isEmpty() || discordUserName.contains("#"))
             return null;
 
-        if (discordUserName.contains("#")) {
-            return guild.getMemberByTag(discordUserName);
-        }
 
-        return null;
+        return guild.getMembersByName(discordUserName, false).stream().findFirst().orElse(null);
     }
 
 

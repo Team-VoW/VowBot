@@ -1,26 +1,21 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
-import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import me.kmaxi.wynnvp.services.data.LineReportService;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 @Component
 public class ResetForwardedCommand implements ICommandImpl {
 
-    @Autowired
-    private LineReportService lineReportService;
+    private final LineReportService lineReportService;
+
+    public ResetForwardedCommand(LineReportService lineReportService) {
+        this.lineReportService = lineReportService;
+    }
 
     @Override
     public CommandData getCommandData() {

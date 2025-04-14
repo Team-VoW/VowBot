@@ -29,6 +29,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
+import java.util.Objects;
 
 @Component
 public class SetupPollCommand implements ICommandImpl {
@@ -47,7 +48,7 @@ public class SetupPollCommand implements ICommandImpl {
     public void execute(SlashCommandInteractionEvent event) {
         event.deferReply().setEphemeral(true).queue();
 
-        String URL = event.getOption("url").getAsString(); // The URL of the project will be provided in the command
+        String URL = Objects.requireNonNull(event.getOption("url")).getAsString(); // The URL of the project will be provided in the command
 
         event.getChannel().sendMessage("Auditions for " + URL).queue();
         try {
@@ -63,10 +64,7 @@ public class SetupPollCommand implements ICommandImpl {
 
 
             //For each role
-            for (int i = 0; i < roleIds.size(); i++) {
-                String roleId = roleIds.get(i);
-
-
+            for (String roleId : roleIds) {
                 ArrayList<JSONObject> auditions = getAuditions(roleId);
 
                 String roleName = auditions.get(0).getString("roleName").trim().replaceAll("[ ,.-]", "_");
@@ -116,7 +114,7 @@ public class SetupPollCommand implements ICommandImpl {
                         messageText.replace(" ", "-") + "-" + Config.voteButtonLabel, Config.voteButtonLabel);
                 Button removeVoteButton = Button.danger(
                         messageText.replace(" ", "-") + "-" + Config.removeVoteButtonLabel, Config.removeVoteButtonLabel);
-                ActionRow row = ActionRow.of(voteButton, removeVoteButton);
+                ActionRow.of(voteButton, removeVoteButton);
                 channel.sendMessage("```" + messageText + "```").addActionRow(voteButton, removeVoteButton).addFiles(FileUpload.fromData(file)).queue();
 
                 file.delete();
@@ -145,7 +143,7 @@ public class SetupPollCommand implements ICommandImpl {
 
             JSONArray auditionsArray = jsonData.getJSONArray("submissions");
 
-            if (auditionsArray.isEmpty() || ( lastJsonArray != null && auditionsArray.toString().equals(lastJsonArray.toString())))
+            if (auditionsArray.isEmpty() || (lastJsonArray != null && auditionsArray.toString().equals(lastJsonArray.toString())))
                 break;
 
             lastJsonArray = auditionsArray;

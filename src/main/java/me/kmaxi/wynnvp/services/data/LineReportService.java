@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.dtos.LineReportDTO;
 import me.kmaxi.wynnvp.enums.LineType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -20,11 +19,10 @@ public class LineReportService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final APIKeys apiKeys;
 
-    @Autowired
-    private APIKeys apiKeys;
-
-    public LineReportService() {
+    public LineReportService(APIKeys apiKeys) {
+        this.apiKeys = apiKeys;
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
     }
@@ -34,7 +32,8 @@ public class LineReportService {
             String url = getReadingUrl(type, npcName);
             String response = restTemplate.getForObject(url, String.class);
 
-            return objectMapper.readValue(response, new TypeReference<List<LineReportDTO>>() {});
+            return objectMapper.readValue(response, new TypeReference<>() {
+            });
         } catch (Exception e) {
             e.printStackTrace();
             return List.of(); // Return an empty list in case of an error
@@ -63,7 +62,8 @@ public class LineReportService {
             String url = "http://voicesofwynn.com/api/unvoiced-line-report/index?apiKey=" + apiKeys.readingApiKey;
             String response = restTemplate.getForObject(url, String.class);
 
-            return objectMapper.readValue(response, new TypeReference<List<LineReportDTO>>() {});
+            return objectMapper.readValue(response, new TypeReference<>() {
+            });
         } catch (Exception e) {
             e.printStackTrace();
             return List.of(); // Return an empty list in case of an error

@@ -8,7 +8,6 @@ import me.kmaxi.wynnvp.services.data.LineReportService;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,11 +16,15 @@ import java.util.List;
 @Service
 public class LineReportHandler {
 
-    @Autowired
-    private LineReportService lineReportService;
+    private final LineReportService lineReportService;
 
-    @Autowired
-    private GuildService guildService;
+
+    private final GuildService guildService;
+
+    public LineReportHandler(LineReportService lineReportService, GuildService guildService) {
+        this.lineReportService = lineReportService;
+        this.guildService = guildService;
+    }
 
     public void sendLinesWithoutReaction(LineType type, String npcName, MessageChannelUnion messageChannel) {
         List<LineReportDTO> messages = lineReportService.fetchMessages(type, npcName);

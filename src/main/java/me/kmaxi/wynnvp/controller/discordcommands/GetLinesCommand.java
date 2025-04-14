@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -19,8 +18,11 @@ import java.util.Objects;
 public class GetLinesCommand implements ICommandImpl {
 
 
-    @Autowired
-    private LineReportHandler lineHandler;
+    private final LineReportHandler lineHandler;
+
+    public GetLinesCommand(LineReportHandler lineHandler) {
+        this.lineHandler = lineHandler;
+    }
 
     @Override
     public CommandData getCommandData() {
@@ -43,7 +45,6 @@ public class GetLinesCommand implements ICommandImpl {
         OptionMapping typeOption = event.getOption("type");
         LineType type = (typeOption != null) ? LineType.valueOf(typeOption.getAsString().toUpperCase()) : LineType.ALL;
 
-        OptionMapping addReactionOption = event.getOption("addreaction");
         String npcName = Objects.requireNonNull(event.getOption("npcname")).getAsString();
 
 

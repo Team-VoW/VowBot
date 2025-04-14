@@ -5,7 +5,6 @@ import me.kmaxi.wynnvp.services.data.UserService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -15,8 +14,12 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class MemberHandler {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public MemberHandler(UserService userService) {
+        this.userService = userService;
+    }
+
     public CompletableFuture<Void> upgradeActorRole(Member member, Guild guild) {
         List<Role> roleList = member.getRoles();
         for (Role role : roleList) {
@@ -40,7 +43,7 @@ public class MemberHandler {
         return guild.addRoleToMember(member, Objects.requireNonNull(guild.getRoleById(Config.actorRoleList.get(0)))).submit();
     }
 
-    public String createAccount(Member member){
+    public String createAccount(Member member) {
         try {
             return userService.createAccount(member);
         } catch (IOException e) {

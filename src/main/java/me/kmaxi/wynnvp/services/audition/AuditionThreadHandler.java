@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -16,10 +15,13 @@ import java.util.Objects;
 @Service
 public class AuditionThreadHandler {
 
-    @Autowired
-    private GuildService guildService;
+    private final GuildService guildService;
 
-    public void createThreadIfNotExists(User user, String npcName, String questName, TextChannel questChannel){
+    public AuditionThreadHandler(GuildService guildService) {
+        this.guildService = guildService;
+    }
+
+    public void createThreadIfNotExists(User user, String npcName, String questName, TextChannel questChannel) {
 
         String channelName = npcName + "-" + user.getName().replace(".", "");
 

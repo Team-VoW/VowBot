@@ -10,17 +10,17 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
 @Component
 public class RoleCommand implements ICommandImpl {
+    private final AuditionsHandler auditionsHandler;
 
-
-    @Autowired
-    private AuditionsHandler auditionsHandler;
+    public RoleCommand(AuditionsHandler auditionsHandler) {
+        this.auditionsHandler = auditionsHandler;
+    }
 
     private final String openSubCommand = "open";
     private final String setSubCommand = "set";

@@ -3,12 +3,10 @@ package me.kmaxi.wynnvp;
 import me.kmaxi.wynnvp.services.GuildService;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,14 +15,15 @@ import java.util.List;
 
 @Configuration
 public class BotRegister {
-    @Autowired
-    private GuildService guildService;
+    private final GuildService guildService;
+    private final List<ListenerAdapter> eventListeners;
+    private final APIKeys apiKeys;
 
-    @Autowired
-    private List<ListenerAdapter> eventListeners;
-
-    @Autowired
-    private APIKeys apiKeys;
+    public BotRegister(GuildService guildService, List<ListenerAdapter> eventListeners, APIKeys apiKeys) {
+        this.guildService = guildService;
+        this.apiKeys = apiKeys;
+        this.eventListeners = eventListeners;
+    }
 
     @Bean
     public JDA jda() throws LoginException, InterruptedException {

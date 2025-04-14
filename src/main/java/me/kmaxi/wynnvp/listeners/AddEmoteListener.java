@@ -5,7 +5,6 @@ import me.kmaxi.wynnvp.services.audition.AuditionsChannelHandler;
 import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import java.util.Objects;
@@ -13,8 +12,12 @@ import java.util.Objects;
 @Controller
 public class AddEmoteListener extends ListenerAdapter {
 
-    @Autowired
-    private AuditionsChannelHandler auditionsChannelHandler;
+    private final AuditionsChannelHandler auditionsChannelHandler;
+
+    public AddEmoteListener(AuditionsChannelHandler auditionsChannelHandler) {
+        this.auditionsChannelHandler = auditionsChannelHandler;
+    }
+
     @Override
     public void onMessageReactionAdd(MessageReactionAddEvent event) {
         if (Objects.requireNonNull(event.getUser()).isBot()) {

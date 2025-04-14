@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,11 +15,14 @@ import java.util.Objects;
 @Service
 public class AuditionsChannelHandler {
 
-    @Autowired
-    private GuildService guildService;
+    private final GuildService guildService;
 
-    @Autowired
-    private AuditionThreadHandler auditionThreadHandler;
+    private final AuditionThreadHandler auditionThreadHandler;
+
+    public AuditionsChannelHandler(GuildService guildService, AuditionThreadHandler auditionThreadHandler) {
+        this.guildService = guildService;
+        this.auditionThreadHandler = auditionThreadHandler;
+    }
 
     public void openAudition(String questName, String npcName, Member member) {
 
@@ -51,6 +53,7 @@ public class AuditionsChannelHandler {
     private String getChannelName(String questName, String npcName) {
         return trimForChannelName(questName) + "-" + trimForChannelName(npcName) + "-Audition";
     }
+
     private String trimForChannelName(String name) {
         return name.replaceAll("[^a-zA-Z0-9-]", "");
     }

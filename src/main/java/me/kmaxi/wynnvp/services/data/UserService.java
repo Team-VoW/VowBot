@@ -8,7 +8,6 @@ import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.dtos.UserDTO;
 import me.kmaxi.wynnvp.utils.MemberUtils;
 import net.dv8tion.jda.api.entities.Member;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,12 +27,14 @@ import java.util.regex.Pattern;
 @Service
 public class UserService {
 
-    @Autowired
-    private APIKeys apiKeys;
+    private final APIKeys apiKeys;
+
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    public UserService() {
+    public UserService(APIKeys apiKeys) {
+        this.apiKeys = apiKeys;
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
     }
@@ -60,7 +61,7 @@ public class UserService {
         String url = Config.URL_DiscordIntegration + "?action=getAllUsers&apiKey=" + apiKeys.discordIntegrationApiKey;
         String response = restTemplate.getForObject(url, String.class);
         try {
-            return objectMapper.readValue(response, new TypeReference<List<UserDTO>>() {
+            return objectMapper.readValue(response, new TypeReference<>() {
             });
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse user data", e);

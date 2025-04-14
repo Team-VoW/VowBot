@@ -21,8 +21,8 @@ public class Config {
 
     public static String URL_DiscordIntegration = "https://voicesofwynn.com/api/discord-integration";
 
-    public static String acceptUnicode = "\u2705";
-    public static String declineUnicode = "\u274C";
+    public static String acceptUnicode = "✅";
+    public static String declineUnicode = "❌";
     public static String microphoneUnicode = "\uD83C\uDF99";
     public static String trashUnicode = "\uD83D\uDDD1";
 

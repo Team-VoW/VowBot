@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.entities.User;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class Utils {
     public static boolean isStaff(Member member) {
@@ -26,77 +25,48 @@ public class Utils {
     }
 
     public static String convertNumber(int number) {
-        switch (number) {
-            case 1:
-                return "one";
-            case 2:
-                return "two";
-            case 3:
-                return "three";
-            case 4:
-                return "four";
-            case 5:
-                return "five";
-            case 6:
-                return "six";
-            case 7:
-                return "seven";
-            case 8:
-                return "eight";
-            case 9:
-                return "nine";
-        }
-        return ":x:";
+        return switch (number) {
+            case 1 -> "one";
+            case 2 -> "two";
+            case 3 -> "three";
+            case 4 -> "four";
+            case 5 -> "five";
+            case 6 -> "six";
+            case 7 -> "seven";
+            case 8 -> "eight";
+            case 9 -> "nine";
+            default -> ":x:";
+        };
     }
 
     public static String getUnicode(int number) {
-        switch (number) {
-            case 1:
-                return "\u0031\uFE0F\u20E3";
-            case 2:
-                return "\u0032\uFE0F\u20E3";
-            case 3:
-                return "\u0033\uFE0F\u20E3";
-            case 4:
-                return "\u0034\uFE0F\u20E3";
-            case 5:
-                return "\u0035\uFE0F\u20E3";
-            case 6:
-                return "\u0036\uFE0F\u20E3";
-            case 7:
-                return "\u0037\uFE0F\u20E3";
-            case 8:
-                return "\u0038\uFE0F\u20E3";
-            case 9:
-                return "\u0039\uFE0F\u20E3";
-            case 0:
-                return "\u274C";
-        }
-        return "\u274C";
+        return switch (number) {
+            case 1 -> "1️⃣";
+            case 2 -> "2️⃣";
+            case 3 -> "3️⃣";
+            case 4 -> "4️⃣";
+            case 5 -> "5️⃣";
+            case 6 -> "6️⃣";
+            case 7 -> "7️⃣";
+            case 8 -> "8️⃣";
+            case 9 -> "9️⃣";
+            default -> "❌";
+        };
     }
 
     public static int whichNumberWasReacted(String emote) {
-        switch (emote) {
-            case "\u0031\uFE0F\u20E3":
-                return 1;
-            case "\u0032\uFE0F\u20E3":
-                return 2;
-            case "\u0033\uFE0F\u20E3":
-                return 3;
-            case "\u0034\uFE0F\u20E3":
-                return 4;
-            case "\u0035\uFE0F\u20E3":
-                return 5;
-            case "\u0036\uFE0F\u20E3":
-                return 6;
-            case "\u0037\uFE0F\u20E3":
-                return 7;
-            case "\u0038\uFE0F\u20E3":
-                return 8;
-            case "\u0039\uFE0F\u20E3":
-                return 9;
-        }
-        return 0;
+        return switch (emote) {
+            case "1️⃣" -> 1;
+            case "2️⃣" -> 2;
+            case "3️⃣" -> 3;
+            case "4️⃣" -> 4;
+            case "5️⃣" -> 5;
+            case "6️⃣" -> 6;
+            case "7️⃣" -> 7;
+            case "8️⃣" -> 8;
+            case "9️⃣" -> 9;
+            default -> 0;
+        };
     }
 
 
@@ -107,18 +77,6 @@ public class Utils {
                 channel.sendMessage(content).queue());
     }
 
-
-    public static boolean hasRole(Member member, long roleToCheck) {
-        List<Role> rolesList = member.getRoles();
-
-        for (Role role : rolesList) {
-            if (role.getIdLong() == roleToCheck) {
-                return true;
-            }
-        }
-        return false;
-
-    }
 
     public static Collection<Permission> permissions() {
         Collection<Permission> permissions = new ArrayList<>();

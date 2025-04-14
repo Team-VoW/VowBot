@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -20,8 +19,11 @@ import java.util.List;
 @Component
 public class OpenCastingCommand implements ICommandImpl {
 
-    @Autowired
-    private AuditionsHandler auditionsHandler;
+    private final AuditionsHandler auditionsHandler;
+
+    public OpenCastingCommand(AuditionsHandler auditionsHandler) {
+        this.auditionsHandler = auditionsHandler;
+    }
 
     @Override
     public CommandData getCommandData() {
@@ -51,7 +53,7 @@ public class OpenCastingCommand implements ICommandImpl {
         List<OptionMapping> options = event.getOptions();
         String questName = options.get(0).getAsString();
 
-        if (questName.contains(" ")){
+        if (questName.contains(" ")) {
             event.reply("Quest name cannot contain spaces. Use - instead").setEphemeral(true).queue();
             return;
         }

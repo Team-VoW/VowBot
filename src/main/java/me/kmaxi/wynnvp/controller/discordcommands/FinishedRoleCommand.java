@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -18,8 +17,11 @@ import java.util.Objects;
 @Component
 public class FinishedRoleCommand implements ICommandImpl {
 
-    @Autowired
-    private AuditionsHandler auditionsHandler;
+    private final AuditionsHandler auditionsHandler;
+
+    public FinishedRoleCommand(AuditionsHandler auditionsHandler) {
+        this.auditionsHandler = auditionsHandler;
+    }
 
     @Override
     public CommandData getCommandData() {

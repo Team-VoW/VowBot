@@ -11,16 +11,19 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Objects;
+
 @Component
 public class CreateAccountCommand implements ICommandImpl {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public CreateAccountCommand(UserService userService) {
+        this.userService = userService;
+    }
 
     @Override
     public CommandData getCommandData() {

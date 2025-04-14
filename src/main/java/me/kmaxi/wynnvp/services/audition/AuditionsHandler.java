@@ -12,7 +12,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -25,14 +24,18 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AuditionsHandler {
 
-    @Autowired
-    MemberHandler memberHandler;
+    private final MemberHandler memberHandler;
 
-    @Autowired
-    private GuildService guildService;
+    private final GuildService guildService;
 
-    @Autowired
-    AuditionsChannelHandler auditionsChannelHandler;
+    private final AuditionsChannelHandler auditionsChannelHandler;
+
+    public AuditionsHandler(MemberHandler memberHandler, GuildService guildService, AuditionsChannelHandler auditionsChannelHandler) {
+        this.memberHandler = memberHandler;
+        this.guildService = guildService;
+        this.auditionsChannelHandler = auditionsChannelHandler;
+    }
+
     public void setupPoll(String questName, List<String> npcs, MessageChannel channel) {
         ArrayList<String> reactions = new ArrayList<>();
         StringBuilder out = new StringBuilder(">>> **React to apply for a role in " + questName + "**");
@@ -48,7 +51,7 @@ public class AuditionsHandler {
 
         channel.sendMessage(out.toString()).queue(message1 -> {
             int index = 1;
-            for (String reaction : reactions) {
+            for (String ignored : reactions) {
                 message1.addReaction(Emoji.fromUnicode(Utils.getUnicode(index))).queue();
                 index++;
             }
