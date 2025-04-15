@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.listeners;
 
+import lombok.RequiredArgsConstructor;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.services.audition.AuditionsChannelHandler;
 import me.kmaxi.wynnvp.utils.Utils;
@@ -9,14 +10,10 @@ import org.springframework.stereotype.Controller;
 
 import java.util.Objects;
 
-@Controller
+@Controller @RequiredArgsConstructor
 public class AddEmoteListener extends ListenerAdapter {
 
     private final AuditionsChannelHandler auditionsChannelHandler;
-
-    public AddEmoteListener(AuditionsChannelHandler auditionsChannelHandler) {
-        this.auditionsChannelHandler = auditionsChannelHandler;
-    }
 
     @Override
     public void onMessageReactionAdd(MessageReactionAddEvent event) {

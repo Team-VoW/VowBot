@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
+import lombok.RequiredArgsConstructor;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import me.kmaxi.wynnvp.services.audition.AuditionsHandler;
@@ -15,13 +16,10 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 @Component
+@RequiredArgsConstructor
 public class FinishedRoleCommand implements ICommandImpl {
 
     private final AuditionsHandler auditionsHandler;
-
-    public FinishedRoleCommand(AuditionsHandler auditionsHandler) {
-        this.auditionsHandler = auditionsHandler;
-    }
 
     @Override
     public CommandData getCommandData() {

@@ -11,9 +11,8 @@ public class PollSQL {
      * Method to create a new poll
      *
      * @param pollName The name of the poll
-     * @throws SQLException Error
      */
-    public static void createPoll(String pollName) throws SQLException {
+    public static void createPoll(String pollName)  {
 
         String createTableQuery = "CREATE TABLE IF NOT EXISTS " + pollName + " ("
                 + "messageId VARCHAR(255) PRIMARY KEY,"

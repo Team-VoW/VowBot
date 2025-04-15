@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
+import lombok.RequiredArgsConstructor;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import me.kmaxi.wynnvp.services.data.UserService;
@@ -17,13 +18,10 @@ import java.io.IOException;
 import java.util.Objects;
 
 @Component
+@RequiredArgsConstructor
 public class CreateAccountCommand implements ICommandImpl {
 
     private final UserService userService;
-
-    public CreateAccountCommand(UserService userService) {
-        this.userService = userService;
-    }
 
     @Override
     public CommandData getCommandData() {

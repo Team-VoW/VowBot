@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp;
 
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.services.GuildService;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -10,10 +11,10 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.security.auth.login.LoginException;
 import java.util.List;
 
 @Configuration
+@Slf4j
 public class BotRegister {
     private final GuildService guildService;
     private final List<ListenerAdapter> eventListeners;
@@ -26,7 +27,7 @@ public class BotRegister {
     }
 
     @Bean
-    public JDA jda() throws LoginException, InterruptedException {
+    public JDA jda() throws InterruptedException {
         JDABuilder builder = JDABuilder.createDefault(apiKeys.botToken,
                         GatewayIntent.GUILD_MEMBERS,
                         GatewayIntent.GUILD_MESSAGE_REACTIONS,
@@ -42,8 +43,7 @@ public class BotRegister {
 
         JDA jda = builder.build();
         jda.awaitReady();
-        System.out.println("Finished building JDA!");
-        //LineReportManager.startTimer();
+        log.info("JDA is ready!");
         jda.updateCommands().queue();
         guildService.setGuild(jda.getGuildById(814401551292563477L));
         return jda;

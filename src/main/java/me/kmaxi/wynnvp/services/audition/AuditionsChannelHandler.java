@@ -1,5 +1,7 @@
 package me.kmaxi.wynnvp.services.audition;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.services.GuildService;
 import net.dv8tion.jda.api.entities.Guild;
@@ -13,20 +15,17 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class AuditionsChannelHandler {
 
     private final GuildService guildService;
 
     private final AuditionThreadHandler auditionThreadHandler;
 
-    public AuditionsChannelHandler(GuildService guildService, AuditionThreadHandler auditionThreadHandler) {
-        this.guildService = guildService;
-        this.auditionThreadHandler = auditionThreadHandler;
-    }
-
     public void openAudition(String questName, String npcName, Member member) {
 
-        System.out.println("Opening audition for " + npcName + " in " + questName + " for " + member.getUser().getName());
+        log.info("Opening audition for {} in {} for {}", npcName, questName, member.getUser().getName());
 
         TextChannel questChannel = getQuestChannel(questName, npcName);
         if (questChannel == null) {

@@ -1,5 +1,7 @@
 package me.kmaxi.wynnvp.services;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.services.data.UserService;
 import net.dv8tion.jda.api.entities.Guild;
@@ -13,12 +15,10 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class MemberHandler {
     private final UserService userService;
-
-    public MemberHandler(UserService userService) {
-        this.userService = userService;
-    }
 
     public CompletableFuture<Void> upgradeActorRole(Member member, Guild guild) {
         List<Role> roleList = member.getRoles();
@@ -34,12 +34,12 @@ public class MemberHandler {
             }
             guild.removeRoleFromMember(member, role).queue();
 
-            System.out.println("Upgraded role of " + member.getEffectiveName() + " to actor tier " + indexOfRole + 1);
+            log.info("Upgraded role of {} to actor tier {}", member.getEffectiveName(), indexOfRole + 1);
 
             return guild.addRoleToMember(member, Objects.requireNonNull(guild.getRoleById(Config.actorRoleList.get(indexOfRole + 1)))).submit();
         }
 
-        System.out.println("Added first actor role to " + member.getEffectiveName());
+        log.info("Added first actor role to {} ", member.getEffectiveName());
         return guild.addRoleToMember(member, Objects.requireNonNull(guild.getRoleById(Config.actorRoleList.get(0)))).submit();
     }
 

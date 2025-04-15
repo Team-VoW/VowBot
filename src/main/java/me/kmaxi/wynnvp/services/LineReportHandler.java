@@ -1,6 +1,8 @@
 package me.kmaxi.wynnvp.services;
 
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.dtos.LineReportDTO;
 import me.kmaxi.wynnvp.enums.LineType;
@@ -14,17 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class LineReportHandler {
 
     private final LineReportService lineReportService;
 
-
     private final GuildService guildService;
-
-    public LineReportHandler(LineReportService lineReportService, GuildService guildService) {
-        this.lineReportService = lineReportService;
-        this.guildService = guildService;
-    }
 
     public void sendLinesWithoutReaction(LineType type, String npcName, MessageChannelUnion messageChannel) {
         List<LineReportDTO> messages = lineReportService.fetchMessages(type, npcName);
@@ -61,11 +59,11 @@ public class LineReportHandler {
 
             TextChannel channel = guildService.getGuild().getTextChannelById(Config.reportedLines);
             if (channel == null) {
-                System.out.println("Channel " + Config.reportedLines + " not found");
+                log.error("Channel {} not found", Config.reportedLines);
                 return;
             }
 
-            System.out.println("Sending report of message: " + messageDTO.getMessage());
+            log.info("Sending report of message: " + messageDTO.getMessage());
 
             channel.sendMessage(forwardedMessage).queue(message1 -> {
                 message1.addReaction(Emoji.fromUnicode(Config.acceptUnicode)).queue();

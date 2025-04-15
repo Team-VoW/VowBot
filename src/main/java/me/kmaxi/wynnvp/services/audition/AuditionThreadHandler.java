@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.services.audition;
 
+import lombok.RequiredArgsConstructor;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.services.GuildService;
 import me.kmaxi.wynnvp.utils.Utils;
@@ -13,13 +14,10 @@ import java.util.Objects;
 
 
 @Service
+@RequiredArgsConstructor
 public class AuditionThreadHandler {
 
     private final GuildService guildService;
-
-    public AuditionThreadHandler(GuildService guildService) {
-        this.guildService = guildService;
-    }
 
     public void createThreadIfNotExists(User user, String npcName, String questName, TextChannel questChannel) {
 

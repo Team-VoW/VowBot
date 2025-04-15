@@ -1,11 +1,9 @@
 package me.kmaxi.wynnvp.slashcommands.poll;
 
-import me.kmaxi.wynnvp.APIKeys;
-
 import java.sql.*;
 
 public class DatabaseConnection {
- //   private static final MySQL mySQL;
+    //   private static final MySQL mySQL;
     private static Connection connection;
 
  /*   static {
@@ -49,17 +47,16 @@ public class DatabaseConnection {
         return connection;
     }
 
-    public static void runSQLQuery(String query){
+    public static void runSQLQuery(String query) {
         Connection connection = null;
         PreparedStatement statement = null;
         try {
             connection = DatabaseConnection.getConnection();
             statement = connection.prepareStatement(query);
             statement.executeUpdate();
-        } catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             DatabaseConnection.closeConnection(connection, statement);
         }
     }
