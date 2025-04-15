@@ -3,6 +3,7 @@ package me.kmaxi.wynnvp.services.data;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.dtos.UserDTO;
@@ -25,6 +26,7 @@ import java.util.regex.Pattern;
 
 
 @Service
+@Slf4j
 public class UserService {
 
     private final APIKeys apiKeys;
@@ -69,7 +71,7 @@ public class UserService {
     }
 
 
-    public void SetUserIfNeeded(Member discordMember, UserDTO userDTO) {
+    public void SetUserIfNeeded(Member discordMember, UserDTO userDTO) throws IOException {
 
         if (!shouldUpdate(discordMember, userDTO)) {
             return;
@@ -82,7 +84,7 @@ public class UserService {
         setUser(userDTO);
     }
 
-    private String setUser(UserDTO userDTO) {
+    private String setUser(UserDTO userDTO) throws IOException {
         String postArguments = userDTO.getChangingArguments();
 
         String password = updateUserDataOnWebsite(postArguments);
@@ -102,11 +104,11 @@ public class UserService {
 
     private boolean shouldUpdate(Member discordMember, UserDTO userDTO) {
         if (userDTO.getDiscordId() == 0 || discordMember.getIdLong() != userDTO.getDiscordId()) {
-            System.out.println("Discord ID has changed for " + discordMember.getUser().getName() + " was " + userDTO.getDiscordId() + " now " + discordMember.getIdLong());
+            log.info("Discord ID has changed for {} was {} now {}", discordMember.getUser().getName(), userDTO.getDiscordId(), discordMember.getIdLong());
             return true;
         }
         if (userDTO.getDiscordName() == null || !discordMember.getUser().getName().equals(userDTO.getDiscordName())) {
-            System.out.println("Discord name has changed for " + discordMember.getUser().getName() + " was " + userDTO.getDiscordName() + " now " + discordMember.getUser().getName());
+            log.info("Discord name has changed for {} was {} now {}", discordMember.getUser().getName(), userDTO.getDiscordName(), discordMember.getUser().getName());
             return true;
         }
         // Check if the roles have changed
@@ -117,17 +119,7 @@ public class UserService {
         if (roles.isEmpty() && memberRoles.isEmpty()) {
             return false;
         }
-        System.out.println("Roles have changed for " + discordMember.getUser().getName());
-        //before
-        for (UserDTO.RoleDTO role : userDTO.getRoles()) {
-            System.out.print(role.getName() + ", ");
-        }
-        System.out.println();
-        //after
-        for (UserDTO.RoleDTO role : memberRoles) {
-            System.out.print(role.getName() + ", ");
-        }
-        System.out.println();
+        log.info("Roles have changed for {} was {} now {}", discordMember.getUser().getName(), userDTO.getRoles(), memberRoles);
 
         return true;
     }
@@ -142,42 +134,37 @@ public class UserService {
      * @param urlParameters Post Parameters to use. If an empty string is provided it will do nothing.
      * @return If a new account was created it returns this User's password, if no user was made it returns an empty string.
      */
-    private String updateUserDataOnWebsite(String urlParameters) {
+    private String updateUserDataOnWebsite(String urlParameters) throws IOException {
         if (urlParameters.isEmpty()) {
             return "";
         }
 
         urlParameters = addActionAndAPIKey(urlParameters);
 
-        try {
 
-            HttpURLConnection conn = sendPostRequest(Config.URL_DiscordIntegration, urlParameters);
-            System.out.println("Response code: " + conn.getResponseCode());
-            System.out.println("Response message: " + conn.getResponseMessage());
+        HttpURLConnection conn = sendPostRequest(urlParameters);
+
+        log.debug("Response code: {} with message: {}", conn.getResponseCode(), conn.getResponseMessage());
 
 
-            StringBuilder result = new StringBuilder();
+        StringBuilder result = new StringBuilder();
 
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream()))) {
-                for (String line; (line = reader.readLine()) != null; ) {
-                    result.append(line);
-                }
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(conn.getInputStream()))) {
+            for (String line; (line = reader.readLine()) != null; ) {
+                result.append(line);
             }
-            System.out.println("Result: " + result);
-            return result.toString();
-
-            //return response != null ? response : "";
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to send POST request", e);
         }
+        log.debug("Result: {}", result);
+        return result.toString();
+
+
     }
 
     private String addActionAndAPIKey(String urlParameters) {
         urlParameters += "&action=syncUser";
 
-        // We print before adding the API key to make it easily copyable
-        System.out.println("Post parameters: " + urlParameters);
+        log.debug("Post parameters: {}", urlParameters);
 
         urlParameters += "&apiKey=" + apiKeys.discordIntegrationApiKey;
         return urlParameters;
@@ -186,16 +173,15 @@ public class UserService {
     /**
      * Sends a URL Post request
      *
-     * @param requestURL    The url to send the post request to
      * @param urlParameters The parameters to post to the url
      * @return The http connection where you can get response code, response message and other things
      * @throws IOException If an error was encountered
      */
-    private static HttpURLConnection sendPostRequest(String requestURL, String urlParameters) throws IOException {
+    private static HttpURLConnection sendPostRequest(String urlParameters) throws IOException {
         //Post Request
         byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
         int postDataLength = postData.length;
-        URL url = new URL(requestURL);
+        URL url = new URL(Config.URL_DiscordIntegration);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setInstanceFollowRedirects(false);

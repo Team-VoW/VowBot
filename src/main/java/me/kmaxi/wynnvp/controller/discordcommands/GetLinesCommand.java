@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
+import lombok.RequiredArgsConstructor;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.enums.LineType;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
@@ -15,14 +16,10 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 @Component
+@RequiredArgsConstructor
 public class GetLinesCommand implements ICommandImpl {
 
-
     private final LineReportHandler lineHandler;
-
-    public GetLinesCommand(LineReportHandler lineHandler) {
-        this.lineHandler = lineHandler;
-    }
 
     @Override
     public CommandData getCommandData() {

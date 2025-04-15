@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import me.kmaxi.wynnvp.interfaces.SendFunction;
@@ -20,6 +21,7 @@ import java.util.Objects;
 import static me.kmaxi.wynnvp.slashcommands.poll.PollSQL.doesTableExist;
 
 @Component
+@Slf4j
 public class GetVotesCommand implements ICommandImpl {
     @Override
     public CommandData getCommandData() {
@@ -89,7 +91,7 @@ public class GetVotesCommand implements ICommandImpl {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("SQL error while getting votes: ", e);
         } finally {
             DatabaseConnection.closeConnection(conn, stmt);
         }

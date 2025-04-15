@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
@@ -31,6 +32,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Objects;
 
+@Slf4j
 @Component
 public class SetupPollCommand implements ICommandImpl {
     @Override
@@ -46,6 +48,7 @@ public class SetupPollCommand implements ICommandImpl {
 
     @Override
     public void execute(SlashCommandInteractionEvent event) {
+        log.info("Set up poll command executed by {}", event.getUser().getName());
         event.deferReply().setEphemeral(true).queue();
 
         String URL = Objects.requireNonNull(event.getOption("url")).getAsString(); // The URL of the project will be provided in the command
@@ -58,9 +61,9 @@ public class SetupPollCommand implements ICommandImpl {
             ArrayList<String> roleIds = getIDS(doc);
 
 
-            roleIds.forEach(System.out::println);
+            roleIds.forEach(log::info);
 
-            System.out.println(castingCallTitle);
+            log.info("Title from Casting Call Club: {}", castingCallTitle);
 
 
             //For each role
@@ -82,7 +85,7 @@ public class SetupPollCommand implements ICommandImpl {
 
 
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error while trying to connect to the URL: {}", URL, e);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -103,9 +106,10 @@ public class SetupPollCommand implements ICommandImpl {
 
             try {
                 URL website = new URL(audioURL);
-                ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-                FileOutputStream fos = new FileOutputStream(audioFileName);
-                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                try (ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+                     FileOutputStream fos = new FileOutputStream(audioFileName)) {
+                    fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                }
                 File file = new File(audioFileName);
 
                 String messageText = roleName + " " + (j + 1) + " " + userName;
@@ -117,7 +121,9 @@ public class SetupPollCommand implements ICommandImpl {
                 ActionRow.of(voteButton, removeVoteButton);
                 channel.sendMessage("```" + messageText + "```").addActionRow(voteButton, removeVoteButton).addFiles(FileUpload.fromData(file)).queue();
 
-                file.delete();
+                if (!file.delete()) {
+                    log.warn("Failed to delete file: {}", file.getAbsolutePath());
+                }
 
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -135,7 +141,7 @@ public class SetupPollCommand implements ICommandImpl {
             JSONObject jsonData;
             try {
                 String url = "https://www.castingcall.club/api/v3/roles/" + roleId + "/submissions?page=" + page;
-                System.out.println(url);
+                log.info("Getting auditions from {}", url);
                 jsonData = getJsonObject(url);
             } catch (Exception e) {
                 throw new RuntimeException(e);

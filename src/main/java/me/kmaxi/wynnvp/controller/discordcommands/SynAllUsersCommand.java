@@ -1,5 +1,7 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.dtos.UserDTO;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
@@ -12,19 +14,17 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Component
+@Slf4j
 public class SynAllUsersCommand implements ICommandImpl {
 
     private final UserService userService;
 
     private final GuildService guildService;
-
-    public SynAllUsersCommand(UserService userService, GuildService guildService) {
-        this.userService = userService;
-        this.guildService = guildService;
-    }
 
     @Override
     public CommandData getCommandData() {
@@ -68,11 +68,16 @@ public class SynAllUsersCommand implements ICommandImpl {
         Member member = getDiscordMember(uuidOnWebsite, discordUserName);
 
         if (member == null) {
-            System.out.println("User " + userInfo.getDisplayName() + " with discord: " + discordUserName + " is not in the discord");
+            log.info("User {} with discord: {} is not in the discord", userInfo.getDisplayName(), discordUserName);
             return;
         }
 
-        userService.SetUserIfNeeded(member, userInfo);
+
+        try {
+            userService.SetUserIfNeeded(member, userInfo);
+        } catch (IOException e) {
+            log.error("Failed to sync user " + userInfo.getDisplayName() + " with discord: " + discordUserName, e);
+        }
     }
 
 

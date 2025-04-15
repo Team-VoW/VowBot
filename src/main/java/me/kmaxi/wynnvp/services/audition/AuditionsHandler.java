@@ -1,6 +1,8 @@
 package me.kmaxi.wynnvp.services.audition;
 
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.interfaces.StringIntInterface;
 import me.kmaxi.wynnvp.services.GuildService;
@@ -22,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class AuditionsHandler {
 
     private final MemberHandler memberHandler;
@@ -29,12 +33,6 @@ public class AuditionsHandler {
     private final GuildService guildService;
 
     private final AuditionsChannelHandler auditionsChannelHandler;
-
-    public AuditionsHandler(MemberHandler memberHandler, GuildService guildService, AuditionsChannelHandler auditionsChannelHandler) {
-        this.memberHandler = memberHandler;
-        this.guildService = guildService;
-        this.auditionsChannelHandler = auditionsChannelHandler;
-    }
 
     public void setupPoll(String questName, List<String> npcs, MessageChannel channel) {
         ArrayList<String> reactions = new ArrayList<>();
@@ -62,6 +60,7 @@ public class AuditionsHandler {
     }
 
     public CompletableFuture<String> finishedRole(Member member, Guild guild) {
+        log.info("Finished role for {}", member.getEffectiveName());
         CompletableFuture<Void> completableFuture = memberHandler.upgradeActorRole(member, guild);
 
         // Role was not upgraded because person is already at highest role
@@ -131,9 +130,7 @@ public class AuditionsHandler {
 
     private Message getCastingMessage(String quest, String npcName) {
         npcName = npcName.toLowerCase();
-        System.out.println("Quest input: " + quest);
         for (Message message : Objects.requireNonNull(guildService.getGuild().getNewsChannelById(Config.voiceApplyChannelId)).getHistoryFromBeginning(100).complete().getRetrievedHistory()) {
-            System.out.println("Message: " + message.getContentRaw());
             String messageAsString = message.getContentRaw();
             if (!message.getAuthor().isBot()) {
                 continue;
@@ -143,8 +140,6 @@ public class AuditionsHandler {
             questName = questName.replace(">>>", "");
             questName = questName.replace("**", "");
             questName = questName.replace(" ", "");
-            //print out the variables
-            System.out.println("Quest name: " + questName);
 
             if (!questName.equalsIgnoreCase(quest) || !messageAsString.toLowerCase().contains(npcName)) {
                 continue;

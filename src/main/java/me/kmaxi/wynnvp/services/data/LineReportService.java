@@ -2,6 +2,7 @@ package me.kmaxi.wynnvp.services.data;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.dtos.LineReportDTO;
 import me.kmaxi.wynnvp.enums.LineType;
@@ -14,7 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
-@Service
+@Service @Slf4j
 public class LineReportService {
 
     private final RestTemplate restTemplate;
@@ -35,7 +36,7 @@ public class LineReportService {
             return objectMapper.readValue(response, new TypeReference<>() {
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error fetching messages: ", e);
             return List.of(); // Return an empty list in case of an error
         }
     }
@@ -52,7 +53,7 @@ public class LineReportService {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
             return !response.getStatusCode().isError();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error resetting forwarded lines: ", e);
             return false;
         }
     }
@@ -65,7 +66,7 @@ public class LineReportService {
             return objectMapper.readValue(response, new TypeReference<>() {
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error fetching new reports: ", e);
             return List.of(); // Return an empty list in case of an error
         }
     }

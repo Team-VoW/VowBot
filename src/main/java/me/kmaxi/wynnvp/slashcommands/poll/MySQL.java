@@ -34,7 +34,7 @@ public class MySQL {
         return (connection != null);
     }
 
-    public void connect() throws SQLException, ClassNotFoundException {
+    public void connect() throws SQLException {
         if (isConnected()) disconnect();
 
 
@@ -89,8 +89,6 @@ public class MySQL {
             connect();
         } catch (SQLException e) {
             e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
         }
     }
 

@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
+import lombok.RequiredArgsConstructor;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import me.kmaxi.wynnvp.services.audition.AuditionsHandler;
@@ -17,13 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class OpenCastingCommand implements ICommandImpl {
 
     private final AuditionsHandler auditionsHandler;
-
-    public OpenCastingCommand(AuditionsHandler auditionsHandler) {
-        this.auditionsHandler = auditionsHandler;
-    }
 
     @Override
     public CommandData getCommandData() {
