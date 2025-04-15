@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
-import me.kmaxi.wynnvp.slashcommands.poll.PollSQL;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -72,7 +71,7 @@ public class SetupPollCommand implements ICommandImpl {
 
                 String roleName = auditions.get(0).getString("roleName").trim().replaceAll("[ ,.-]", "_");
 
-                PollSQL.createPoll(roleName);
+                //PollSQL.createPoll(roleName);
 
 
                 // Create a thread for each role

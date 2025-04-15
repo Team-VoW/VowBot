@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '7.0.0'
-    id 'org.springframework.boot' version '3.2.1' // Add Spring Boot plugin
+    id 'org.springframework.boot' version '3.4.4' // Add Spring Boot plugin
     id 'io.spring.dependency-management' version '1.1.4' // Add dependency management
     id "org.sonarqube" version "6.0.1.5171"
 }
@@ -44,15 +44,9 @@ dependencies {
     // Web scraping
     implementation 'org.jsoup:jsoup:1.15.4'
 
-    // MySQL Database Driver
-    implementation 'mysql:mysql-connector-java:8.0.33'
-
-    // Lombok (Optional)
+    // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
-
-    // Spring Boot Test
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 sonar {
@@ -63,12 +57,7 @@ sonar {
   }
 }
 
-
-tasks.withType(Test) {
-    useJUnitPlatform()
-}
-
-// Change Java Version to 17 (Spring Boot 3+ requires Java 17 or higher)
+//  (Spring Boot 3+ requires Java 17 or higher)
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))

@@ -1,18 +1,18 @@
 package me.kmaxi.wynnvp.listeners;
 
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.interfaces.VoteFunction;
-import me.kmaxi.wynnvp.slashcommands.poll.PollSQL;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Controller;
 
-import java.sql.SQLException;
 import java.util.Objects;
 
 @Controller
+@Slf4j
 public class ButtonClickedListener extends ListenerAdapter {
 
     @Override
@@ -20,9 +20,12 @@ public class ButtonClickedListener extends ListenerAdapter {
         Button button = event.getButton();
 
         if (button.getLabel().equals(Config.voteButtonLabel)) {
-            processVote(event, PollSQL::addVote, "vote");
+            log.info("Vote button clicked by {} with id: {}", event.getUser().getName(), event.getButton().getId());
+            //processVote(event, PollSQL::addVote, "vote");
+
         } else if (button.getLabel().equals(Config.removeVoteButtonLabel)) {
-            processVote(event, PollSQL::removeVote, "unvote");
+            //processVote(event, PollSQL::removeVote, "unvote");
+            log.info("Remove vote button clicked by {} with id: {}", event.getUser().getName(), event.getButton().getId());
         }
     }
 
@@ -35,21 +38,16 @@ public class ButtonClickedListener extends ListenerAdapter {
         String roleName = splitID[0];
         String vaName = splitID[2];
 
-        try {
-            if (voteFunction.apply(roleName.replaceAll(".`", ""), vaName, event.getUser().getId()))
-                event.reply(action + "d for " + vaName + " as role " + roleName).setEphemeral(true).queue();
-            else
-                event.reply("Could NOT " + action + " for " + roleName + "-" + vaName).setEphemeral(true).queue();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+
+        if (voteFunction.apply(roleName.replaceAll(".`", ""), vaName, event.getUser().getId()))
+            event.reply(action + "d for " + vaName + " as role " + roleName).setEphemeral(true).queue();
+        else
+            event.reply("Could NOT " + action + " for " + roleName + "-" + vaName).setEphemeral(true).queue();
 
         // Execute the passed function with calculated parameters
-        try {
-            voteFunction.apply(roleName, vaName, event.getUser().getId());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+
+        voteFunction.apply(roleName, vaName, event.getUser().getId());
+
     }
 
 
