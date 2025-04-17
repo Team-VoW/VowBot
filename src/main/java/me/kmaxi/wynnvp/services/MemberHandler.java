@@ -23,24 +23,24 @@ public class MemberHandler {
     public CompletableFuture<Void> upgradeActorRole(Member member, Guild guild) {
         List<Role> roleList = member.getRoles();
         for (Role role : roleList) {
-            if (!Config.actorRoleList.contains(role.getId()))
+            if (!Config.ACTOR_ROLE_LIST.contains(role.getId()))
                 continue;
 
-            int indexOfRole = Config.actorRoleList.indexOf(role.getId());
+            int indexOfRole = Config.ACTOR_ROLE_LIST.indexOf(role.getId());
 
             //If the user is at the highest role already
-            if (indexOfRole == Config.actorRoleList.size() - 1) {
+            if (indexOfRole == Config.ACTOR_ROLE_LIST.size() - 1) {
                 return null;
             }
             guild.removeRoleFromMember(member, role).queue();
 
             log.info("Upgraded role of {} to actor tier {}", member.getEffectiveName(), indexOfRole + 1);
 
-            return guild.addRoleToMember(member, Objects.requireNonNull(guild.getRoleById(Config.actorRoleList.get(indexOfRole + 1)))).submit();
+            return guild.addRoleToMember(member, Objects.requireNonNull(guild.getRoleById(Config.ACTOR_ROLE_LIST.get(indexOfRole + 1)))).submit();
         }
 
         log.info("Added first actor role to {} ", member.getEffectiveName());
-        return guild.addRoleToMember(member, Objects.requireNonNull(guild.getRoleById(Config.actorRoleList.get(0)))).submit();
+        return guild.addRoleToMember(member, Objects.requireNonNull(guild.getRoleById(Config.ACTOR_ROLE_LIST.get(0)))).submit();
     }
 
     public String createAccount(Member member) {

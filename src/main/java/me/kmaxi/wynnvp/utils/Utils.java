@@ -12,8 +12,8 @@ import java.util.Collection;
 public class Utils {
     public static boolean isStaff(Member member) {
         for (Role role : member.getRoles()) {
-            if (role.getIdLong() == Config.voiceMangerId
-                    || role.getIdLong() == Config.writeRoleId) {
+            if (role.getIdLong() == Config.VOICE_MANGER_ID
+                    || role.getIdLong() == Config.WRITE_ROLE_ID) {
                 return true;
             }
         }

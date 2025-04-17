@@ -19,11 +19,11 @@ public class ButtonClickedListener extends ListenerAdapter {
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
         Button button = event.getButton();
 
-        if (button.getLabel().equals(Config.voteButtonLabel)) {
+        if (button.getLabel().equals(Config.VOTE_BUTTON_LABEL)) {
             log.info("Vote button clicked by {} with id: {}", event.getUser().getName(), event.getButton().getId());
             //processVote(event, PollSQL::addVote, "vote");
 
-        } else if (button.getLabel().equals(Config.removeVoteButtonLabel)) {
+        } else if (button.getLabel().equals(Config.REMOVE_VOTE_BUTTON_LABEL)) {
             //processVote(event, PollSQL::removeVote, "unvote");
             log.info("Remove vote button clicked by {} with id: {}", event.getUser().getName(), event.getButton().getId());
         }

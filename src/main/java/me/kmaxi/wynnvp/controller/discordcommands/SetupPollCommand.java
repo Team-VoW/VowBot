@@ -114,9 +114,9 @@ public class SetupPollCommand implements ICommandImpl {
                 String messageText = roleName + " " + (j + 1) + " " + userName;
 
                 Button voteButton = Button.primary(
-                        messageText.replace(" ", "-") + "-" + Config.voteButtonLabel, Config.voteButtonLabel);
+                        messageText.replace(" ", "-") + "-" + Config.VOTE_BUTTON_LABEL, Config.VOTE_BUTTON_LABEL);
                 Button removeVoteButton = Button.danger(
-                        messageText.replace(" ", "-") + "-" + Config.removeVoteButtonLabel, Config.removeVoteButtonLabel);
+                        messageText.replace(" ", "-") + "-" + Config.REMOVE_VOTE_BUTTON_LABEL, Config.REMOVE_VOTE_BUTTON_LABEL);
                 ActionRow.of(voteButton, removeVoteButton);
                 channel.sendMessage("```" + messageText + "```").addActionRow(voteButton, removeVoteButton).addFiles(FileUpload.fromData(file)).queue();
 

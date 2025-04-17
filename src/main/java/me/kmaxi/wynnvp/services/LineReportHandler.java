@@ -57,19 +57,19 @@ public class LineReportHandler {
                     + "\uD83D\uDCE3 `" + messageDTO.getReporter() + "`\n"
                     + "> `" + messageDTO.getMessage() + "`";
 
-            TextChannel channel = guildService.getGuild().getTextChannelById(Config.reportedLines);
+            TextChannel channel = guildService.getGuild().getTextChannelById(Config.REPORTED_LINES);
             if (channel == null) {
-                log.error("Channel {} not found", Config.reportedLines);
+                log.error("Channel {} not found", Config.REPORTED_LINES);
                 return;
             }
 
             log.info("Sending report of message: " + messageDTO.getMessage());
 
             channel.sendMessage(forwardedMessage).queue(message1 -> {
-                message1.addReaction(Emoji.fromUnicode(Config.acceptUnicode)).queue();
-                message1.addReaction(Emoji.fromUnicode(Config.declineUnicode)).queue();
-                message1.addReaction(Emoji.fromUnicode(Config.microphoneUnicode)).queue();
-                message1.addReaction(Emoji.fromUnicode(Config.trashUnicode)).queue();
+                message1.addReaction(Emoji.fromUnicode(Config.ACCEPT_UNICODE)).queue();
+                message1.addReaction(Emoji.fromUnicode(Config.DECLINE_UNICODE)).queue();
+                message1.addReaction(Emoji.fromUnicode(Config.MICROPHONE_UNICODE)).queue();
+                message1.addReaction(Emoji.fromUnicode(Config.TRASH_UNICODE)).queue();
             });
         }
     }

@@ -37,12 +37,12 @@ public class CreateChannelCommand implements ICommandImpl {
         String npcName = Objects.requireNonNull(event.getOption("npc")).getAsString();
 
         Guild guild = event.getGuild();
-        Objects.requireNonNull(guild).createTextChannel(getChannelName(user, npcName), guild.getCategoryById(Config.acceptedCategoryID))
+        Objects.requireNonNull(guild).createTextChannel(getChannelName(user, npcName), guild.getCategoryById(Config.ACCEPTED_CATEGORY_ID))
                 .setTopic(getTopic(user, npcName))
                 .addMemberPermissionOverride(user.getIdLong(), permissions(), null)
-                .addRolePermissionOverride(Config.voiceMangerId, permissions(), null)
+                .addRolePermissionOverride(Config.VOICE_MANGER_ID, permissions(), null)
                 .addRolePermissionOverride(820690089427861535L, null, permissions())
-                .addRolePermissionOverride(Config.traineeRole, traineePerms(), null)
+                .addRolePermissionOverride(Config.TRAINEE_ROLE, traineePerms(), null)
                 .addPermissionOverride(guild.getPublicRole(), null, permissions())
                 .queue(textChannel -> textChannel.sendMessage("Congrats " + user.getAsMention() + " for getting the role as **" + npcName + "** :partying_face: "
                         + "\n \nPlease send in the recordings for this character in one wav file as soon as you are able to.  "

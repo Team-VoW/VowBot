@@ -60,7 +60,7 @@ public class UserService {
      * @return List of UserDTO objects representing all users.
      */
     public List<UserDTO> getAllUsers() {
-        String url = Config.URL_DiscordIntegration + "?action=getAllUsers&apiKey=" + apiKeys.discordIntegrationApiKey;
+        String url = Config.URL_DISCORD_INTEGRATION + "?action=getAllUsers&apiKey=" + apiKeys.discordIntegrationApiKey;
         String response = restTemplate.getForObject(url, String.class);
         try {
             return objectMapper.readValue(response, new TypeReference<>() {
@@ -181,7 +181,7 @@ public class UserService {
         //Post Request
         byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
         int postDataLength = postData.length;
-        URL url = new URL(Config.URL_DiscordIntegration);
+        URL url = new URL(Config.URL_DISCORD_INTEGRATION);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setInstanceFollowRedirects(false);

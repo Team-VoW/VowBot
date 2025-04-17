@@ -130,7 +130,7 @@ public class AuditionsHandler {
 
     private Message getCastingMessage(String quest, String npcName) {
         npcName = npcName.toLowerCase();
-        for (Message message : Objects.requireNonNull(guildService.getGuild().getNewsChannelById(Config.voiceApplyChannelId)).getHistoryFromBeginning(100).complete().getRetrievedHistory()) {
+        for (Message message : Objects.requireNonNull(guildService.getGuild().getNewsChannelById(Config.VOICE_APPLY_CHANNEL_ID)).getHistoryFromBeginning(100).complete().getRetrievedHistory()) {
             String messageAsString = message.getContentRaw();
             if (!message.getAuthor().isBot()) {
                 continue;

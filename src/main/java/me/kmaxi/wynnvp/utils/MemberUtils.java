@@ -17,7 +17,7 @@ public class MemberUtils {
             String roleName = role.getName();
 
             //Is a weird role that should not be published to the website
-            if (!Config.discordRolesToUpdateToWebsite.contains(roleName)) {
+            if (!Config.DISCORD_ROLES_TO_UPDATE_TO_WEBSITE.contains(roleName)) {
                 return;
             }
             roles.add(new UserDTO.RoleDTO(roleName));

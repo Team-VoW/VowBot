@@ -21,7 +21,7 @@ public class AddEmoteListener extends ListenerAdapter {
             return;
         }
 
-        if (event.getChannel().getIdLong() == Config.voiceApplyChannelId) {
+        if (event.getChannel().getIdLong() == Config.VOICE_APPLY_CHANNEL_ID) {
             voiceApplyReact(event);
         }
     }

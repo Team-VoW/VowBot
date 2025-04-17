@@ -45,7 +45,7 @@ public class AuditionThreadHandler {
                 + "\n\n**Make sure** that you have read " + Objects.requireNonNull(guild.getGuildChannelById(823509081498451988L)).getAsMention() + " before applying. There are many useful tricks there and some must dos for voice acting!"
                 + "\n\nTo delete this application simply say `?close`.This will not close your application but will prompt staff to close it."
                 + "\n\nBy opening this application, you've agreed to the terms listed in " + Objects.requireNonNull(guild.getGuildChannelById(820027818799792129L)).getAsMention()
-                + "\n\nGood luck and we can’t wait to hear your audition! If you have any questions feel free to ping " + Objects.requireNonNull(guild.getRoleById(Config.voiceMangerId)).getAsMention()).queue();
+                + "\n\nGood luck and we can’t wait to hear your audition! If you have any questions feel free to ping " + Objects.requireNonNull(guild.getRoleById(Config.VOICE_MANGER_ID)).getAsMention()).queue();
     }
 
     private boolean auditionThreadExists(String threadName, TextChannel channel) {

@@ -41,7 +41,7 @@ public class AuditionsChannelHandler {
 
         String channelName = getChannelName(questName, npcName);
         Guild guild = guildService.getGuild();
-        List<TextChannel> channels = Objects.requireNonNull(guild.getCategoryById(Config.applyCategoryId)).getTextChannels();
+        List<TextChannel> channels = Objects.requireNonNull(guild.getCategoryById(Config.APPLY_CATEGORY_ID)).getTextChannels();
 
         return channels.stream()
                 .filter(channel -> channel.getName().equalsIgnoreCase(channelName))
@@ -61,14 +61,14 @@ public class AuditionsChannelHandler {
         Guild guild = guildService.getGuild();
 
         for (String role : roles) {
-            createQuestChannel(questName, role, guild.getCategoryById(Config.applyCategoryId));
+            createQuestChannel(questName, role, guild.getCategoryById(Config.APPLY_CATEGORY_ID));
         }
     }
 
     public TextChannel createQuestChannel(String questName, String role) {
         Guild guild = guildService.getGuild();
 
-        return createQuestChannel(questName, role, guild.getCategoryById(Config.applyCategoryId));
+        return createQuestChannel(questName, role, guild.getCategoryById(Config.APPLY_CATEGORY_ID));
     }
 
     private TextChannel createQuestChannel(String questName, String role, Category category) {
