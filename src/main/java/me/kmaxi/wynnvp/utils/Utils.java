@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class Utils {
+    private Utils() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
+
     public static boolean isStaff(Member member) {
         for (Role role : member.getRoles()) {
             if (role.getIdLong() == Config.VOICE_MANGER_ID

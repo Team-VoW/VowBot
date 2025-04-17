@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MemberUtils {
-
+    private MemberUtils() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
     public static List<UserDTO.RoleDTO> getRoles(Member discordMember) {
         List<UserDTO.RoleDTO> roles = new ArrayList<>();
 
