@@ -3,8 +3,14 @@ package me.kmaxi.wynnvp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 
 public class Config {
+    // Private constructor to prevent instantiation
+    private Config() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
+
     public static final String VOTE_BUTTON_LABEL = "Vote";
     public static final String REMOVE_VOTE_BUTTON_LABEL = "Unvote";
 
@@ -26,7 +32,7 @@ public class Config {
     public static final String MICROPHONE_UNICODE = "\uD83C\uDF99";
     public static final String TRASH_UNICODE = "\uD83D\uDDD1";
 
-    public static final HashSet<String> DISCORD_ROLES_TO_UPDATE_TO_WEBSITE = new HashSet<>(Arrays.asList(
+    public static final Set<String> DISCORD_ROLES_TO_UPDATE_TO_WEBSITE = new HashSet<>(Arrays.asList(
             "Owner", "Admin", "Developer", "Cast Manager", "Voice Manager", "Sound Editor",
             "Writer", "Moderator", "Expert Actor", "Skilled Actor", "Top funder",
             "Advanced Actor", "Beginner Actor", "Former Staff"));
