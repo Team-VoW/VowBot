@@ -3,11 +3,14 @@ package me.kmaxi.wynnvp.utils;
 import me.kmaxi.wynnvp.Config;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class Utils {
     private Utils() {
@@ -99,5 +102,31 @@ public class Utils {
         permissions.add(Permission.MESSAGE_HISTORY);
         permissions.add(Permission.MESSAGE_ADD_REACTION);
         return permissions;
+    }
+
+    public static List<Message> getMessageHistory(MessageChannel textChannel, int limit) {
+        int stepSize = 100;
+
+        List<Message> messageList = textChannel.getHistory().retrievePast(stepSize).complete();
+        limit -= stepSize;
+
+        int loopsRan = 1;
+        while (limit > 0){
+
+            //If we have reached the end of the history, break. This is calculated using module
+            //And by making sure that loopsRan * stepSize is not equal to messageList.size()
+            if (loopsRan * stepSize != messageList.size()){
+                return messageList;
+            }
+
+            if (limit < stepSize){
+                stepSize = limit;
+            }
+
+            limit -= stepSize;
+            messageList.addAll(textChannel.getHistoryBefore(messageList.get(messageList.size() - 1).getIdLong(), stepSize).complete().getRetrievedHistory());
+            loopsRan++;
+        }
+        return messageList;
     }
 }

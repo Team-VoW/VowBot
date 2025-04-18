@@ -32,7 +32,8 @@ public class BotRegister {
                         GatewayIntent.GUILD_MEMBERS,
                         GatewayIntent.GUILD_MESSAGE_REACTIONS,
                         GatewayIntent.GUILD_VOICE_STATES,
-                        GatewayIntent.GUILD_EMOJIS_AND_STICKERS)
+                        GatewayIntent.GUILD_EMOJIS_AND_STICKERS,
+                        GatewayIntent.MESSAGE_CONTENT)
                 .setChunkingFilter(ChunkingFilter.ALL)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
                 .enableIntents(GatewayIntent.GUILD_MEMBERS);
