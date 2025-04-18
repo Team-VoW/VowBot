@@ -4,15 +4,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.services.GuildService;
+import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,19 +31,45 @@ public class AuditionsChannelHandler {
 
         log.info("Opening audition for {} in {} for {}", npcName, questName, member.getUser().getName());
 
-        TextChannel questChannel = getQuestChannel(questName, npcName);
+        TextChannel questChannel = getQuestChannel(questName);
         if (questChannel == null) {
-            questChannel = createQuestChannel(questName, npcName);
+            log.error("Failed opening audition in {} because could not find audition channel", questName);
+            Utils.sendPrivateMessage(member.getUser(), "ERROR OPENING AUDITION! No channel was found. Please contact a staff member or kmaxi about this!!");
+            return;
         }
 
         User user = member.getUser();
-        auditionThreadHandler.createThreadIfNotExists(user, npcName, questName, questChannel);
+        Optional<ThreadChannel> optionalThreadChannel = auditionThreadHandler.createThreadIfNotExists(user, npcName, questName, questChannel);
+
+        if (optionalThreadChannel.isEmpty()){
+            return;
+        }
+        ThreadChannel threadChannel = optionalThreadChannel.get();
+        Message message = getFirstNotFullMessage(questChannel, npcName);
+
+        if (message == null) {
+            threadChannel.sendMessage("@everyone No audition lines were found for " + npcName + ".").queue();
+            return;
+        }
+
+        //Edit the message. If the message just contains a . remove it. If it contains anything else do not remove anything but simply add to it.
+        //The new content should be "\n--<link to thread channel>"
+        String newContent = message.getContentRaw();
+        if (newContent.length() == 1){
+            newContent = "";
+        } else {
+            newContent  += "\n";
+        }
+
+        newContent += "- " + threadChannel.getAsMention();
+
+        message.editMessage(newContent).queue();
     }
 
 
-    private TextChannel getQuestChannel(String questName, String npcName) {
+    private TextChannel getQuestChannel(String questName) {
 
-        String channelName = getChannelName(questName, npcName);
+        String channelName = getChannelName(questName);
         Guild guild = guildService.getGuild();
         List<TextChannel> channels = Objects.requireNonNull(guild.getCategoryById(Config.APPLY_CATEGORY_ID)).getTextChannels();
 
@@ -49,36 +79,68 @@ public class AuditionsChannelHandler {
 
     }
 
-    private String getChannelName(String questName, String npcName) {
-        return trimForChannelName(questName) + "-" + trimForChannelName(npcName) + "-Audition";
-    }
-
-    private String trimForChannelName(String name) {
-        return name.replaceAll("[^a-zA-Z0-9-]", "");
+    private String getChannelName(String questName) {
+        return questName.replaceAll("[^a-zA-Z0-9-]", "");
     }
 
     public void createQuestChannels(String questName, List<String> roles) {
-        Guild guild = guildService.getGuild();
+
+        TextChannel channel = createAuditionChannel(questName);
 
         for (String role : roles) {
-            createQuestChannel(questName, role, guild.getCategoryById(Config.APPLY_CATEGORY_ID));
+            channel.sendMessage("# " + role).queue();
+
+            //We send five messages as placeholder which can later be populated
+            //With the audition links. This because discords max message size limit
+            for (int i = 0; i < 3; i++){
+                channel.sendMessage(".").queue();
+            }
         }
     }
 
-    public TextChannel createQuestChannel(String questName, String role) {
+    private TextChannel createAuditionChannel(String questName){
         Guild guild = guildService.getGuild();
+        Category category = guild.getCategoryById(Config.APPLY_CATEGORY_ID);
 
-        return createQuestChannel(questName, role, guild.getCategoryById(Config.APPLY_CATEGORY_ID));
-    }
-
-    private TextChannel createQuestChannel(String questName, String role, Category category) {
-        Guild guild = guildService.getGuild();
-
-        String channelName = getChannelName(questName, role);
-        TextChannel channel = guild.createTextChannel(channelName, category)
-                .setTopic("Auditions for " + role + " in " + questName)
+        String channelName = getChannelName(questName);
+        return guild.createTextChannel(channelName, category)
+                .setTopic("Recording collection for " + questName)
                 .complete();
-        channel.sendMessage("Auditions for " + role + " in " + questName + "!").queue();
-        return channel;
     }
+
+    /**
+     * Gets the first message that is sent in the channel after the npcName where
+     * the message is not close to full, having space to put a link to a threadChannel
+     * @param channel The TextChannel to look through
+     * @param npcName The name of the npc to look for
+     * @return The first message that is not full
+     */
+    private Message getFirstNotFullMessage(TextChannel channel, String npcName) {
+
+        //Fetch this channels latest 200 messages. There should not be more than 200 messages
+        List<Message> messageList = Utils.getMessageHistory(channel, 200);
+
+        String currentCharacter = "";
+        for (Message message : messageList) {
+            String rawContent = message.getContentRaw();
+            if (rawContent.startsWith("#")){
+                //Set the current character to the first line of this message, removing everything after a \n
+                currentCharacter = rawContent.split("\n")[0].replace("#", "").trim();
+            }
+
+            if(!currentCharacter.equals(npcName) || !message.getAuthor().isBot()){
+                continue;
+            }
+
+            // Check if the message is not close to full (Discord's max message size is 2000 characters)
+            // But we limit it a little earlier since the npc name + link takes a little under 100 characters
+            if (rawContent.length() < 1900) {
+                return message;
+            }
+        }
+
+        // If no suitable message is found, return null
+        return null;
+    }
+
 }

@@ -1,6 +1,7 @@
 package me.kmaxi.wynnvp.services.audition;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.services.GuildService;
 import me.kmaxi.wynnvp.utils.Utils;
@@ -11,22 +12,25 @@ import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Optional;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuditionThreadHandler {
 
     private final GuildService guildService;
 
-    public void createThreadIfNotExists(User user, String npcName, String questName, TextChannel questChannel) {
+    public Optional<ThreadChannel> createThreadIfNotExists(User user, String npcName, String questName, TextChannel questChannel) {
 
         String channelName = npcName + "-" + user.getName().replace(".", "");
 
 
         if (auditionThreadExists(channelName, questChannel)) {
             Utils.sendPrivateMessage(user, "You already have an application for " + npcName + " running. Type `?close` in the application channel to close it");
-            return;
+            log.info("{} tried to open a thread channel while already having a channel with the name {}", user.getName(), channelName);
+            return Optional.empty();
         }
 
         ThreadChannel threadChannel = questChannel.createThreadChannel(channelName, true)
@@ -46,6 +50,8 @@ public class AuditionThreadHandler {
                 + "\n\nTo delete this application simply say `?close`.This will not close your application but will prompt staff to close it."
                 + "\n\nBy opening this application, you've agreed to the terms listed in " + Objects.requireNonNull(guild.getGuildChannelById(820027818799792129L)).getAsMention()
                 + "\n\nGood luck and we can’t wait to hear your audition! If you have any questions feel free to ping " + Objects.requireNonNull(guild.getRoleById(Config.VOICE_MANGER_ID)).getAsMention()).queue();
+
+        return Optional.of(threadChannel);
     }
 
     private boolean auditionThreadExists(String threadName, TextChannel channel) {
