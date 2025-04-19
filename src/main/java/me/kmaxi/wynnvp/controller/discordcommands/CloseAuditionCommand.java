@@ -35,13 +35,15 @@ public class CloseAuditionCommand implements ICommandImpl {
             return;
         }
 
-        switch (Objects.requireNonNull(event.getSubcommandName())) {
-            case "immediately":
-                closeChannelImmediately(event);
-                break;
-            case "soon":
-                closeChannelWithCoolDown(event);
+        String subCommandName = Objects.requireNonNull(event.getSubcommandName());
+
+        if (subCommandName.equals("immediately")) {
+            closeChannelImmediately(event);
+        } else if (subCommandName.equals("soon")) {
+            closeChannelWithCoolDown(event);
+
         }
+
     }
 
     private static boolean isUnderApplicationCategory(TextChannel textChannel) {
@@ -57,17 +59,13 @@ public class CloseAuditionCommand implements ICommandImpl {
     private static void closeChannelWithCoolDown(SlashCommandInteractionEvent event) {
         MessageChannelUnion textChannel = event.getChannel();
 
-        try {
-            textChannel.sendMessage("Thank you for applying for the role! " +
-                    "Sadly, someone else was chosen for it. There are plenty of more chances to come,"
-                    + " and we will be glad to evaluate your auditions for any future roles! This application channel will be closed in 24 hours."
-                    + "\nIf you want to close it directly say ?close and a staff member will close it").queue();
+        textChannel.sendMessage("Thank you for applying for the role! " +
+                "Sadly, someone else was chosen for it. There are plenty of more chances to come,"
+                + " and we will be glad to evaluate your auditions for any future roles! This application channel will be closed in 24 hours."
+                + "\nIf you want to close it directly say ?close and a staff member will close it").queue();
 
-            event.reply("Channel will be deleted in 24h.").setEphemeral(true).queue();
+        event.reply("Channel will be deleted in 24h.").setEphemeral(true).queue();
 
-            textChannel.delete().queueAfter(1, TimeUnit.DAYS);
-
-        } catch (Exception ignored) {
-        }
+        textChannel.delete().queueAfter(1, TimeUnit.DAYS);
     }
 }

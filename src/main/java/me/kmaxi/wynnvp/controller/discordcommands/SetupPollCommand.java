@@ -28,12 +28,15 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Objects;
 
 @Slf4j
 @Component
 public class SetupPollCommand implements ICommandImpl {
+    private static final String ATTACHMENT_PREFIX = "attachment/";
+
     @Override
     public CommandData getCommandData() {
         return Commands.slash("setuppoll", "Sets up the voting poll from a casting club call casting")
@@ -50,11 +53,11 @@ public class SetupPollCommand implements ICommandImpl {
         log.info("Set up poll command executed by {}", event.getUser().getName());
         event.deferReply().setEphemeral(true).queue();
 
-        String URL = Objects.requireNonNull(event.getOption("url")).getAsString(); // The URL of the project will be provided in the command
+        String url = Objects.requireNonNull(event.getOption("url")).getAsString(); // The URL of the project will be provided in the command
 
-        event.getChannel().sendMessage("Auditions for " + URL).queue();
+        event.getChannel().sendMessage("Auditions for " + url).queue();
         try {
-            Document doc = Jsoup.connect(URL).get();
+            Document doc = Jsoup.connect(url).get();
 
             String castingCallTitle = doc.title();
             ArrayList<String> roleIds = getIDS(doc);
@@ -84,7 +87,7 @@ public class SetupPollCommand implements ICommandImpl {
 
 
         } catch (IOException e) {
-            log.error("Error while trying to connect to the URL: {}", URL, e);
+            log.error("Error while trying to connect to the URL: {}", url, e);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -120,8 +123,10 @@ public class SetupPollCommand implements ICommandImpl {
                 ActionRow.of(voteButton, removeVoteButton);
                 channel.sendMessage("```" + messageText + "```").addActionRow(voteButton, removeVoteButton).addFiles(FileUpload.fromData(file)).queue();
 
-                if (!file.delete()) {
-                    log.warn("Failed to delete file: {}", file.getAbsolutePath());
+                try {
+                    Files.delete(file.toPath());
+                } catch (IOException e) {
+                    log.warn("Failed to delete file: {}", file.getAbsolutePath(), e);
                 }
 
             } catch (IOException e) {
@@ -175,16 +180,15 @@ public class SetupPollCommand implements ICommandImpl {
         for (Element image : images) {
             String src = image.attr("src");
 
-            if (!src.contains("role"))
-                continue;
+            if (src.contains("role")) {
+                String result = src.substring(src.indexOf(ATTACHMENT_PREFIX) + ATTACHMENT_PREFIX.length(),
+                        src.indexOf("/", src.indexOf(ATTACHMENT_PREFIX) + ATTACHMENT_PREFIX.length()));
 
-            String result = src.substring(src.indexOf("attachment/") + "attachment/".length(), src.indexOf("/", src.indexOf("attachment/") + "attachment/".length()));
-
-            //If result is not made up of 7 numbers, continue
-            if (!result.matches("\\d{7}"))
-                continue;
-
-            roleIds.add(result);
+                // Add to roleIds only if the result is made up of 7 numbers
+                if (result.matches("\\d{7}")) {
+                    roleIds.add(result);
+                }
+            }
         }
 
         return roleIds;

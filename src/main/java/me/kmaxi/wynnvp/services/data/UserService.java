@@ -71,7 +71,7 @@ public class UserService {
     }
 
 
-    public void SetUserIfNeeded(Member discordMember, UserDTO userDTO) throws IOException {
+    public void setUserIfNeeded(Member discordMember, UserDTO userDTO) throws IOException {
 
         if (!shouldUpdate(discordMember, userDTO)) {
             return;

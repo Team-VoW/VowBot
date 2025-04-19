@@ -28,11 +28,11 @@ public class LineReportDTO {
 
     // Default constructor required for Jackson JSON deserialization
     public LineReportDTO() {}
-    public LineReportDTO(String message, String npc, String X, String Y, String Z) {
+    public LineReportDTO(String message, String npc, String x, String y, String z) {
         this.message = message;
         this.npc = npc;
-        this.x = X;
-        this.y = Y;
-        this.z = Z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 }

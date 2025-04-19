@@ -57,6 +57,10 @@ public class RoleCommand implements ICommandImpl {
                 break;
             case SET_SUB_COMMAND:
                 event.reply(setRoleAsTaken(questName, npcName, event)).setEphemeral(true).queue();
+                break;
+            default:
+                event.reply("Unknown subcommand").setEphemeral(true).queue();
+                break;
         }
     }
 

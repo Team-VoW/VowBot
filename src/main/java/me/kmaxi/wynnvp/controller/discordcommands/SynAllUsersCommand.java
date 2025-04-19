@@ -43,7 +43,7 @@ public class SynAllUsersCommand implements ICommandImpl {
 
         //For each website account
         for (UserDTO user : users) {
-            SyncUser(user);
+            syncUser(user);
         }
         event.getHook().setEphemeral(true).editOriginal("Synced all users").queue();
     }
@@ -54,7 +54,7 @@ public class SynAllUsersCommand implements ICommandImpl {
      *
      * @param userInfo The Json object of the website user
      */
-    private void SyncUser(UserDTO userInfo) {
+    private void syncUser(UserDTO userInfo) {
 
         String discordUserName = "";
 
@@ -74,7 +74,7 @@ public class SynAllUsersCommand implements ICommandImpl {
 
 
         try {
-            userService.SetUserIfNeeded(member, userInfo);
+            userService.setUserIfNeeded(member, userInfo);
         } catch (IOException e) {
             log.error("Failed to sync user " + userInfo.getDisplayName() + " with discord: " + discordUserName, e);
         }

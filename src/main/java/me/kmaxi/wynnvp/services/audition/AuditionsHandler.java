@@ -131,22 +131,25 @@ public class AuditionsHandler {
     private Message getCastingMessage(String quest, String npcName) {
         npcName = npcName.toLowerCase();
         for (Message message : Objects.requireNonNull(guildService.getGuild().getNewsChannelById(Config.VOICE_APPLY_CHANNEL_ID)).getHistoryFromBeginning(100).complete().getRetrievedHistory()) {
-            String messageAsString = message.getContentRaw();
-            if (!message.getAuthor().isBot()) {
-                continue;
+            if (isQuestMessage(message, quest, npcName)) {
+                return message;
             }
-            String[] messageArray = messageAsString.split("\n");
-            String questName = messageArray[0].replace("React to apply for a role in ", "");
-            questName = questName.replace(">>>", "");
-            questName = questName.replace("**", "");
-            questName = questName.replace(" ", "");
-
-            if (!questName.equalsIgnoreCase(quest) || !messageAsString.toLowerCase().contains(npcName)) {
-                continue;
-            }
-            return message;
         }
         return null;
+    }
+
+    private boolean isQuestMessage(Message message, String quest, String npcName){
+        String messageAsString = message.getContentRaw();
+        if (!message.getAuthor().isBot()) {
+            return false;
+        }
+        String[] messageArray = messageAsString.split("\n");
+        String questName = messageArray[0].replace("React to apply for a role in ", "");
+        questName = questName.replace(">>>", "");
+        questName = questName.replace("**", "");
+        questName = questName.replace(" ", "");
+
+        return questName.equalsIgnoreCase(quest) && messageAsString.toLowerCase().contains(npcName);
     }
 
     private void replaceLineWhereNpcIs(Message message, String npcName, String questName, StringIntInterface lineChange) {

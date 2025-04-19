@@ -30,7 +30,7 @@ public class SlashCommandHandler extends ListenerAdapter {
         event.getGuild().updateCommands().addCommands(
                 commands.values().stream()
                         .map(ICommandImpl::getCommandData)
-                        .collect(Collectors.toList())
+                        .toList()
         ).queue();
     }
 
