@@ -14,14 +14,13 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
 public class RoleCommand implements ICommandImpl {
     private final AuditionsHandler auditionsHandler;
-    private static final String openSubCommand = "open";
-    private static final String setSubCommand = "set";
+    private static final String OPEN_SUB_COMMAND = "open";
+    private static final String SET_SUB_COMMAND = "set";
 
     @Override
     public CommandData getCommandData() {
@@ -30,11 +29,11 @@ public class RoleCommand implements ICommandImpl {
         OptionData npcNameOption = new OptionData(OptionType.STRING, "npcname", "The exact name of the npc exactly as it is in the application channel", true);
 
         return Commands.slash("role", "Handles setting of roles of castings.")
-                .addSubcommands(new SubcommandData(openSubCommand, "Sets an already set role for castings")
+                .addSubcommands(new SubcommandData(OPEN_SUB_COMMAND, "Sets an already set role for castings")
                         .addOptions(
                                 questNameOption,
                                 npcNameOption))
-                .addSubcommands(new SubcommandData(setSubCommand, "Sets a role that is open in the casting")
+                .addSubcommands(new SubcommandData(SET_SUB_COMMAND, "Sets a role that is open in the casting")
                         .addOptions(
                                 questNameOption,
                                 npcNameOption,
@@ -53,10 +52,10 @@ public class RoleCommand implements ICommandImpl {
         String npcName = Objects.requireNonNull(event.getOption("npcname")).getAsString();
 
         switch (Objects.requireNonNull(event.getSubcommandName())) {
-            case openSubCommand:
+            case OPEN_SUB_COMMAND:
                 event.reply(setRoleAsAvailable(questName, npcName)).setEphemeral(true).queue();
                 break;
-            case setSubCommand:
+            case SET_SUB_COMMAND:
                 event.reply(setRoleAsTaken(questName, npcName, event)).setEphemeral(true).queue();
         }
     }
