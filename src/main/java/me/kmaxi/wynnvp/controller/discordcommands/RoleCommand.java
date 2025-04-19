@@ -14,25 +14,30 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Component
 public class RoleCommand implements ICommandImpl {
     private final AuditionsHandler auditionsHandler;
-    private final String openSubCommand = "open";
-    private final String setSubCommand = "set";
+    private static final String openSubCommand = "open";
+    private static final String setSubCommand = "set";
 
     @Override
     public CommandData getCommandData() {
 
+        OptionData questNameOption = new OptionData(OptionType.STRING, "questname", "The exact name of the quest as it is in the application channel", true);
+        OptionData npcNameOption = new OptionData(OptionType.STRING, "npcname", "The exact name of the npc exactly as it is in the application channel", true);
+
         return Commands.slash("role", "Handles setting of roles of castings.")
                 .addSubcommands(new SubcommandData(openSubCommand, "Sets an already set role for castings")
                         .addOptions(
-                                new OptionData(OptionType.STRING, "questname", "The exact name of the quest as it is in the application channel", true),
-                                new OptionData(OptionType.STRING, "npcname", "The exact name of the npc  exactly as it is in the application channel", true)))
+                                questNameOption,
+                                npcNameOption))
                 .addSubcommands(new SubcommandData(setSubCommand, "Sets a role that is open in the casting")
                         .addOptions(
-                                new OptionData(OptionType.STRING, "questname", "The exact name of the quest as it is in the application channel", true),
-                                new OptionData(OptionType.STRING, "npcname", "The exact name of the npc  exactly as it is in the application channel", true),
+                                questNameOption,
+                                npcNameOption,
                                 new OptionData(OptionType.USER, "user", "The person that you want to cast for this role", true)));
 
     }

@@ -49,9 +49,8 @@ public class FinishedRoleCommand implements ICommandImpl {
             event.getHook().setEphemeral(true).editOriginal("ERROR! COULD NOT FIND THE USER!!").queue();
             return;
         }
-        auditionsHandler.finishedRole(member, event.getGuild()).thenAccept(message -> {
-            // Place your code here to handle the message once it finishes
-            event.getHook().setEphemeral(false).editOriginal(message).queue();
-        });
+        auditionsHandler.finishedRole(member, event.getGuild()).thenAccept(message ->
+                event.getHook().setEphemeral(false).editOriginal(message).queue()
+        );
     }
 }
