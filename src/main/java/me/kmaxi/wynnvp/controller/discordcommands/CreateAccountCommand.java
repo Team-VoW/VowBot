@@ -59,7 +59,7 @@ public class CreateAccountCommand implements ICommandImpl {
             if (password.isEmpty()) {
                 event.getHook().setEphemeral(true).editOriginal("This person already has an account.").queue();
             } else {
-                user.openPrivateChannel().queue((channel) ->
+                user.openPrivateChannel().queue(channel ->
                         channel.sendMessage("An account with the name " + member.getUser().getName() + " and the temporary password ||" +
                                 password + "|| has been created for you on our website https://voicesofwynn.com/ " +
                                 "\n\n Feel free to go in there and change your bio, profile picture and more! :grin:").queue(
