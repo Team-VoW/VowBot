@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.dtos.UserDTO;
+import me.kmaxi.wynnvp.services.MemberHandler;
 import me.kmaxi.wynnvp.utils.MemberUtils;
 import net.dv8tion.jda.api.entities.Member;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,7 @@ public class UserService {
      * @throws IOException if an I/O error occurs
      */
     public String createAccount(Member member) throws IOException {
-        UserDTO userDTO = UserDTO.fromMember(member);
+        UserDTO userDTO = MemberHandler.fromMember(member);
         return setUser(userDTO);
     }
 

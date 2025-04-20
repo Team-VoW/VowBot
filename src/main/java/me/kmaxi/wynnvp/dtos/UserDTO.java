@@ -92,16 +92,4 @@ public class UserDTO {
 
         return stringBuilder.toString();
     }
-
-    public static UserDTO fromMember(Member member) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setDiscordName(member.getUser().getName());
-        userDTO.setDiscordId(member.getUser().getIdLong());
-        userDTO.setAvatarLink(member.getEffectiveAvatarUrl());
-        userDTO.setRoles(MemberUtils.getRoles(member));
-
-        return userDTO;
-    }
-
-
 }

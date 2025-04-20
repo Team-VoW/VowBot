@@ -3,7 +3,9 @@ package me.kmaxi.wynnvp.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.Config;
+import me.kmaxi.wynnvp.dtos.UserDTO;
 import me.kmaxi.wynnvp.services.data.UserService;
+import me.kmaxi.wynnvp.utils.MemberUtils;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -49,5 +51,16 @@ public class MemberHandler {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    public static UserDTO fromMember(Member member) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setDiscordName(member.getUser().getName());
+        userDTO.setDiscordId(member.getUser().getIdLong());
+        userDTO.setAvatarLink(member.getEffectiveAvatarUrl());
+        userDTO.setRoles(MemberUtils.getRoles(member));
+
+        return userDTO;
     }
 }
