@@ -51,7 +51,7 @@ public class UserService {
      * @throws IOException if an I/O error occurs
      */
     public String createAccount(Member member) throws IOException {
-        UserDTO userDTO = MemberHandler.fromMember(member);
+        UserDTO userDTO = fromMember(member);
         return setUser(userDTO);
     }
 
@@ -207,6 +207,16 @@ public class UserService {
         }
 
         return "ERROR! COULD NOT FIND PASSWORD!";
+    }
+
+    public UserDTO fromMember(Member member) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setDiscordName(member.getUser().getName());
+        userDTO.setDiscordId(member.getUser().getIdLong());
+        userDTO.setAvatarLink(member.getEffectiveAvatarUrl());
+        userDTO.setRoles(MemberUtils.getRoles(member));
+
+        return userDTO;
     }
 
 
