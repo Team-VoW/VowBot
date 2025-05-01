@@ -4,10 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
+import me.kmaxi.wynnvp.services.DiscordPollHandler;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -37,10 +39,16 @@ import java.util.Objects;
 public class SetupPollCommand implements ICommandImpl {
     private static final String ATTACHMENT_PREFIX = "attachment/";
 
+    private final DiscordPollHandler pollHandler;
+    public SetupPollCommand(DiscordPollHandler pollHandler) {
+        this.pollHandler = pollHandler;
+    }
+
     @Override
     public CommandData getCommandData() {
         return Commands.slash("setuppoll", "Sets up the voting poll from a casting club call casting")
-                .addOptions(new OptionData(OptionType.STRING, "url", "The url to the casting call", true));
+                .addOptions(new OptionData(OptionType.STRING, "url", "The url to the casting call", false))
+                .addOptions(new OptionData(OptionType.STRING, "quest", "The quest name if setting up a poll from discord auditions", false));
     }
 
     @Override
@@ -52,6 +60,20 @@ public class SetupPollCommand implements ICommandImpl {
     public void execute(SlashCommandInteractionEvent event) {
         log.info("Set up poll command executed by {}", event.getUser().getName());
         event.deferReply().setEphemeral(true).queue();
+
+        OptionMapping questName = event.getOption("quest");
+        if (questName != null) {
+            String quest = questName.getAsString();
+            event.getHook().editOriginal(pollHandler.setupPoll(quest)).queue();
+            return;
+        }
+
+        // Check if the URL option is provided
+        if (event.getOption("url") == null) {
+            event.getHook().editOriginal("Please provide a URL or QuestName").queue();
+            return;
+        }
+
 
         String url = Objects.requireNonNull(event.getOption("url")).getAsString(); // The URL of the project will be provided in the command
 
