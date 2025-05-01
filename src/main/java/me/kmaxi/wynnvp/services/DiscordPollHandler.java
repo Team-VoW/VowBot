@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.services;
 
+import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.services.audition.AuditionsChannelHandler;
 import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.entities.Message;
@@ -12,11 +13,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 @Service
+@Slf4j
 public class DiscordPollHandler {
     private final AuditionsChannelHandler auditionsChannelHandler;
     private final GuildService guildService;
@@ -128,17 +131,25 @@ public class DiscordPollHandler {
                     .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(tempFile))
                     .queue(
                             success -> {
-                                tempFile.delete();
-                                success.addReaction(Emoji.fromUnicode("✅")).queue();
+                                try {
+                                    Files.delete(tempFile.toPath());
+                                    success.addReaction(Emoji.fromUnicode("✅")).queue();
+                                } catch (Exception e) {
+                                    log.error("Failed to delete temporary file: " + tempFile.getAbsolutePath(), e);
+                                }
                             },
                             error -> {
-                                tempFile.delete();
+                                try {
+                                    Files.delete(tempFile.toPath());
+                                } catch (Exception e) {
+                                    log.error("Failed to delete temporary file: " + tempFile.getAbsolutePath(), e);
+                                }
                                 staffVotingChannel.sendMessage("Failed to send the audition file from thread: " + thread.getAsMention()).queue();
                             }
                     );
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to download or send the audition file from thread: " + thread.getAsMention(), e);
             staffVotingChannel.sendMessage("Failed to download or send the audition file from thread: " + thread.getAsMention()).queue();
         }
     }
