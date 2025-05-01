@@ -14,9 +14,9 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +26,8 @@ public class AuditionsChannelHandler {
     private final GuildService guildService;
 
     private final AuditionThreadHandler auditionThreadHandler;
+
+    private static final int FETCH_MESSAGE_AMOUNT = 200;
 
     public void openAudition(String questName, String npcName, Member member) {
 
@@ -67,7 +69,7 @@ public class AuditionsChannelHandler {
     }
 
 
-    private TextChannel getQuestChannel(String questName) {
+    public TextChannel getQuestChannel(String questName) {
 
         String channelName = getChannelName(questName);
         Guild guild = guildService.getGuild();
@@ -118,7 +120,7 @@ public class AuditionsChannelHandler {
     private Message getFirstNotFullMessage(TextChannel channel, String npcName) {
 
         //Fetch this channels latest 200 messages. There should not be more than 200 messages
-        List<Message> messageList = Utils.getMessageHistory(channel, 200);
+        List<Message> messageList = Utils.getMessageHistory(channel, FETCH_MESSAGE_AMOUNT);
 
         String currentCharacter = "";
         for (Message message : messageList) {
@@ -141,6 +143,36 @@ public class AuditionsChannelHandler {
 
         // If no suitable message is found, return null
         return null;
+    }
+
+    public Map<String, List<ThreadChannel>> getNpcThreadMap(TextChannel channel) {
+        List<Message> messageList = Utils.getMessageHistory(channel, 200);
+
+        Map<String, List<ThreadChannel>> npcThreadsMap = new LinkedHashMap<>();
+        String currentNpc = null;
+        Pattern threadMentionPattern = Pattern.compile("<#(\\d+)>");
+
+        for (Message message : messageList) {
+            String content = message.getContentRaw();
+
+            if (content.startsWith("#")) {
+                currentNpc = content.split("\n")[0].replace("#", "").trim();
+                npcThreadsMap.putIfAbsent(currentNpc, new ArrayList<>());
+            }
+
+            if (currentNpc != null && message.getAuthor().isBot()) {
+                Matcher matcher = threadMentionPattern.matcher(content);
+                while (matcher.find()) {
+                    String threadId = matcher.group(1);
+                    ThreadChannel thread = channel.getGuild().getThreadChannelById(threadId);
+                    if (thread != null) {
+                        npcThreadsMap.get(currentNpc).add(thread);
+                    }
+                }
+            }
+        }
+
+        return npcThreadsMap;
     }
 
 }
