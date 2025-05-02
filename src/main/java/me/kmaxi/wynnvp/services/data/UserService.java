@@ -92,12 +92,14 @@ public class UserService {
 
         // No new account was created.
         if (password.isEmpty()) {
+            log.info("User {} already exists, no new account was created", userDTO.getDiscordName());
             return "";
         }
         password = extractPassword(password);
 
         // As this is a new account we send another post request with the profile pic
         postArguments = userDTO.getFullPostArguments();
+        log.info("Post arguments for updating profile pic: {}", postArguments);
         updateUserDataOnWebsite(postArguments);
 
         return password;
