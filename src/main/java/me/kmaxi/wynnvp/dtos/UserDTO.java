@@ -80,14 +80,19 @@ public class UserDTO {
     private String getRolesArguments() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("[");
+        boolean addedRole = false;
 
         //For each role user has in discord
-        roles.forEach(role -> {
+        for (RoleDTO role : roles) {
+            addedRole = true;
             String roleName = role.getName();
 
             stringBuilder.append("\"").append(roleName).append("\",");
-        });
-        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        }
+        if (addedRole) {
+            //Remove the last comma
+            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        }
         stringBuilder.append("]");
 
         return stringBuilder.toString();
