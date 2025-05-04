@@ -175,6 +175,7 @@ public class AuditionsChannelHandler {
 
         return npcThreadsMap;
     }
+    private static final String FAILED_CASTING_ROLE = "Failed casting role ";
 
     /**
      * @param roleName  Name of the NPC
@@ -182,17 +183,19 @@ public class AuditionsChannelHandler {
      * @param user      Member that was cast for the role
      * @return Null if successful, otherwise an error message
      */
+
     public String castRole(String questName, String roleName, User user) {
         TextChannel questChannel = getQuestChannel(questName);
         if (questChannel == null) {
-            log.error("Failed casting role {} in {} because could not find audition channel", roleName, questName);
-            return "Failed casting role " + roleName + " in " + questName + " because could not find audition channel";
+            log.error(FAILED_CASTING_ROLE + "{} in {} because could not find audition channel", roleName, questName);
+            return FAILED_CASTING_ROLE + roleName + " in " + questName + " because could not find audition channel";
         }
 
         List<ThreadChannel> threads = getNpcThreadMap(questChannel).get(roleName);
         if (threads == null || threads.isEmpty()) {
-            return "Failed casting role " + roleName + " in " + questName + " because could not find audition thread";
+            return FAILED_CASTING_ROLE + roleName + " in " + questName + " because could not find audition thread";
         }
+
         ThreadChannel castedThread = null;
         for (ThreadChannel thread : threads) {
             String auditee = thread.getName().toLowerCase().replace(roleName.toLowerCase() + "-", "");
@@ -205,8 +208,8 @@ public class AuditionsChannelHandler {
         }
 
         if (castedThread == null) {
-            log.info("Failed casting role {} in {} because could not find audition thread for person {}", roleName, questName, user.getName());
-            return "Failed casting role " + roleName + " in " + questName + " because could not find audition thread";
+            log.info(FAILED_CASTING_ROLE + "{} in {} because could not find audition thread for person {}", roleName, questName, user.getName());
+            return FAILED_CASTING_ROLE + roleName + " in " + questName + " because could not find audition thread";
         }
 
         threads.remove(castedThread);
