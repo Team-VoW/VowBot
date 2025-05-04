@@ -43,7 +43,7 @@ public class AuditionsChannelHandler {
         User user = member.getUser();
         Optional<ThreadChannel> optionalThreadChannel = auditionThreadHandler.createThreadIfNotExists(user, npcName, questName, questChannel);
 
-        if (optionalThreadChannel.isEmpty()){
+        if (optionalThreadChannel.isEmpty()) {
             return;
         }
         ThreadChannel threadChannel = optionalThreadChannel.get();
@@ -57,10 +57,10 @@ public class AuditionsChannelHandler {
         //Edit the message. If the message just contains a . remove it. If it contains anything else do not remove anything but simply add to it.
         //The new content should be "\n--<link to thread channel>"
         String newContent = message.getContentRaw();
-        if (newContent.length() == 1){
+        if (newContent.length() == 1) {
             newContent = "";
         } else {
-            newContent  += "\n";
+            newContent += "\n";
         }
 
         newContent += "- " + threadChannel.getAsMention();
@@ -94,13 +94,13 @@ public class AuditionsChannelHandler {
 
             //We send five messages as placeholder which can later be populated
             //With the audition links. This because discords max message size limit
-            for (int i = 0; i < 3; i++){
+            for (int i = 0; i < 3; i++) {
                 channel.sendMessage(".").queue();
             }
         }
     }
 
-    private TextChannel createAuditionChannel(String questName){
+    private TextChannel createAuditionChannel(String questName) {
         Guild guild = guildService.getGuild();
         Category category = guild.getCategoryById(Config.APPLY_CATEGORY_ID);
 
@@ -113,6 +113,7 @@ public class AuditionsChannelHandler {
     /**
      * Gets the first message that is sent in the channel after the npcName where
      * the message is not close to full, having space to put a link to a threadChannel
+     *
      * @param channel The TextChannel to look through
      * @param npcName The name of the npc to look for
      * @return The first message that is not full
@@ -125,12 +126,12 @@ public class AuditionsChannelHandler {
         String currentCharacter = "";
         for (Message message : messageList) {
             String rawContent = message.getContentRaw();
-            if (rawContent.startsWith("#")){
+            if (rawContent.startsWith("#")) {
                 //Set the current character to the first line of this message, removing everything after a \n
                 currentCharacter = rawContent.split("\n")[0].replace("#", "").trim();
             }
 
-            if(!currentCharacter.equals(npcName) || !message.getAuthor().isBot()){
+            if (!currentCharacter.equals(npcName) || !message.getAuthor().isBot()) {
                 continue;
             }
 
@@ -173,6 +174,55 @@ public class AuditionsChannelHandler {
         }
 
         return npcThreadsMap;
+    }
+    private static final String FAILED_CASTING_ROLE = "Failed casting role ";
+
+    /**
+     * @param roleName  Name of the NPC
+     * @param questName Name of the quest
+     * @param user      Member that was cast for the role
+     * @return Null if successful, otherwise an error message
+     */
+
+    public String castRole(String questName, String roleName, User user) {
+        TextChannel questChannel = getQuestChannel(questName);
+        if (questChannel == null) {
+            log.error(FAILED_CASTING_ROLE + "{} in {} because could not find audition channel", roleName, questName);
+            return FAILED_CASTING_ROLE + roleName + " in " + questName + " because could not find audition channel";
+        }
+
+        List<ThreadChannel> threads = getNpcThreadMap(questChannel).get(roleName);
+        if (threads == null || threads.isEmpty()) {
+            return FAILED_CASTING_ROLE + roleName + " in " + questName + " because could not find audition thread";
+        }
+
+        ThreadChannel castedThread = null;
+        for (ThreadChannel thread : threads) {
+            String auditee = thread.getName().toLowerCase().replace(roleName.toLowerCase() + "-", "");
+            if (user.getName().equalsIgnoreCase(auditee)) {
+                thread.sendMessage("Congratulations" + user.getAsMention() + "! You have been casted as " + roleName + " in " + questName
+                        + "\n\n A staff member will tell you soon what to do next").queue();
+                castedThread = thread;
+                break;
+            }
+        }
+
+        if (castedThread == null) {
+            log.info(FAILED_CASTING_ROLE + "{} in {} because could not find audition thread for person {}", roleName, questName, user.getName());
+            return FAILED_CASTING_ROLE + roleName + " in " + questName + " because could not find audition thread";
+        }
+
+        threads.remove(castedThread);
+        for (ThreadChannel thread : threads) {
+            thread.sendMessage("Thank you for auditioning! Unfortunately, you were not cast for this role this time. " +
+                    "We truly appreciate your effort and hope to hear more auditions from you in the future. <3").queue();
+
+            thread.getManager().setLocked(true).queue();
+        }
+
+
+        questChannel.sendMessage("Cast **" + roleName + "** to " + user.getAsMention() + " - " + castedThread.getAsMention()).queue();
+        return null;
     }
 
 }

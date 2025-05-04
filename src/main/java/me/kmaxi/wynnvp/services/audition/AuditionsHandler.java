@@ -109,7 +109,9 @@ public class AuditionsHandler {
             return line.replace(npcName, npcName + " (" + user.getAsMention() + ")");
         }));
 
-        return "Assigned role " + npcName + " in " + questName + " quest.";
+        String errorInAuditionChannel = auditionsChannelHandler.castRole(questName, npcName, user);
+        return Objects.requireNonNullElseGet(errorInAuditionChannel, () -> "Assigned role " + npcName + " in " + questName + " quest.");
+
     }
 
     public String openRole(String questName, String npcName) {
