@@ -9,6 +9,7 @@ import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.dtos.LineReportDTO;
 import me.kmaxi.wynnvp.dtos.VowDialogueDTO;
 import me.kmaxi.wynnvp.enums.LineType;
+import me.kmaxi.wynnvp.enums.SetLinesCommand;
 import me.kmaxi.wynnvp.services.data.LineReportService;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -99,6 +100,7 @@ public class LineReportHandler {
             for (VowDialogueDTO dialogue : dialogues) {
                 System.out.println("Parsed dialogue: " + dialogue.getLine());
             }
+            lineReportService.setLinesAsVoiced(dialogues, SetLinesCommand.VOICED);
 
             return "File processed successfully. Parsed " + dialogues.size() + " dialogues.";
         } catch (Exception e) {

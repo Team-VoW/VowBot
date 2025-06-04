@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.dtos.LineReportDTO;
+import me.kmaxi.wynnvp.dtos.VowDialogueDTO;
 import me.kmaxi.wynnvp.enums.LineType;
+import me.kmaxi.wynnvp.enums.SetLinesCommand;
+import okhttp3.*;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -13,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service @Slf4j
@@ -74,5 +78,32 @@ public class LineReportService {
     private String getReadingUrl(LineType type, String npcName) {
         return "https://voicesofwynn.com/api/unvoiced-line-report/" + type.getApiKeyword() + "?npc="
                 + npcName.replace(" ", "%20") + "&apiKey=" + apiKeys.readingApiKey;
+    }
+
+    public boolean setLinesAsVoiced(List<VowDialogueDTO> lines, SetLinesCommand command) {
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
+        RequestBody body = RequestBody.create(mediaType, "apiKey=testing&lines[]=[5/16] Lari: ⓐⓣⓗⓒⓗⓔⓐⓝⓖⓐⓘⓛ!&lines[]=[1/1] Aledar: soldier, you take the skeleton in the front. We'll handle the two zombies in the back!&answer=" + command.getShorthand());
+        Request request = new Request.Builder()
+                .url("http://127.0.0.1/api/unvoiced-line-report/resolve")
+                .method("PUT", body)
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .build();
+        try {
+            Response response = client.newCall(request).execute();
+            //print out the response
+            if (!response.isSuccessful()) {
+                log.error("Failed to set lines as voiced: " + response.message());
+                return false;
+            }
+            String responseBody = response.body().string();
+            log.info("Response from setting lines as voiced: " + responseBody);
+
+        } catch (IOException e) {
+            log.error("Error setting lines as voiced: ", e);
+            return false;
+        }
+        return true;
     }
 }
