@@ -70,7 +70,7 @@ public class LineReportHandler {
                 return;
             }
 
-            log.info("Sending report of message: " + messageDTO.getMessage());
+            log.info("Sending report of message: {}", messageDTO.getMessage());
 
             channel.sendMessage(forwardedMessage).queue(message1 -> {
                 message1.addReaction(Emoji.fromUnicode(Config.ACCEPT_UNICODE)).queue();
