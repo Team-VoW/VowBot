@@ -19,7 +19,8 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.List;
 
-@Service @Slf4j
+@Service
+@Slf4j
 public class LineReportService {
 
     private final RestTemplate restTemplate;
@@ -81,29 +82,29 @@ public class LineReportService {
     }
 
     public boolean setLinesAsVoiced(List<VowDialogueDTO> lines, SetLinesCommand command) {
-        OkHttpClient client = new OkHttpClient().newBuilder()
-                .build();
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
         MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
-        RequestBody body = RequestBody.create(mediaType, "apiKey=testing&lines[]=[5/16] Lari: ⓐⓣⓗⓒⓗⓔⓐⓝⓖⓐⓘⓛ!&lines[]=[1/1] Aledar: soldier, you take the skeleton in the front. We'll handle the two zombies in the back!&answer=" + command.getShorthand());
+
+        // Fixed deprecated method - parameter order is reversed in new version
+        RequestBody body = RequestBody.create("apiKey=testing&lines[]=[5/16] Lari: ⓐⓣⓗⓒⓗⓔⓐⓝⓖⓐⓘⓛ!&lines[]=[1/1] Aledar: soldier, you take the skeleton in the front. We'll handle the two zombies in the back!&answer=" + command.getShorthand(), mediaType);
+
         Request request = new Request.Builder()
                 .url("http://127.0.0.1/api/unvoiced-line-report/resolve")
                 .method("PUT", body)
                 .addHeader("Content-Type", "application/x-www-form-urlencoded")
                 .build();
-        try {
-            Response response = client.newCall(request).execute();
-            //print out the response
+        try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                log.error("Failed to set lines as voiced: " + response.message());
+                log.error("Failed to set lines as voiced: {}", response.message());
                 return false;
             }
+            assert response.body() != null;
             String responseBody = response.body().string();
-            log.info("Response from setting lines as voiced: " + responseBody);
-
+            log.info("Response from setting lines as voiced: {}", responseBody);
+            return true;
         } catch (IOException e) {
             log.error("Error setting lines as voiced: ", e);
             return false;
         }
-        return true;
     }
 }
