@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -94,15 +93,20 @@ public class LineReportHandler {
 
             // Parse the JSON array into a list of VowDialogueDTO objects
             ObjectMapper objectMapper = new ObjectMapper();
-            List<VowDialogueDTO> dialogues = objectMapper.readValue(fileContent, new TypeReference<List<VowDialogueDTO>>() {});
+            List<VowDialogueDTO> dialogues = objectMapper.readValue(fileContent, new TypeReference<>() {
+            });
 
-            // Process the parsed data
-            for (VowDialogueDTO dialogue : dialogues) {
-                System.out.println("Parsed dialogue: " + dialogue.getLine());
+            if (dialogues.isEmpty()) {
+                return "The file is empty or does not contain valid dialogue data.";
             }
-            lineReportService.setLinesAsVoiced(dialogues, SetLinesCommand.VOICED);
 
-            return "File processed successfully. Parsed " + dialogues.size() + " dialogues.";
+            boolean successful = lineReportService.setLinesAsVoiced(dialogues, SetLinesCommand.VOICED);
+
+            if (successful) {
+                return "File processed successfully. Parsed " + dialogues.size() + " dialogues.";
+            } else {
+                return "Some or all requests to update failed.";
+            }
         } catch (Exception e) {
             log.error("Failed to process the file: {}", e.getMessage(), e);
             return "Failed to process the file: " + e.getMessage();

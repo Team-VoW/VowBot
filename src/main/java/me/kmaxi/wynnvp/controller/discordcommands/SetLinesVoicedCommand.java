@@ -41,7 +41,10 @@ public class SetLinesVoicedCommand implements ICommandImpl {
             return;
         }
 
-        event.reply(lineHandler.setLinesAsVoiced(typeOption.getAsAttachment())).setEphemeral(true).queue();
+        event.deferReply(true).queue(hook -> {
+            String result = lineHandler.setLinesAsVoiced(typeOption.getAsAttachment());
+            hook.editOriginal(result).queue();
+        });
     }
 
 

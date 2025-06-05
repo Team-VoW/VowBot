@@ -23,6 +23,8 @@ import java.util.List;
 @Slf4j
 public class LineReportService {
 
+    private static final String FORM_URLENCODED = "application/x-www-form-urlencoded";
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final APIKeys apiKeys;
@@ -50,7 +52,7 @@ public class LineReportService {
         try {
             String url = "https://voicesofwynn.com/api/unvoiced-line-report/reset";
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Content-Type", "application/x-www-form-urlencoded");
+            headers.set("Content-Type", FORM_URLENCODED);
 
             String data = "apiKey=" + apiKeys.updateApiKey;
             HttpEntity<String> entity = new HttpEntity<>(data, headers);
@@ -82,16 +84,38 @@ public class LineReportService {
     }
 
     public boolean setLinesAsVoiced(List<VowDialogueDTO> lines, SetLinesCommand command) {
-        OkHttpClient client = new OkHttpClient().newBuilder().build();
-        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
+        int chunkSize = 500;
+        if (lines.size() <= chunkSize) {
+            return setLinesAsVoicesNoSplit(lines, command);
+        }
+        boolean allSuccess = true;
+        for (int i = 0; i < lines.size(); i += chunkSize) {
+            List<VowDialogueDTO> chunk = lines.subList(i, Math.min(i + chunkSize, lines.size()));
+            boolean success = setLinesAsVoicesNoSplit(chunk, command);
+            if (!success) {
+                allSuccess = false;
+            }
+        }
+        return allSuccess;
+    }
 
-        // Fixed deprecated method - parameter order is reversed in new version
-        RequestBody body = RequestBody.create("apiKey=testing&lines[]=[5/16] Lari: ⓐⓣⓗⓒⓗⓔⓐⓝⓖⓐⓘⓛ!&lines[]=[1/1] Aledar: soldier, you take the skeleton in the front. We'll handle the two zombies in the back!&answer=" + command.getShorthand(), mediaType);
+    private boolean setLinesAsVoicesNoSplit(List<VowDialogueDTO> lines, SetLinesCommand command) {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+        MediaType mediaType = MediaType.parse(FORM_URLENCODED);
+
+        // Build the lines[] parameters from the VowDialogueDTO list
+        StringBuilder linesParam = new StringBuilder();
+        for (VowDialogueDTO dto : lines) {
+            if (!linesParam.isEmpty()) linesParam.append("&");
+            linesParam.append("lines[]=").append(dto.getLine());
+        }
+        String bodyString = "apiKey=testing" + (!linesParam.isEmpty() ? "&" + linesParam : "") + "&answer=" + command.getShorthand();
+        RequestBody body = RequestBody.create(bodyString, mediaType);
 
         Request request = new Request.Builder()
-                .url("http://127.0.0.1/api/unvoiced-line-report/resolve")
+                .url("https://voicesofwynn.com/api/unvoiced-line-report/resolve")
                 .method("PUT", body)
-                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .addHeader("Content-Type", FORM_URLENCODED)
                 .build();
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
