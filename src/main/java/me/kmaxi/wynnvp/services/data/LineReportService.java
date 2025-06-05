@@ -109,7 +109,7 @@ public class LineReportService {
             if (!linesParam.isEmpty()) linesParam.append("&");
             linesParam.append("lines[]=").append(dto.getLine());
         }
-        String bodyString = "apiKey=testing" + (!linesParam.isEmpty() ? "&" + linesParam : "") + "&answer=" + command.getShorthand();
+        String bodyString = "apiKey=" + apiKeys.updateApiKey + (!linesParam.isEmpty() ? "&" + linesParam : "") + "&answer=" + command.getShorthand();
         RequestBody body = RequestBody.create(bodyString, mediaType);
 
         Request request = new Request.Builder()
