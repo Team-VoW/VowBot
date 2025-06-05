@@ -107,6 +107,10 @@ public class LineReportHandler {
             } else {
                 return "Some or all requests to update failed.";
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Operation interrupted: {}", e.getMessage(), e);
+            return "Operation was interrupted: " + e.getMessage();
         } catch (Exception e) {
             log.error("Failed to process the file: {}", e.getMessage(), e);
             return "Failed to process the file: " + e.getMessage();

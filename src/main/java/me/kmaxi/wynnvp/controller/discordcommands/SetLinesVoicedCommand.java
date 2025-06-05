@@ -2,7 +2,6 @@ package me.kmaxi.wynnvp.controller.discordcommands;
 
 import lombok.RequiredArgsConstructor;
 import me.kmaxi.wynnvp.PermissionLevel;
-import me.kmaxi.wynnvp.enums.LineType;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import me.kmaxi.wynnvp.services.LineReportHandler;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -12,8 +11,6 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
