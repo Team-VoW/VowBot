@@ -1,0 +1,66 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle shadowJar
+        run: ./gradlew shadowJar
+
+      - name: Rename jar to vowbot.jar
+        run: |
+          find build/libs -name "*-all.jar" -type f -exec cp {} vowbot.jar \;
+
+      - name: Upload jar artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: vowbot-jar
+          path: vowbot.jar
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download jar artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: vowbot-jar
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.ORACLE_CLOUD_SSH_PRIVATE_KEY }}
+
+      - name: Transfer jar to server
+        run: |
+          scp -o StrictHostKeyChecking=no vowbot.jar opc@${{ secrets.SERVER_IP }}:/home/opc/bot/
+
+      - name: Deploy to server
+        run: |
+          ssh -o StrictHostKeyChecking=no opc@${{ secrets.SERVER_IP }} '
+            cd /home/opc/bot
+            docker ps -q --filter "name=vowbot" | xargs -r docker stop
+            docker ps -aq --filter "name=vowbot" | xargs -r docker rm
+            docker build -t vowbot:latest .
+            docker run -d --name vowbot --restart unless-stopped vowbot:latest
+            docker image prune -f
+          '
