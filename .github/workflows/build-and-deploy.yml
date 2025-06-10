@@ -30,29 +30,34 @@ jobs:
         run: |
           find build/libs -name "*-all.jar" -type f -exec cp {} vowbot.jar \;
 
-      - name: Upload jar artifact
+      - name: Copy Dockerfile
+        run: cp Dockerfile dockerfile
+
+      - name: Upload jar and Dockerfile artifact
         uses: actions/upload-artifact@v4
         with:
-          name: vowbot-jar
-          path: vowbot.jar
+          name: vowbot-artifact
+          path: |
+            vowbot.jar
+            dockerfile
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download jar artifact
+      - name: Download jar and Dockerfile artifact
         uses: actions/download-artifact@v4
         with:
-          name: vowbot-jar
+          name: vowbot-artifact
 
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.ORACLE_CLOUD_SSH_PRIVATE_KEY }}
 
-      - name: Transfer jar to server
+      - name: Transfer files to server
         run: |
-          scp -o StrictHostKeyChecking=no vowbot.jar ubuntu@${{ secrets.SERVER_IP }}:bot/
+          scp -o StrictHostKeyChecking=no vowbot.jar dockerfile ubuntu@${{ secrets.SERVER_IP }}:bot/
 
       - name: Deploy to server
         run: |
