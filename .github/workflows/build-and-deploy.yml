@@ -52,12 +52,12 @@ jobs:
 
       - name: Transfer jar to server
         run: |
-          scp -o StrictHostKeyChecking=no vowbot.jar opc@${{ secrets.SERVER_IP }}:/home/opc/bot/
+          scp -o StrictHostKeyChecking=no vowbot.jar ubuntu@${{ secrets.SERVER_IP }}:bot/
 
       - name: Deploy to server
         run: |
-          ssh -o StrictHostKeyChecking=no opc@${{ secrets.SERVER_IP }} '
-            cd /home/opc/bot
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SERVER_IP }} '
+            cd bot
             docker ps -q --filter "name=vowbot" | xargs -r docker stop
             docker ps -aq --filter "name=vowbot" | xargs -r docker rm
             docker build -t vowbot:latest .
