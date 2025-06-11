@@ -28,7 +28,7 @@ jobs:
 
       - name: Rename jar to vowbot.jar
         run: |
-          find build/libs -name "*-all.jar" -type f -exec cp {} vowbot.jar \;
+          find build/libs -name "*.jar" -type f -exec cp {} vowbot.jar \;
 
       - name: Copy Dockerfile
         run: cp Dockerfile dockerfile
