@@ -1,5 +1,4 @@
-# Use a lightweight OpenJDK image with Java 14
-FROM openjdk:16-jdk-slim
+FROM openjdk:17-jdk-slim
 
 # Set the working directory in the container
 WORKDIR /app
