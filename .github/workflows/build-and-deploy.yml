@@ -23,8 +23,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build with Gradle shadowJar
-        run: ./gradlew shadowJar
+      - name: Build with Gradle
+        run: ./gradlew build
 
       - name: Rename jar to vowbot.jar
         run: |
