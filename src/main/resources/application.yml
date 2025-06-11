@@ -1,0 +1,15 @@
+bot:
+  token: ${BOT_TOKEN}
+
+api:
+  reading:
+    key: ${READING_API_KEY}
+  update:
+    key: ${UPDATE_API_KEY}
+  discord_integration:
+    key: ${DISCORD_INTEGRATION_API_KEY}
+
+sql:
+  url: ${SQL_URL}
+  username: ${SQL_USERNAME}
+  password: ${SQL_PASSWORD}
