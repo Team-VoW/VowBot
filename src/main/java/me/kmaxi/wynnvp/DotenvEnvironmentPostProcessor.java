@@ -9,6 +9,16 @@ import org.springframework.core.env.MapPropertySource;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * DotenvEnvironmentPostProcessor loads environment variables from a .env file
+ * and injects them into the Spring Environment before the application starts.
+ *
+ * <p>In development, it loads the .env file from the current working directory.
+ * In production, place the .env file in the same directory as the JAR file.
+ *
+ * <p>To enable this post-processor, it is registered it in META-INF/spring.factories:
+
+ */
 public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor {
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
