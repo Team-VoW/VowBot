@@ -109,12 +109,12 @@ public class LineReportService {
             if (!linesParam.isEmpty()) linesParam.append("&");
             linesParam.append("lines[]=").append(dto.getLine());
         }
-        String bodyString = "apiKey=" + apiKeys.updateApiKey + (!linesParam.isEmpty() ? "&" + linesParam : "") + "&answer=" + command.getShorthand();
+        String bodyString = "apiKey=" + "testing" + (!linesParam.isEmpty() ? "&" + linesParam : "") + "&status=" + command.getShorthand();
         RequestBody body = RequestBody.create(bodyString, mediaType);
 
         Request request = new Request.Builder()
-                .url("https://voicesofwynn.com/api/unvoiced-line-report/resolve")
-                .method("PUT", body)
+                .url("https://voicesofwynn.com/api/unvoiced-line-report/import")
+                .method("POST", body)
                 .addHeader("Content-Type", FORM_URLENCODED)
                 .build();
         try (Response response = client.newCall(request).execute()) {
