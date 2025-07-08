@@ -38,8 +38,9 @@ public class SynAllUsersCommand implements ICommandImpl {
 
     @Override
     public void execute(SlashCommandInteractionEvent event) {
-        List<UserDTO> users = userService.getAllUsers();
         event.deferReply().queue();
+
+        List<UserDTO> users = userService.getAllUsers();
 
         //For each website account
         for (UserDTO user : users) {
