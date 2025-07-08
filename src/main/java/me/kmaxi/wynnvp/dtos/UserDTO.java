@@ -68,7 +68,7 @@ public class UserDTO {
         return "discordName=" + discordName + "&" +
                 "discordId=" + discordId + "&" +
                 "roles=" + getRolesArguments() + "&" +
-                "avatarLink=" + avatarLink;
+                "imgurl=" + avatarLink;
     }
 
     public String getChangingArguments() {
