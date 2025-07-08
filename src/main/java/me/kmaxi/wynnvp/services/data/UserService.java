@@ -31,7 +31,7 @@ public class UserService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    private final String defaultDiscordAvatar = "dynamic/avatars/default.png";
+    private static final String defaultDiscordAvatar = "dynamic/avatars/default.png";
 
     public UserService(APIKeys apiKeys) {
         this.apiKeys = apiKeys;
