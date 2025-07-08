@@ -1,4 +1,3 @@
-
 package me.kmaxi.wynnvp.services.data;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -7,19 +6,16 @@ import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.dtos.UserDTO;
-import me.kmaxi.wynnvp.services.MemberHandler;
 import me.kmaxi.wynnvp.utils.MemberUtils;
 import net.dv8tion.jda.api.entities.Member;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -32,9 +28,10 @@ public class UserService {
 
     private final APIKeys apiKeys;
 
-
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+
+    private final String defaultDiscordAvatar = "dynamic/avatars/default.png";
 
     public UserService(APIKeys apiKeys) {
         this.apiKeys = apiKeys;
@@ -52,7 +49,7 @@ public class UserService {
      */
     public String createAccount(Member member) throws IOException {
         UserDTO userDTO = fromMember(member);
-        return setUser(userDTO);
+        return setUser(userDTO, true);
     }
 
     /**
@@ -81,12 +78,17 @@ public class UserService {
         userDTO.setDiscordName(discordMember.getUser().getName());
         userDTO.setDiscordId(discordMember.getIdLong());
         userDTO.setRoles(MemberUtils.getRoles(discordMember));
+        boolean syncProfilePic = false;
+        if (userDTO.getAvatarLink() == null || userDTO.getAvatarLink().equals(defaultDiscordAvatar)) {
+            userDTO.setAvatarLink(discordMember.getEffectiveAvatarUrl());
+            syncProfilePic = true;
+        }
 
-        setUser(userDTO);
+        setUser(userDTO, syncProfilePic);
     }
 
-    private String setUser(UserDTO userDTO) throws IOException {
-        String postArguments = userDTO.getChangingArguments();
+    private String setUser(UserDTO userDTO, boolean syncProfilePic) throws IOException {
+        String postArguments = syncProfilePic ? userDTO.getFullPostArguments() : userDTO.getChangingArguments();
 
         String password = updateUserDataOnWebsite(postArguments);
 
@@ -112,6 +114,11 @@ public class UserService {
             log.info("Discord name has changed for {} was {} now {}", discordMember.getUser().getName(), userDTO.getDiscordName(), discordMember.getUser().getName());
             return true;
         }
+        if (userDTO.getAvatarLink() == null || userDTO.getAvatarLink().equals(defaultDiscordAvatar)) {
+            log.info("Avatar is unset for {} was {}", discordMember.getUser().getName(), userDTO.getAvatarLink());
+            return true;
+        }
+
         // Check if the roles have changed
         List<UserDTO.RoleDTO> memberRoles = MemberUtils.getRoles(discordMember);
         List<UserDTO.RoleDTO> roles = new ArrayList<>(userDTO.getRoles());
@@ -135,31 +142,26 @@ public class UserService {
      * @param urlParameters Post Parameters to use. If an empty string is provided it will do nothing.
      * @return If a new account was created it returns this User's password, if no user was made it returns an empty string.
      */
-    private String updateUserDataOnWebsite(String urlParameters) throws IOException {
+    private String updateUserDataOnWebsite(String urlParameters) {
         if (urlParameters.isEmpty()) {
             return "";
         }
 
         urlParameters = addActionAndAPIKey(urlParameters);
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.set("charset", "utf-8");
 
-        HttpURLConnection conn = sendPostRequest(urlParameters);
+        HttpEntity<String> requestEntity = new HttpEntity<>(urlParameters, headers);
 
-        log.debug("Response code: {} with message: {}", conn.getResponseCode(), conn.getResponseMessage());
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(Config.URL_DISCORD_INTEGRATION, requestEntity, String.class);
 
+        log.debug("Response code: {}", responseEntity.getStatusCode().value());
 
-        StringBuilder result = new StringBuilder();
-
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(conn.getInputStream()))) {
-            for (String line; (line = reader.readLine()) != null; ) {
-                result.append(line);
-            }
-        }
+        String result = responseEntity.getBody();
         log.debug("Result: {}", result);
-        return result.toString();
-
-
+        return result != null ? result : "";
     }
 
     private String addActionAndAPIKey(String urlParameters) {
@@ -171,32 +173,6 @@ public class UserService {
         return urlParameters;
     }
 
-    /**
-     * Sends a URL Post request
-     *
-     * @param urlParameters The parameters to post to the url
-     * @return The http connection where you can get response code, response message and other things
-     * @throws IOException If an error was encountered
-     */
-    private static HttpURLConnection sendPostRequest(String urlParameters) throws IOException {
-        //Post Request
-        byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
-        int postDataLength = postData.length;
-        URL url = new URL(Config.URL_DISCORD_INTEGRATION);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setDoOutput(true);
-        conn.setInstanceFollowRedirects(false);
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        conn.setRequestProperty("charset", "utf-8");
-        conn.setRequestProperty("Content-Length", Integer.toString(postDataLength));
-        conn.setUseCaches(false);
-        try (DataOutputStream wr = new DataOutputStream(conn.getOutputStream())) {
-            wr.write(postData);
-        }
-
-        return conn;
-    }
 
     private String extractPassword(String input) {
         Pattern pattern = Pattern.compile("\"tempPassword\":\"([a-zA-Z\\d]+)\"");
