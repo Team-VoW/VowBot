@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import me.kmaxi.wynnvp.utils.MemberUtils;
-import net.dv8tion.jda.api.entities.Member;
 
 import java.util.List;
 

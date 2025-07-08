@@ -87,7 +87,7 @@ public class UserService {
         setUser(userDTO, syncProfilePic);
     }
 
-    private String setUser(UserDTO userDTO, boolean syncProfilePic) throws IOException {
+    private String setUser(UserDTO userDTO, boolean syncProfilePic) {
         String postArguments = syncProfilePic ? userDTO.getFullPostArguments() : userDTO.getChangingArguments();
 
         String password = updateUserDataOnWebsite(postArguments);
