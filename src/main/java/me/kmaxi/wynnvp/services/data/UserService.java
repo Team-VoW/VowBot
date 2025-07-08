@@ -31,7 +31,7 @@ public class UserService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    private static final String defaultDiscordAvatar = "dynamic/avatars/default.png";
+    private static final String DEFAULT_DISCORD_AVATAR = "dynamic/avatars/default.png";
 
     public UserService(APIKeys apiKeys) {
         this.apiKeys = apiKeys;
@@ -79,7 +79,7 @@ public class UserService {
         userDTO.setDiscordId(discordMember.getIdLong());
         userDTO.setRoles(MemberUtils.getRoles(discordMember));
         boolean syncProfilePic = false;
-        if (userDTO.getAvatarLink() == null || userDTO.getAvatarLink().equals(defaultDiscordAvatar)) {
+        if (userDTO.getAvatarLink() == null || userDTO.getAvatarLink().equals(DEFAULT_DISCORD_AVATAR)) {
             userDTO.setAvatarLink(discordMember.getEffectiveAvatarUrl());
             syncProfilePic = true;
         }
@@ -114,7 +114,7 @@ public class UserService {
             log.info("Discord name has changed for {} was {} now {}", discordMember.getUser().getName(), userDTO.getDiscordName(), discordMember.getUser().getName());
             return true;
         }
-        if (userDTO.getAvatarLink() == null || userDTO.getAvatarLink().equals(defaultDiscordAvatar)) {
+        if (userDTO.getAvatarLink() == null || userDTO.getAvatarLink().equals(DEFAULT_DISCORD_AVATAR)) {
             log.info("Avatar is unset for {} was {}", discordMember.getUser().getName(), userDTO.getAvatarLink());
             return true;
         }
