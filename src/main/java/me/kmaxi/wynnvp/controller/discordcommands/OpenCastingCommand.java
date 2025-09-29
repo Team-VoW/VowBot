@@ -67,7 +67,7 @@ public class OpenCastingCommand implements ICommandImpl {
         MessageChannel textChannel;
         if (channelOption != null) {
             // Get the channel by ID
-            textChannel = channelOption.getAsChannel().asTextChannel();
+            textChannel = channelOption.getAsChannel().asStandardGuildMessageChannel();
 
             //Remove last npc since it is the channel id
             npcs.remove(npcs.size() - 1);

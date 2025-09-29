@@ -24,6 +24,13 @@ public class AuditionThreadHandler {
 
     public Optional<ThreadChannel> createThreadIfNotExists(User user, String npcName, String questName, TextChannel questChannel) {
 
+        // Add null check for questChannel
+        if (questChannel == null) {
+            log.error("Cannot create thread for {} - questChannel is null for quest: {}", npcName, questName);
+            Utils.sendPrivateMessage(user, "Error: Could not find the audition channel for " + questName + ". Please contact a staff member.");
+            return Optional.empty();
+        }
+
         String channelName = npcName + "-" + user.getName().replace(".", "");
 
 

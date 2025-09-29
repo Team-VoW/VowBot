@@ -22,13 +22,15 @@ public class HelpCommand implements ICommandImpl {
     @Override
     public void execute(SlashCommandInteractionEvent event) {
         event.reply(("""
-                `/close` to close an application.
-                `/setRole <QuestName> <NpcName> <PersonWhoGotRole>` to assign a role to a person
-                `/openrole <QuestName> <NpcName>(CaseSens)>` to remove an assignation
-                `/addquest <QuestName> <Npc> <Npc>...` to add a new quest. Maximum 9 roles.
+                `/close soon` to close an application.
+                `/close immediately` to close an application directly.
+                `/role set <QuestName> <NpcName> <PersonWhoGotRole>` to assign a role to a person
+                `/role open <QuestName> <NpcName>(CaseSens)>` to remove an assignation
+                `/role open <QuestName> <NpcName>(CaseSens)>` to remove an assignation
+                `/setuppoll to set up the voting for either CCC casting or discord casting`
+                `/finishedrole upgrades the users role here and on the website`
+                `/opencasting <QuestName> <Npc> <Npc>...` to add a new quest. Maximum 9 roles.
                 `/resetforwarded` sets all lines with status unproccesed to forwarded. WARNING! Clear reported lines channel before doing this!`
-                /getacceptedlines <Npc>` to get all accepted lines from a npc`
-                /getactivelines <Npc>` to get all accepted and reported lines from a npc`
-                /getalllines <Npc>` to get every single line ever reported from an npc""")).setEphemeral(true).queue();
+                /getlines <Npc>` to get lines from a npc""")).setEphemeral(true).queue();
     }
 }

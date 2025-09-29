@@ -35,8 +35,21 @@ public class AuditionsChannelHandler {
 
         TextChannel questChannel = getQuestChannel(questName);
         if (questChannel == null) {
-            log.error("Failed opening audition in {} because could not find audition channel", questName);
-            Utils.sendPrivateMessage(member.getUser(), "ERROR OPENING AUDITION! No channel was found. Please contact a staff member or kmaxi about this!!");
+            log.error("Failed opening audition in {} because could not find audition channel. Available channels will be logged.", questName);
+
+            // Log available channels for debugging
+            Guild guild = guildService.getGuild();
+            Category auditionCategory = guild.getCategoryById(Config.APPLY_CATEGORY_ID);
+            if (auditionCategory != null) {
+                log.debug("Available audition channels: {}",
+                    auditionCategory.getTextChannels().stream()
+                        .map(TextChannel::getName)
+                        .toList());
+            } else {
+                log.error("Audition category with ID {} not found", Config.APPLY_CATEGORY_ID);
+            }
+
+            Utils.sendPrivateMessage(member.getUser(), "ERROR OPENING AUDITION! No channel was found for quest '" + questName + "'. Please contact a staff member or kmaxi about this!!");
             return;
         }
 
