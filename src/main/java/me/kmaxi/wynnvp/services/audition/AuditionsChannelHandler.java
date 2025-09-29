@@ -84,7 +84,7 @@ public class AuditionsChannelHandler {
 
     public TextChannel getQuestChannel(String questName) {
 
-        String channelName = getChannelName(questName);
+        String channelName = Utils.getChannelName(questName);
         Guild guild = guildService.getGuild();
         List<TextChannel> channels = Objects.requireNonNull(guild.getCategoryById(Config.APPLY_CATEGORY_ID)).getTextChannels();
 
@@ -94,10 +94,6 @@ public class AuditionsChannelHandler {
 
     }
 
-    private String getChannelName(String questName) {
-        return questName.replaceAll("[^a-zA-Z0-9-]", "");
-    }
-
     public void createQuestChannels(String questName, List<String> roles) {
 
         TextChannel channel = createAuditionChannel(questName);
@@ -105,7 +101,7 @@ public class AuditionsChannelHandler {
         for (String role : roles) {
             channel.sendMessage("# " + role).queue();
 
-            //We send five messages as placeholder which can later be populated
+            //We send three messages as placeholder which can later be populated
             //With the audition links. This because discords max message size limit
             for (int i = 0; i < 3; i++) {
                 channel.sendMessage(".").queue();
@@ -117,7 +113,7 @@ public class AuditionsChannelHandler {
         Guild guild = guildService.getGuild();
         Category category = guild.getCategoryById(Config.APPLY_CATEGORY_ID);
 
-        String channelName = getChannelName(questName);
+        String channelName = Utils.getChannelName(questName); //Because of this conversion, it doesn't matter what characters the original variable contains
         return guild.createTextChannel(channelName, category)
                 .setTopic("Recording collection for " + questName)
                 .complete();
@@ -211,7 +207,7 @@ public class AuditionsChannelHandler {
 
         ThreadChannel castedThread = null;
         for (ThreadChannel thread : threads) {
-            String auditee = thread.getName().toLowerCase().replace(roleName.toLowerCase() + "-", "");
+            String auditee = thread.getName().toLowerCase().replace(Utils.getChannelName(roleName.toLowerCase() + "-"), ""); //Strip the NPC name part from the thread name
             if (user.getName().equalsIgnoreCase(auditee)) {
                 thread.sendMessage("Congratulations" + user.getAsMention() + "! You have been casted as " + roleName + " in " + questName
                         + "\n\n A staff member will tell you soon what to do next").queue();

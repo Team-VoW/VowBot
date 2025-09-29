@@ -35,23 +35,21 @@ public class AuditionsHandler {
     private final AuditionsChannelHandler auditionsChannelHandler;
 
     public void setupPoll(String questName, List<String> npcs, MessageChannel channel) {
-        ArrayList<String> reactions = new ArrayList<>();
+        ArrayList<Char> reactions = new ArrayList<>();
         StringBuilder out = new StringBuilder(">>> **React to apply for a role in " + questName + "**");
-        int i = 1;
+        int i = 1; //1 for A, 26 for Z
         for (String npc : npcs) {
-            if (i == 10) {
+            if (i == 27) {
                 break;
             }
-            out.append("\n:").append(Utils.convertNumber(i)).append(": = ").append(npc).append("\n");
-            reactions.add(String.valueOf(i));
+            out.append("\n:").append(Utils.convertLetter(i)).append(": = ").append(npc).append("\n");
+            reactions.add(64+i);
             i++;
         }
 
         channel.sendMessage(out.toString()).queue(message1 -> {
-            int index = 1;
-            for (String ignored : reactions) {
-                message1.addReaction(Emoji.fromUnicode(Utils.getUnicode(index))).queue();
-                index++;
+            for (Char reaction : reactions) {
+                message1.addReaction(Emoji.fromUnicode(Utils.getUnicode(reaction))).queue();
             }
         });
 
@@ -100,11 +98,11 @@ public class AuditionsHandler {
         }
 
         replaceLineWhereNpcIs(message, npcName, questName, ((number, line) -> {
-            message.clearReactions(Emoji.fromUnicode(Utils.getUnicode(number))).queue();
-            line = line.replace(Utils.convertNumber(number), "x");
+            message.clearReactions(Emoji.fromUnicode(Utils.getUnicode((char) (number + 64)))).queue();
+            line = line.replace(Utils.convertLetter(number), "x");
             if (line.contains("(")) {
                 String[] split = line.split("\\(");
-                line = split[0];
+                line = split[0].trim();
             }
             return line.replace(npcName, npcName + " (" + user.getAsMention() + ")");
         }));
@@ -122,8 +120,8 @@ public class AuditionsHandler {
         }
 
         replaceLineWhereNpcIs(message, npcName, questName, ((lineNumber, lineBefore) -> {
-            message.addReaction(Emoji.fromUnicode(Utils.getUnicode(lineNumber))).queue();
-            return ":" + Utils.convertNumber(lineNumber) + ": = " + npcName;
+            message.addReaction(Emoji.fromUnicode(Utils.getUnicode((char) (lineNumber + 64)))).queue();
+            return ":" + Utils.convertLetter(lineNumber) + ": = " + npcName;
         }));
 
         return "Cleared role " + npcName + " in " + questName + " quest.";

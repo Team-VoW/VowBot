@@ -31,7 +31,7 @@ public class AuditionThreadHandler {
             return Optional.empty();
         }
 
-        String channelName = npcName + "-" + user.getName().replace(".", "");
+        String channelName = Utils.getChannelName(npcName + "-" + user.getName());
 
 
         if (auditionThreadExists(channelName, questChannel)) {

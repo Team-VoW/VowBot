@@ -27,16 +27,33 @@ public class OpenCastingCommand implements ICommandImpl {
     public CommandData getCommandData() {
         return Commands.slash("opencasting", "Opens casting for a new quest")
                 .addOptions(
-                        new OptionData(OptionType.STRING, "questname", "The name of the quest with no spaces. Use - between words", true),
-                        new OptionData(OptionType.STRING, "npc1", "The firsts npc name", true),
-                        new OptionData(OptionType.STRING, "npc2", "The seconds npc name", false),
-                        new OptionData(OptionType.STRING, "npc3", "The thirds npc name", false),
-                        new OptionData(OptionType.STRING, "npc4", "The fourths npc name", false),
-                        new OptionData(OptionType.STRING, "npc5", "The fifths npc name", false),
-                        new OptionData(OptionType.STRING, "npc6", "The sixths npc name", false),
-                        new OptionData(OptionType.STRING, "npc7", "The sevenths npc name", false),
-                        new OptionData(OptionType.STRING, "npc8", "The eights npc name", false),
-                        new OptionData(OptionType.STRING, "npc9", "The ninths npc name", false),
+                        new OptionData(OptionType.STRING, "questname", "The name of the quest", true),
+                        new OptionData(OptionType.STRING, "npcA", "The first's npc name", true),
+                        new OptionData(OptionType.STRING, "npcB", "The second's npc name", false),
+                        new OptionData(OptionType.STRING, "npcC", "The third's npc name", false),
+                        new OptionData(OptionType.STRING, "npcD", "The fourth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcE", "The fifth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcF", "The sixth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcG", "The seventh's npc name", false),
+                        new OptionData(OptionType.STRING, "npcH", "The eight's npc name", false),
+                        new OptionData(OptionType.STRING, "npcI", "The ninth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcJ", "The tenth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcK", "The eleventh's npc name", false),
+                        new OptionData(OptionType.STRING, "npcL", "The twelveth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcM", "The thirteenth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcN", "The fourteenth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcO", "The fifteenth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcP", "The sixteenth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcQ", "The seventeenth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcR", "The eightheenth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcS", "The nineteenth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcT", "The twentieth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcU", "The twentyfirst's npc name", false),
+                        new OptionData(OptionType.STRING, "npcV", "The twentysecond's npc name", false),
+                        new OptionData(OptionType.STRING, "npcW", "The twentythird's npc name", false),
+                        new OptionData(OptionType.STRING, "npcX", "The twentyfourth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcY", "The twentyfifth's npc name", false),
+                        new OptionData(OptionType.STRING, "npcZ", "The twentysixth's npc name", false),
                         new OptionData(OptionType.CHANNEL, "channel", "The channel to send the poll to", false)
                                 .setChannelTypes(ChannelType.NEWS, ChannelType.TEXT));
     }
@@ -50,11 +67,6 @@ public class OpenCastingCommand implements ICommandImpl {
     public void execute(SlashCommandInteractionEvent event) {
         List<OptionMapping> options = event.getOptions();
         String questName = options.get(0).getAsString();
-
-        if (questName.contains(" ")) {
-            event.reply("Quest name cannot contain spaces. Use - instead").setEphemeral(true).queue();
-            return;
-        }
 
         ArrayList<String> npcs = new ArrayList<>();
         for (int i = 1; i < options.size(); i++) {
