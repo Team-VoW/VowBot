@@ -37,4 +37,5 @@ jobs:
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GRADLE_OPTS: "-Xmx4g -Xms1g -XX:MaxMetaspaceSize=1g"
         run: ./gradlew build sonar --info
