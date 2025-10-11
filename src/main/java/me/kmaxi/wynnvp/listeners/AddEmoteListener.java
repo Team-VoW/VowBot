@@ -33,10 +33,10 @@ public class AddEmoteListener extends ListenerAdapter {
 
         String[] messageArray = message.split("\n");
 
-        String line = messageArray[(2 * numberReacted) - 1];
+        String line = messageArray[(2 * (letterReacted - 64)) - 1];
         String[] splitLine = line.split("=");
 
-        String npcName = splitLine[1].trim()
+        String npcName = splitLine[1].trim();
 
         String questName = messageArray[0].replace("React to apply for a role in", "").replace(">>>", "").replace("**", "").trim();
         

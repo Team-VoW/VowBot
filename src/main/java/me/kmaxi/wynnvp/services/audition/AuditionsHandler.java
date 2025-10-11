@@ -35,7 +35,7 @@ public class AuditionsHandler {
     private final AuditionsChannelHandler auditionsChannelHandler;
 
     public void setupPoll(String questName, List<String> npcs, MessageChannel channel) {
-        ArrayList<Char> reactions = new ArrayList<>();
+        ArrayList<Character> reactions = new ArrayList<>();
         StringBuilder out = new StringBuilder(">>> **React to apply for a role in " + questName + "**");
         int i = 1; //1 for A, 26 for Z
         for (String npc : npcs) {
@@ -43,12 +43,12 @@ public class AuditionsHandler {
                 break;
             }
             out.append("\n:").append(Utils.convertLetter(i)).append(": = ").append(npc).append("\n");
-            reactions.add(64+i);
+            reactions.add((char) (64 + i));
             i++;
         }
 
         channel.sendMessage(out.toString()).queue(message1 -> {
-            for (Char reaction : reactions) {
+            for (char reaction : reactions) {
                 message1.addReaction(Emoji.fromUnicode(Utils.getUnicode(reaction))).queue();
             }
         });

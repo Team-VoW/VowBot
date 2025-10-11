@@ -50,7 +50,7 @@ public class Utils {
         };
     }
     
-    public static String convertLetter(int alphabeticOrder) {
+    public static String convertLetter(int alphabeticalOrder) {
         return (alphabeticalOrder < 27 && alphabeticalOrder > 0) ? "regional_indicator_" + Character.toString ((char) 64 + alphabeticalOrder) : ":x:";
     }
 
@@ -71,34 +71,34 @@ public class Utils {
     
     public static String getUnicode(char letter) {
         return switch (letter) {
-            case 'A' -> "🇦"
-            case 'B' -> "🇧"
-            case 'C' -> "🇨"
-            case 'D' -> "🇩"
-            case 'E' -> "🇪"
-            case 'F' -> "🇫"
-            case 'G' -> "🇬"
-            case 'H' -> "🇭"
-            case 'I' -> "🇮"
-            case 'J' -> "🇯"
-            case 'K' -> "🇰"
-            case 'L' -> "🇱"
-            case 'M' -> "🇲"
-            case 'N' -> "🇳"
-            case 'O' -> "🇴"
-            case 'P' -> "🇵"
-            case 'Q' -> "🇶"
-            case 'R' -> "🇷"
-            case 'S' -> "🇸"
-            case 'T' -> "🇹"
-            case 'U' -> "🇺"
-            case 'V' -> "🇻"
-            case 'W' -> "🇼"
-            case 'X' -> "🇽"
-            case 'Y' -> "🇾"
-            case 'Z' -> "🇿"
-            default -> "❌"
-        }
+            case 'A' -> "🇦";
+            case 'B' -> "🇧";
+            case 'C' -> "🇨";
+            case 'D' -> "🇩";
+            case 'E' -> "🇪";
+            case 'F' -> "🇫";
+            case 'G' -> "🇬";
+            case 'H' -> "🇭";
+            case 'I' -> "🇮";
+            case 'J' -> "🇯";
+            case 'K' -> "🇰";
+            case 'L' -> "🇱";
+            case 'M' -> "🇲";
+            case 'N' -> "🇳";
+            case 'O' -> "🇴";
+            case 'P' -> "🇵";
+            case 'Q' -> "🇶";
+            case 'R' -> "🇷";
+            case 'S' -> "🇸";
+            case 'T' -> "🇹";
+            case 'U' -> "🇺";
+            case 'V' -> "🇻";
+            case 'W' -> "🇼";
+            case 'X' -> "🇽";
+            case 'Y' -> "🇾";
+            case 'Z' -> "🇿";
+            default -> "❌";
+        };
     }
 
     public static int whichNumberWasReacted(String emote) {
@@ -118,32 +118,32 @@ public class Utils {
     
     public static char whichLetterWasReacted(String emote) {
         return switch (emote) {
-            "🇦" -> 'A';
-            "🇧" -> 'B';
-            "🇨" -> 'C';
-            "🇩" -> 'D';
-            "🇪" -> 'E';
-            "🇫" -> 'F';
-            "🇬" -> 'G';
-            "🇭" -> 'H';
-            "🇮" -> 'I';
-            "🇯" -> 'J';
-            "🇰" -> 'K';
-            "🇱" -> 'L';
-            "🇲" -> 'M';
-            "🇳" -> 'N';
-            "🇴" -> 'O';
-            "🇵" -> 'P';
-            "🇶" -> 'Q';
-            "🇷" -> 'R';
-            "🇸" -> 'S';
-            "🇹" -> 'T';
-            "🇺" -> 'U';
-            "🇻" -> 'V';
-            "🇼" -> 'W';
-            "🇽" -> 'X';
-            "🇾" -> 'Y';
-            "🇿" -> 'Z';
+            case "🇦" -> 'A';
+            case "🇧" -> 'B';
+            case "🇨" -> 'C';
+            case "🇩" -> 'D';
+            case "🇪" -> 'E';
+            case "🇫" -> 'F';
+            case "🇬" -> 'G';
+            case "🇭" -> 'H';
+            case "🇮" -> 'I';
+            case "🇯" -> 'J';
+            case "🇰" -> 'K';
+            case "🇱" -> 'L';
+            case "🇲" -> 'M';
+            case "🇳" -> 'N';
+            case "🇴" -> 'O';
+            case "🇵" -> 'P';
+            case "🇶" -> 'Q';
+            case "🇷" -> 'R';
+            case "🇸" -> 'S';
+            case "🇹" -> 'T';
+            case "🇺" -> 'U';
+            case "🇻" -> 'V';
+            case "🇼" -> 'W';
+            case "🇽" -> 'X';
+            case "🇾" -> 'Y';
+            case "🇿" -> 'Z';
             default -> 0;
         };
     }
