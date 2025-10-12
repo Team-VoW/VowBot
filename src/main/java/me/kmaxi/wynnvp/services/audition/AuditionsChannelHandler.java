@@ -208,7 +208,7 @@ public class AuditionsChannelHandler {
         ThreadChannel castedThread = null;
         for (ThreadChannel thread : threads) {
             String auditee = thread.getName().toLowerCase().replace(Utils.getChannelName(roleName.toLowerCase() + "-"), ""); //Strip the NPC name part from the thread name
-            if (user.getName().equalsIgnoreCase(auditee)) {
+            if (Utils.getChannelName(user.getName()).equalsIgnoreCase(auditee)) {
                 thread.sendMessage("Congratulations" + user.getAsMention() + "! You have been casted as " + roleName + " in " + questName
                         + "\n\n A staff member will tell you soon what to do next").queue();
                 castedThread = thread;
@@ -224,7 +224,7 @@ public class AuditionsChannelHandler {
         threads.remove(castedThread);
         for (ThreadChannel thread : threads) {
             thread.sendMessage("Thank you for auditioning! Unfortunately, you were not cast for this role this time. " +
-                    "We truly appreciate your effort and hope to hear more auditions from you in the future. <3").queue();
+                    "We truly appreciate your effort and hope to hear more auditions from you in the future. :heart:").queue();
 
             thread.getManager().setLocked(true).queue();
         }

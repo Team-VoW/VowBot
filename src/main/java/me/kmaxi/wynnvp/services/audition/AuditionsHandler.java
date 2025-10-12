@@ -94,7 +94,7 @@ public class AuditionsHandler {
         Message message = getCastingMessage(questName, npcName);
 
         if (message == null) {
-            return "Could not find quest " + questName + " or npc name " + npcName;
+            return "Could not find quest " + questName + " or NPC name " + npcName;
         }
 
         replaceLineWhereNpcIs(message, npcName, questName, ((number, line) -> {
@@ -116,7 +116,7 @@ public class AuditionsHandler {
         Message message = getCastingMessage(questName, npcName);
 
         if (message == null) {
-            return "Could not find quest " + questName + " or npc name " + npcName;
+            return "Could not find quest " + questName + " or NPC name " + npcName;
         }
 
         replaceLineWhereNpcIs(message, npcName, questName, ((lineNumber, lineBefore) -> {
@@ -129,7 +129,6 @@ public class AuditionsHandler {
 
 
     private Message getCastingMessage(String quest, String npcName) {
-        npcName = npcName.toLowerCase();
         for (Message message : Objects.requireNonNull(guildService.getGuild().getNewsChannelById(Config.VOICE_APPLY_CHANNEL_ID)).getHistoryFromBeginning(100).complete().getRetrievedHistory()) {
             if (isQuestMessage(message, quest, npcName)) {
                 return message;
@@ -147,9 +146,8 @@ public class AuditionsHandler {
         String questName = messageArray[0].replace("React to apply for a role in ", "");
         questName = questName.replace(">>>", "");
         questName = questName.replace("**", "");
-        questName = questName.replace(" ", "");
-
-        return questName.equalsIgnoreCase(quest) && messageAsString.toLowerCase().contains(npcName);
+        questName = questName.trim();
+        return questName.equalsIgnoreCase(quest) && messageAsString.contains(npcName);
     }
 
     private void replaceLineWhereNpcIs(Message message, String npcName, String questName, StringIntInterface lineChange) {
@@ -167,7 +165,7 @@ public class AuditionsHandler {
                 continue;
             }
             int number = (int) (((double) i / 2.0) + 0.5);
-            message.addReaction(Emoji.fromUnicode(Utils.getUnicode(number))).queue();
+            message.addReaction(Emoji.fromUnicode(Utils.getUnicode((char) (number + 64)))).queue();
             line = lineChange.operation((int) (((double) i / 2.0) + 0.5), line);
             out.append("\n").append(line);
             hasChangedAline = true;

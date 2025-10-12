@@ -13,6 +13,7 @@ public class Config {
 
     //Wynn Vp Server /*
     public static final long VOICE_APPLY_CHANNEL_ID = 1304017023684050975L;
+    public static final long AUDITION_GUIDE_ID = 1426658009974837409L;
     public static final long VOICE_MANGER_ID = 821772974226407445L;
     public static final long WRITE_ROLE_ID = 819850296926666763L;
     public static final long APPLY_CATEGORY_ID = 821335417000951858L;
