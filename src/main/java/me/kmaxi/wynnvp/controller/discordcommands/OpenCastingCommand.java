@@ -45,7 +45,7 @@ public class OpenCastingCommand implements ICommandImpl {
                         new OptionData(OptionType.STRING, "npc_o", "The fifteenth's npc name", false),
                         new OptionData(OptionType.STRING, "npc_p", "The sixteenth's npc name", false),
                         new OptionData(OptionType.STRING, "npc_q", "The seventeenth's npc name", false),
-                        new OptionData(OptionType.STRING, "npc_r", "The eightheenth's npc name", false),
+                        new OptionData(OptionType.STRING, "npc_r", "The eighteenth's npc name", false),
                         new OptionData(OptionType.STRING, "npc_s", "The nineteenth's npc name", false),
                         new OptionData(OptionType.STRING, "npc_t", "The twentieth's npc name", false),
                         new OptionData(OptionType.CHANNEL, "channel", "The channel to send the poll to", false)
