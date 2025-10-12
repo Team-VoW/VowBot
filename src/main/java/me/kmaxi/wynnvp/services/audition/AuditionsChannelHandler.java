@@ -209,7 +209,7 @@ public class AuditionsChannelHandler {
         for (ThreadChannel thread : threads) {
             String auditee = thread.getName().toLowerCase().replace(Utils.getChannelName(roleName.toLowerCase() + "-"), ""); //Strip the NPC name part from the thread name
             if (Utils.getChannelName(user.getName()).equalsIgnoreCase(auditee)) {
-                thread.sendMessage("Congratulations" + user.getAsMention() + "! You have been casted as " + roleName + " in " + questName
+                thread.sendMessage("Congratulations " + user.getAsMention() + "! You have been casted as " + roleName + " in " + questName
                         + "\n\n A staff member will tell you soon what to do next").queue();
                 castedThread = thread;
                 break;
