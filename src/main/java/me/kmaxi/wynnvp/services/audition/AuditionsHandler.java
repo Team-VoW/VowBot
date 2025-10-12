@@ -147,7 +147,7 @@ public class AuditionsHandler {
         questName = questName.replace(">>>", "");
         questName = questName.replace("**", "");
         questName = questName.trim();
-        return questName.equalsIgnoreCase(quest) && messageAsString.contains(npcName);
+        return questName.equalsIgnoreCase(quest) && messageAsString.toLowerCase().contains(npcName.toLowerCase());
     }
 
     private void replaceLineWhereNpcIs(Message message, String npcName, String questName, StringIntInterface lineChange) {
