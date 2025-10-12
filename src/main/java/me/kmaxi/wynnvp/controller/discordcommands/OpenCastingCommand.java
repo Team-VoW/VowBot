@@ -39,7 +39,7 @@ public class OpenCastingCommand implements ICommandImpl {
                         new OptionData(OptionType.STRING, "npc_i", "The ninth's npc name", false),
                         new OptionData(OptionType.STRING, "npc_j", "The tenth's npc name", false),
                         new OptionData(OptionType.STRING, "npc_k", "The eleventh's npc name", false),
-                        new OptionData(OptionType.STRING, "npc_l", "The twelveth's npc name", false),
+                        new OptionData(OptionType.STRING, "npc_l", "The twelfth's npc name", false),
                         new OptionData(OptionType.STRING, "npc_m", "The thirteenth's npc name", false),
                         new OptionData(OptionType.STRING, "npc_n", "The fourteenth's npc name", false),
                         new OptionData(OptionType.STRING, "npc_o", "The fifteenth's npc name", false),
