@@ -51,7 +51,7 @@ public class Utils {
     }
     
     public static String convertLetter(int alphabeticalOrder) {
-        return (alphabeticalOrder < 27 && alphabeticalOrder > 0) ? "regional_indicator_" + Character.toString ((char) 96 + alphabeticalOrder) : ":x:";
+        return (alphabeticalOrder < 27 && alphabeticalOrder > 0) ? "regional_indicator_" + Character.toString ((char) 96 + alphabeticalOrder) : "x";
     }
 
     public static String getUnicode(int number) {
