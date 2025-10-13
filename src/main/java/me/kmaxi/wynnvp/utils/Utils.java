@@ -30,6 +30,10 @@ public class Utils {
     public static boolean isAdmin(Member member) {
         return member.hasPermission(Permission.ADMINISTRATOR);
     }
+    
+    public static String getChannelName(String input) {
+        return input.replaceAll("[^a-zA-Z0-9-]", "");
+    }
 
     public static String convertNumber(int number) {
         return switch (number) {
@@ -44,6 +48,10 @@ public class Utils {
             case 9 -> "nine";
             default -> ":x:";
         };
+    }
+    
+    public static String convertLetter(int alphabeticalOrder) {
+        return (alphabeticalOrder < 27 && alphabeticalOrder > 0) ? "regional_indicator_" + Character.toString ((char) 96 + alphabeticalOrder) : "x";
     }
 
     public static String getUnicode(int number) {
@@ -60,6 +68,38 @@ public class Utils {
             default -> "❌";
         };
     }
+    
+    public static String getUnicode(char letter) {
+        return switch (letter) {
+            case 'A' -> "🇦";
+            case 'B' -> "🇧";
+            case 'C' -> "🇨";
+            case 'D' -> "🇩";
+            case 'E' -> "🇪";
+            case 'F' -> "🇫";
+            case 'G' -> "🇬";
+            case 'H' -> "🇭";
+            case 'I' -> "🇮";
+            case 'J' -> "🇯";
+            case 'K' -> "🇰";
+            case 'L' -> "🇱";
+            case 'M' -> "🇲";
+            case 'N' -> "🇳";
+            case 'O' -> "🇴";
+            case 'P' -> "🇵";
+            case 'Q' -> "🇶";
+            case 'R' -> "🇷";
+            case 'S' -> "🇸";
+            case 'T' -> "🇹";
+            case 'U' -> "🇺";
+            case 'V' -> "🇻";
+            case 'W' -> "🇼";
+            case 'X' -> "🇽";
+            case 'Y' -> "🇾";
+            case 'Z' -> "🇿";
+            default -> "❌";
+        };
+    }
 
     public static int whichNumberWasReacted(String emote) {
         return switch (emote) {
@@ -72,6 +112,38 @@ public class Utils {
             case "7️⃣" -> 7;
             case "8️⃣" -> 8;
             case "9️⃣" -> 9;
+            default -> 0;
+        };
+    }
+    
+    public static char whichLetterWasReacted(String emote) {
+        return switch (emote) {
+            case "🇦" -> 'A';
+            case "🇧" -> 'B';
+            case "🇨" -> 'C';
+            case "🇩" -> 'D';
+            case "🇪" -> 'E';
+            case "🇫" -> 'F';
+            case "🇬" -> 'G';
+            case "🇭" -> 'H';
+            case "🇮" -> 'I';
+            case "🇯" -> 'J';
+            case "🇰" -> 'K';
+            case "🇱" -> 'L';
+            case "🇲" -> 'M';
+            case "🇳" -> 'N';
+            case "🇴" -> 'O';
+            case "🇵" -> 'P';
+            case "🇶" -> 'Q';
+            case "🇷" -> 'R';
+            case "🇸" -> 'S';
+            case "🇹" -> 'T';
+            case "🇺" -> 'U';
+            case "🇻" -> 'V';
+            case "🇼" -> 'W';
+            case "🇽" -> 'X';
+            case "🇾" -> 'Y';
+            case "🇿" -> 'Z';
             default -> 0;
         };
     }

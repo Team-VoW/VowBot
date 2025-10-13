@@ -29,20 +29,18 @@ public class AddEmoteListener extends ListenerAdapter {
     private void voiceApplyReact(MessageReactionAddEvent event) {
         String message = event.retrieveMessage().complete().getContentRaw();
 
-        int numberReacted = Utils.whichNumberWasReacted(event.getEmoji().getName());
+        char letterReacted = Utils.whichLetterWasReacted(event.getEmoji().getName());
 
         String[] messageArray = message.split("\n");
 
-        String line = messageArray[(2 * numberReacted) - 1];
+        String line = messageArray[(2 * (letterReacted - 64)) - 1];
         String[] splitLine = line.split("=");
 
-        String npcName = splitLine[1].replace(" ", "");
+        String npcName = splitLine[1].trim();
 
-        String questName = messageArray[0].replace("React to apply for a role in", "");
-        questName = questName.replace(">>>", "");
-        String finalQuestName = questName.replace(" ", "").replace("**", "");
-
-        auditionsChannelHandler.openAudition(finalQuestName, npcName, Objects.requireNonNull(event.getMember()));
+        String questName = messageArray[0].replace("React to apply for a role in", "").replace(">>>", "").replace("**", "").trim();
+        
+        auditionsChannelHandler.openAudition(questName, npcName, Objects.requireNonNull(event.getMember()));
     }
 }
 
