@@ -53,11 +53,12 @@ public class AuditionThreadHandler {
                 + "\n\nPlease record the audition lines. If an entire script was provided, record the first 3 sentences that **" + npcName + "** says in the quest. "
                 + "You can find the script in " + Objects.requireNonNull(questChannel).getAsMention() + ". "
                 + "\nRecord yourself performing the lines with recording software such as [Audacity](https://www.audacityteam.org/download/) (download required) or [Vocaroo](https://vocaroo.com/) (online webapp). Next, send it in this channel (in case of Vocaroo, download the file and send it here, don't send the link only). "
-                + "After the audition closes, we will set up an internal voting poll to decide which person fits the role best."
+                + "If the file exceeds the Discord upload limit, convert it to the OGG format (smaller filesize), send that and keep the original WAV file on your computer only. You'll be asked for the original file if you get picked for this role." +
+                + "\nAfter the audition closes, we will set up an internal voting poll to decide which person fits the role best."
                 + "\n\n**Make sure** that you have read " + Objects.requireNonNull(guild.getGuildChannelById(823509081498451988L)).getAsMention() + " before applying. There are many useful tricks there and some must dos for voice acting!"
                 + "\n\nTo delete this application simply send `ABANDON` in this thread. This thread will then be deleted by a staff member, once such message is noticed."
                 + "\n\nBy opening this application, you've agreed to the terms listed in " + Objects.requireNonNull(guild.getGuildChannelById(820027818799792129L)).getAsMention()
-                + "\n\nGood luck and we can’t wait to hear your audition! If you have any questions feel free to ping " + Objects.requireNonNull(guild.getRoleById(Config.AUDITION_GUIDE_ID)).getAsMention()).queue();
+                + "\n\nGood luck and we can’t wait to hear your audition! Once you submit your audition, feel free to ping `@Audition Guide` to get potentional feedback. This isn't required though.").queue();
 
         return Optional.of(threadChannel);
     }
