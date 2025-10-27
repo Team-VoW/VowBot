@@ -51,7 +51,6 @@ public class DiscordPollHandler {
             staffVotingChannel.sendMessage("## " + npcName).queue();
 
             for (ThreadChannel thread : threads) {
-                thread.sendMessage("Found this channel for npc: " + npcName).queue();
                 String auditionFileLink = getAuditionFileLink(thread);
                 if (auditionFileLink == null) {
                     continue;
