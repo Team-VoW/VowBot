@@ -23,11 +23,16 @@ import java.util.Set;
 public class DiscordPollHandler {
     private final AuditionsChannelHandler auditionsChannelHandler;
     private final GuildService guildService;
-    private static final Set<String> SUPPORTED_AUDIO_FORMATS = Set.of(".ogg", ".wav", ".mp3", ".m4a");
+    private final AudioConversionService audioConversionService;
+    private static final Set<String> SUPPORTED_AUDIO_FORMATS = Set.of(
+            ".ogg", ".wav", ".mp3", ".m4a", ".aac", ".flac", ".opus",
+            ".wma", ".aiff", ".alac", ".oga", ".webm", ".mp4", ".mov"
+    );
 
-    public DiscordPollHandler(AuditionsChannelHandler auditionsChannelHandler, GuildService guildService) {
+    public DiscordPollHandler(AuditionsChannelHandler auditionsChannelHandler, GuildService guildService, AudioConversionService audioConversionService) {
         this.auditionsChannelHandler = auditionsChannelHandler;
         this.guildService = guildService;
+        this.audioConversionService = audioConversionService;
     }
 
     public String setupPoll(String questName) {
@@ -100,6 +105,9 @@ public class DiscordPollHandler {
     }
 
     private void forwardAuditionToStaffChannel(ThreadChannel thread, String fileUrl, TextChannel staffVotingChannel) {
+        File tempFile = null;
+        File convertedFile = null;
+
         try {
             URL url = new URL(fileUrl);
 
@@ -114,7 +122,7 @@ public class DiscordPollHandler {
 
             // Build file path in temp dir
             File tempDir = new File(System.getProperty("java.io.tmpdir"));
-            File tempFile = new File(tempDir, sanitizedThreadName + extension);
+            tempFile = new File(tempDir, sanitizedThreadName + extension);
 
             // Download the file
             try (InputStream in = url.openStream(); FileOutputStream out = new FileOutputStream(tempFile)) {
@@ -125,23 +133,35 @@ public class DiscordPollHandler {
                 }
             }
 
+            // Convert to MP3 to reduce file size
+            try {
+                convertedFile = audioConversionService.convertToMp3(tempFile);
+                log.info("Converted audio file for thread {} to MP3", thread.getName());
+            } catch (Exception e) {
+                log.warn("Failed to convert audio to MP3, using original file: {}", e.getMessage());
+                convertedFile = tempFile; // Fall back to original file if conversion fails
+            }
+
+            // Use the converted file (or original if conversion failed)
+            File fileToSend = convertedFile;
+
             // Send the file with the thread mention
             staffVotingChannel.sendMessage(thread.getAsMention())
-                    .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(tempFile))
+                    .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(fileToSend))
                     .queue(
                             success -> {
                                 try {
-                                    Files.delete(tempFile.toPath());
+                                    Files.delete(fileToSend.toPath());
                                     success.addReaction(Emoji.fromUnicode("✅")).queue();
                                 } catch (Exception e) {
-                                    log.error("Failed to delete temporary file: " + tempFile.getAbsolutePath(), e);
+                                    log.error("Failed to delete temporary file: " + fileToSend.getAbsolutePath(), e);
                                 }
                             },
                             error -> {
                                 try {
-                                    Files.delete(tempFile.toPath());
+                                    Files.delete(fileToSend.toPath());
                                 } catch (Exception e) {
-                                    log.error("Failed to delete temporary file: " + tempFile.getAbsolutePath(), e);
+                                    log.error("Failed to delete temporary file: " + fileToSend.getAbsolutePath(), e);
                                 }
                                 staffVotingChannel.sendMessage("Failed to send the audition file from thread: " + thread.getAsMention()).queue();
                             }
@@ -150,6 +170,22 @@ public class DiscordPollHandler {
         } catch (Exception e) {
             log.error("Failed to download or send the audition file from thread: " + thread.getAsMention(), e);
             staffVotingChannel.sendMessage("Failed to download or send the audition file from thread: " + thread.getAsMention()).queue();
+
+            // Clean up any remaining temp files
+            if (tempFile != null && tempFile.exists()) {
+                try {
+                    Files.delete(tempFile.toPath());
+                } catch (Exception ex) {
+                    log.error("Failed to delete temp file during error cleanup", ex);
+                }
+            }
+            if (convertedFile != null && convertedFile.exists() && !convertedFile.equals(tempFile)) {
+                try {
+                    Files.delete(convertedFile.toPath());
+                } catch (Exception ex) {
+                    log.error("Failed to delete converted file during error cleanup", ex);
+                }
+            }
         }
     }
 

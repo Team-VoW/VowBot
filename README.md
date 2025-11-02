@@ -24,6 +24,17 @@ SQL_PASSWORD=your_sql_password
 ./gradlew build
 ```
 
+### FFmpeg Requirement
+
+The bot requires **FFmpeg** to convert audition audio files to MP3 format:
+
+- **Windows:** Download from [gyan.dev/ffmpeg](https://www.gyan.dev/ffmpeg/builds/) and add to PATH
+- **Linux:** `sudo apt-get install ffmpeg` (Debian/Ubuntu) or `sudo yum install ffmpeg` (RHEL/CentOS)
+- **Mac:** `brew install ffmpeg`
+- **Docker:** Automatically installed via Dockerfile
+
+Verify installation: `ffmpeg -version`
+
 ## Running the Application
 
 ### Locally

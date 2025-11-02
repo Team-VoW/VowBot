@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'org.springframework.boot' version '3.4.4' // Add Spring Boot plugin
     id 'io.spring.dependency-management' version '1.1.4' // Add dependency management
     id "org.sonarqube" version "6.0.1.5171"
@@ -50,6 +50,9 @@ dependencies {
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // FFmpeg for audio conversion
+    implementation 'net.bramp.ffmpeg:ffmpeg:0.8.0'
 }
 
 sonar {
