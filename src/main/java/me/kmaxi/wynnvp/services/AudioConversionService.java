@@ -70,28 +70,45 @@ public class AudioConversionService {
 
             log.info("Successfully converted {} to {}", inputFile.getName(), outputFile.getName());
 
-            // Delete original file if conversion was successful and it's not the same file
-            if (!inputFile.equals(outputFile)) {
-                try {
-                    Files.delete(inputFile.toPath());
-                    log.debug("Deleted original file: {}", inputFile.getName());
-                } catch (IOException e) {
-                    log.warn("Failed to delete original file: {}", inputFile.getName(), e);
-                }
-            }
+            deleteOriginalFile(inputFile, outputFile);
 
             return outputFile;
 
         } catch (Exception e) {
-            // Clean up output file if it was created
-            if (outputFile.exists()) {
-                try {
-                    Files.delete(outputFile.toPath());
-                } catch (IOException ex) {
-                    log.warn("Failed to delete failed conversion output: {}", outputFile.getName(), ex);
-                }
-            }
+            cleanupFailedConversion(outputFile);
             throw new IOException("Failed to convert audio file: " + inputFile.getName(), e);
+        }
+    }
+
+    /**
+     * Deletes the original file after successful conversion.
+     *
+     * @param inputFile the original file
+     * @param outputFile the converted file
+     */
+    private void deleteOriginalFile(File inputFile, File outputFile) {
+        if (!inputFile.equals(outputFile)) {
+            try {
+                Files.delete(inputFile.toPath());
+                log.debug("Deleted original file: {}", inputFile.getName());
+            } catch (IOException e) {
+                log.warn("Failed to delete original file: {}", inputFile.getName(), e);
+            }
+        }
+    }
+
+    /**
+     * Cleans up the output file if conversion failed.
+     *
+     * @param outputFile the output file to delete
+     */
+    private void cleanupFailedConversion(File outputFile) {
+        if (outputFile.exists()) {
+            try {
+                Files.delete(outputFile.toPath());
+            } catch (IOException ex) {
+                log.warn("Failed to delete failed conversion output: {}", outputFile.getName(), ex);
+            }
         }
     }
 }
