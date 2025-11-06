@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Service
@@ -80,7 +82,7 @@ public class LineReportService {
 
     private String getReadingUrl(LineType type, String npcName) {
         return "https://voicesofwynn.com/api/unvoiced-line-report/" + type.getApiKeyword() + "?npc="
-                + npcName.replace(" ", "%20") + "&apiKey=" + apiKeys.readingApiKey;
+                + URLEncoder.encode(npcName, StandardCharsets.UTF_8) + "&apiKey=" + apiKeys.readingApiKey;
     }
 
     public boolean setLinesAsVoiced(List<VowDialogueDTO> lines, SetLinesCommand command) {
