@@ -33,6 +33,14 @@ public class LineReportHandler {
 
     public void sendLinesWithoutReaction(LineType type, String npcName, MessageChannelUnion messageChannel) {
         List<LineReportDTO> messages = lineReportService.fetchMessages(type, npcName);
+
+        // Check if no messages were found
+        if (messages.isEmpty()) {
+            messageChannel.sendMessage("No lines found for NPC: `" + npcName + "` with type: `" + type.name().toLowerCase() + "`. " +
+                    "Please check the NPC name and try again.").queue();
+            return;
+        }
+
         ArrayList<StringBuilder> messageChunks = new ArrayList<>();
         messageChunks.add(new StringBuilder());
 
