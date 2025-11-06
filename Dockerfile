@@ -1,5 +1,10 @@
 FROM openjdk:17-jdk-slim
 
+# Install FFmpeg for audio conversion
+RUN apt-get update && \
+    apt-get install -y ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
+
 # Set the working directory in the container
 WORKDIR /app
 

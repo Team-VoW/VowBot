@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -23,11 +24,16 @@ import java.util.Set;
 public class DiscordPollHandler {
     private final AuditionsChannelHandler auditionsChannelHandler;
     private final GuildService guildService;
-    private static final Set<String> SUPPORTED_AUDIO_FORMATS = Set.of(".ogg", ".wav", ".mp3", ".m4a");
+    private final AudioConversionService audioConversionService;
+    private static final Set<String> SUPPORTED_AUDIO_FORMATS = Set.of(
+            ".ogg", ".wav", ".mp3", ".m4a", ".aac", ".flac", ".opus",
+            ".wma", ".aiff", ".alac", ".oga", ".webm", ".mp4", ".mov"
+    );
 
-    public DiscordPollHandler(AuditionsChannelHandler auditionsChannelHandler, GuildService guildService) {
+    public DiscordPollHandler(AuditionsChannelHandler auditionsChannelHandler, GuildService guildService, AudioConversionService audioConversionService) {
         this.auditionsChannelHandler = auditionsChannelHandler;
         this.guildService = guildService;
+        this.audioConversionService = audioConversionService;
     }
 
     public String setupPoll(String questName) {
@@ -100,56 +106,139 @@ public class DiscordPollHandler {
     }
 
     private void forwardAuditionToStaffChannel(ThreadChannel thread, String fileUrl, TextChannel staffVotingChannel) {
+        File tempFile = null;
+        File convertedFile = null;
+
         try {
-            URL url = new URL(fileUrl);
-
-            // Remove query parameters before extracting extension
-            String originalFileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1).split("\\?")[0];
-            String extension = originalFileName.contains(".")
-                    ? originalFileName.substring(originalFileName.lastIndexOf('.'))
-                    : ".tmp";
-
-            // Sanitize thread name for filesystem
-            String sanitizedThreadName = thread.getName().replaceAll("[\\\\/:*?\"<>|]", "_");
-
-            // Build file path in temp dir
-            File tempDir = new File(System.getProperty("java.io.tmpdir"));
-            File tempFile = new File(tempDir, sanitizedThreadName + extension);
-
-            // Download the file
-            try (InputStream in = url.openStream(); FileOutputStream out = new FileOutputStream(tempFile)) {
-                byte[] buffer = new byte[8192];
-                int bytesRead;
-                while ((bytesRead = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, bytesRead);
-                }
-            }
-
-            // Send the file with the thread mention
-            staffVotingChannel.sendMessage(thread.getAsMention())
-                    .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(tempFile))
-                    .queue(
-                            success -> {
-                                try {
-                                    Files.delete(tempFile.toPath());
-                                    success.addReaction(Emoji.fromUnicode("✅")).queue();
-                                } catch (Exception e) {
-                                    log.error("Failed to delete temporary file: " + tempFile.getAbsolutePath(), e);
-                                }
-                            },
-                            error -> {
-                                try {
-                                    Files.delete(tempFile.toPath());
-                                } catch (Exception e) {
-                                    log.error("Failed to delete temporary file: " + tempFile.getAbsolutePath(), e);
-                                }
-                                staffVotingChannel.sendMessage("Failed to send the audition file from thread: " + thread.getAsMention()).queue();
-                            }
-                    );
+            tempFile = downloadAudioFile(fileUrl, thread.getName());
+            convertedFile = convertAudioFile(tempFile, thread.getName());
+            sendAudioToStaffChannel(convertedFile, thread, staffVotingChannel);
 
         } catch (Exception e) {
-            log.error("Failed to download or send the audition file from thread: " + thread.getAsMention(), e);
+            log.error("Failed to download or send the audition file from thread: {}", thread.getAsMention(), e);
             staffVotingChannel.sendMessage("Failed to download or send the audition file from thread: " + thread.getAsMention()).queue();
+            cleanupTempFiles(tempFile, convertedFile);
+        }
+    }
+
+    /**
+     * Downloads an audio file from a URL to a temporary location.
+     *
+     * @param fileUrl the URL of the file to download
+     * @param threadName the name of the thread (used for file naming)
+     * @return the downloaded file
+     * @throws IOException if download fails
+     */
+    private File downloadAudioFile(String fileUrl, String threadName) throws IOException {
+        URL url = new URL(fileUrl);
+
+        // Remove query parameters before extracting extension
+        String originalFileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1).split("\\?")[0];
+        String extension = originalFileName.contains(".")
+                ? originalFileName.substring(originalFileName.lastIndexOf('.'))
+                : ".tmp";
+
+        // Sanitize thread name for filesystem
+        String sanitizedThreadName = threadName.replaceAll("[\\\\/:*?\"<>|]", "_");
+
+        // Build file path in temp dir
+        File tempDir = new File(System.getProperty("java.io.tmpdir"));
+        File tempFile = new File(tempDir, sanitizedThreadName + extension);
+
+        // Download the file
+        try (InputStream in = url.openStream(); FileOutputStream out = new FileOutputStream(tempFile)) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        }
+
+        return tempFile;
+    }
+
+    /**
+     * Converts an audio file to MP3 format.
+     *
+     * @param tempFile the file to convert
+     * @param threadName the thread name for logging
+     * @return the converted file (or original if conversion fails)
+     */
+    private File convertAudioFile(File tempFile, String threadName) {
+        try {
+            File convertedFile = audioConversionService.convertToMp3(tempFile);
+            log.info("Converted audio file for thread {} to MP3", threadName);
+            return convertedFile;
+        } catch (Exception e) {
+            log.warn("Failed to convert audio to MP3, using original file: {}", e.getMessage());
+            return tempFile; // Fall back to original file if conversion fails
+        }
+    }
+
+    /**
+     * Sends an audio file to the staff voting channel.
+     *
+     * @param fileToSend the file to send
+     * @param thread the thread channel
+     * @param staffVotingChannel the staff voting channel
+     */
+    private void sendAudioToStaffChannel(File fileToSend, ThreadChannel thread, TextChannel staffVotingChannel) {
+        staffVotingChannel.sendMessage(thread.getAsMention())
+                .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(fileToSend))
+                .queue(
+                        success -> handleSendSuccess(fileToSend, success),
+                        error -> handleSendError(fileToSend, thread, staffVotingChannel)
+                );
+    }
+
+    /**
+     * Handles successful file send.
+     *
+     * @param fileToSend the file that was sent
+     * @param message the sent message
+     */
+    private void handleSendSuccess(File fileToSend, net.dv8tion.jda.api.entities.Message message) {
+        deleteFile(fileToSend);
+        message.addReaction(Emoji.fromUnicode("✅")).queue();
+    }
+
+    /**
+     * Handles failed file send.
+     *
+     * @param fileToSend the file that failed to send
+     * @param thread the thread channel
+     * @param staffVotingChannel the staff voting channel
+     */
+    private void handleSendError(File fileToSend, ThreadChannel thread, TextChannel staffVotingChannel) {
+        deleteFile(fileToSend);
+        staffVotingChannel.sendMessage("Failed to send the audition file from thread: " + thread.getAsMention()).queue();
+    }
+
+    /**
+     * Deletes a file and logs any errors.
+     *
+     * @param file the file to delete
+     */
+    private void deleteFile(File file) {
+        try {
+            Files.delete(file.toPath());
+        } catch (Exception e) {
+            log.error("Failed to delete temporary file: {}", file.getAbsolutePath(), e);
+        }
+    }
+
+    /**
+     * Cleans up temporary files.
+     *
+     * @param tempFile the original temp file
+     * @param convertedFile the converted file
+     */
+    private void cleanupTempFiles(File tempFile, File convertedFile) {
+        if (tempFile != null && tempFile.exists()) {
+            deleteFile(tempFile);
+        }
+        if (convertedFile != null && convertedFile.exists() && !convertedFile.equals(tempFile)) {
+            deleteFile(convertedFile);
         }
     }
 
