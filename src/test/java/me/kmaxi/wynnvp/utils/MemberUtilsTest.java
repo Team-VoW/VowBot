@@ -1,6 +1,5 @@
 package me.kmaxi.wynnvp.utils;
 
-import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.dtos.UserDTO;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -9,12 +8,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,10 +34,6 @@ class MemberUtilsTest {
 
     @BeforeEach
     void setUp() {
-        // Setup allowed roles
-        when(allowedRole1.getName()).thenReturn("Voice Actor");
-        when(allowedRole2.getName()).thenReturn("Trainee Actor");
-
         // Setup disallowed role
         when(disallowedRole.getName()).thenReturn("Some Random Role");
     }
@@ -64,91 +56,79 @@ class MemberUtilsTest {
         // Given
         when(member.getRoles()).thenReturn(Collections.emptyList());
 
-        try (MockedStatic<Config> configMock = mockStatic(Config.class)) {
-            configMock.when(() -> Config.DISCORD_ROLES_TO_UPDATE_TO_WEBSITE)
-                    .thenReturn(Arrays.asList("Voice Actor", "Trainee Actor"));
+        // When
+        List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
 
-            // When
-            List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
-
-            // Then
-            assertThat(result).isEmpty();
-        }
+        // Then
+        assertThat(result).isEmpty();
     }
 
     @Test
     @DisplayName("Should filter and return only allowed roles")
     void getRoles_MixedRoles_ReturnsOnlyAllowed() {
         // Given
-        when(member.getRoles()).thenReturn(Arrays.asList(allowedRole1, disallowedRole, allowedRole2));
+        Role allowedRoleFromConfig = mock(Role.class);
+        when(allowedRoleFromConfig.getName()).thenReturn("Owner");
 
-        try (MockedStatic<Config> configMock = mockStatic(Config.class)) {
-            configMock.when(() -> Config.DISCORD_ROLES_TO_UPDATE_TO_WEBSITE)
-                    .thenReturn(Arrays.asList("Voice Actor", "Trainee Actor"));
+        when(member.getRoles()).thenReturn(Arrays.asList(allowedRoleFromConfig, disallowedRole, allowedRole2));
 
-            // When
-            List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
+        // When
+        List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
 
-            // Then
-            assertThat(result).hasSize(2);
-            assertThat(result).extracting(UserDTO.RoleDTO::getName)
-                    .containsExactlyInAnyOrder("Voice Actor", "Trainee Actor");
-        }
+        // Then - Only "Owner" should be returned since it's in the real Config
+        assertThat(result).hasSize(1);
+        assertThat(result).extracting(UserDTO.RoleDTO::getName)
+                .containsExactly("Owner");
     }
 
     @Test
     @DisplayName("Should return all roles when all are allowed")
     void getRoles_AllAllowed_ReturnsAll() {
         // Given
-        when(member.getRoles()).thenReturn(Arrays.asList(allowedRole1, allowedRole2));
+        Role ownerRole = mock(Role.class);
+        Role adminRole = mock(Role.class);
+        when(ownerRole.getName()).thenReturn("Owner");
+        when(adminRole.getName()).thenReturn("Admin");
 
-        try (MockedStatic<Config> configMock = mockStatic(Config.class)) {
-            configMock.when(() -> Config.DISCORD_ROLES_TO_UPDATE_TO_WEBSITE)
-                    .thenReturn(Arrays.asList("Voice Actor", "Trainee Actor"));
+        when(member.getRoles()).thenReturn(Arrays.asList(ownerRole, adminRole));
 
-            // When
-            List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
+        // When
+        List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
 
-            // Then
-            assertThat(result).hasSize(2);
-        }
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(UserDTO.RoleDTO::getName)
+                .containsExactlyInAnyOrder("Owner", "Admin");
     }
 
     @Test
     @DisplayName("Should return empty list when no roles are allowed")
     void getRoles_NoneAllowed_ReturnsEmpty() {
         // Given
-        when(member.getRoles()).thenReturn(Arrays.asList(disallowedRole));
+        when(member.getRoles()).thenReturn(Collections.singletonList(disallowedRole));
 
-        try (MockedStatic<Config> configMock = mockStatic(Config.class)) {
-            configMock.when(() -> Config.DISCORD_ROLES_TO_UPDATE_TO_WEBSITE)
-                    .thenReturn(Arrays.asList("Voice Actor", "Trainee Actor"));
+        // When
+        List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
 
-            // When
-            List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
-
-            // Then
-            assertThat(result).isEmpty();
-        }
+        // Then
+        assertThat(result).isEmpty();
     }
 
     @Test
     @DisplayName("Should handle member with single allowed role")
     void getRoles_SingleAllowedRole_ReturnsSingle() {
         // Given
-        when(member.getRoles()).thenReturn(Collections.singletonList(allowedRole1));
+        Role ownerRole = mock(Role.class);
+        when(ownerRole.getName()).thenReturn("Owner");
 
-        try (MockedStatic<Config> configMock = mockStatic(Config.class)) {
-            configMock.when(() -> Config.DISCORD_ROLES_TO_UPDATE_TO_WEBSITE)
-                    .thenReturn(Arrays.asList("Voice Actor", "Trainee Actor"));
+        when(member.getRoles()).thenReturn(Collections.singletonList(ownerRole));
 
-            // When
-            List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
+        // When
+        List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
 
-            // Then
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).getName()).isEqualTo("Voice Actor");
-        }
+        // Then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getName()).isEqualTo("Owner");
     }
 
     @Test
@@ -156,20 +136,15 @@ class MemberUtilsTest {
     void getRoles_CaseSensitive() {
         // Given
         Role roleWithDifferentCase = mock(Role.class);
-        when(roleWithDifferentCase.getName()).thenReturn("voice actor"); // lowercase
+        when(roleWithDifferentCase.getName()).thenReturn("owner"); // lowercase, should not match "Owner"
 
         when(member.getRoles()).thenReturn(Collections.singletonList(roleWithDifferentCase));
 
-        try (MockedStatic<Config> configMock = mockStatic(Config.class)) {
-            configMock.when(() -> Config.DISCORD_ROLES_TO_UPDATE_TO_WEBSITE)
-                    .thenReturn(Arrays.asList("Voice Actor")); // uppercase V and A
+        // When
+        List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
 
-            // When
-            List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
-
-            // Then - Should not match due to case sensitivity
-            assertThat(result).isEmpty();
-        }
+        // Then - Should not match due to case sensitivity
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -181,44 +156,37 @@ class MemberUtilsTest {
         Role role3 = mock(Role.class);
 
         when(role1.getName()).thenReturn("Expert Actor");
-        when(role2.getName()).thenReturn("Voice Actor");
-        when(role3.getName()).thenReturn("Trainee Actor");
+        when(role2.getName()).thenReturn("Owner");
+        when(role3.getName()).thenReturn("Admin");
 
         when(member.getRoles()).thenReturn(Arrays.asList(role1, role2, role3));
 
-        try (MockedStatic<Config> configMock = mockStatic(Config.class)) {
-            configMock.when(() -> Config.DISCORD_ROLES_TO_UPDATE_TO_WEBSITE)
-                    .thenReturn(Arrays.asList("Expert Actor", "Voice Actor", "Trainee Actor"));
+        // When
+        List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
 
-            // When
-            List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
-
-            // Then
-            assertThat(result).hasSize(3);
-            assertThat(result).extracting(UserDTO.RoleDTO::getName)
-                    .containsExactly("Expert Actor", "Voice Actor", "Trainee Actor");
-        }
+        // Then
+        assertThat(result).hasSize(3);
+        assertThat(result).extracting(UserDTO.RoleDTO::getName)
+                .containsExactly("Expert Actor", "Owner", "Admin");
     }
 
     @Test
     @DisplayName("Should create RoleDTO objects with correct role names")
     void getRoles_CreatesCorrectRoleDTOs() {
         // Given
-        when(member.getRoles()).thenReturn(Collections.singletonList(allowedRole1));
+        Role ownerRole = mock(Role.class);
+        when(ownerRole.getName()).thenReturn("Owner");
 
-        try (MockedStatic<Config> configMock = mockStatic(Config.class)) {
-            configMock.when(() -> Config.DISCORD_ROLES_TO_UPDATE_TO_WEBSITE)
-                    .thenReturn(Collections.singletonList("Voice Actor"));
+        when(member.getRoles()).thenReturn(Collections.singletonList(ownerRole));
 
-            // When
-            List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
+        // When
+        List<UserDTO.RoleDTO> result = MemberUtils.getRoles(member);
 
-            // Then
-            assertThat(result).hasSize(1);
-            UserDTO.RoleDTO roleDTO = result.get(0);
-            assertThat(roleDTO).isNotNull();
-            assertThat(roleDTO.getName()).isEqualTo("Voice Actor");
-        }
+        // Then
+        assertThat(result).hasSize(1);
+        UserDTO.RoleDTO roleDTO = result.get(0);
+        assertThat(roleDTO).isNotNull();
+        assertThat(roleDTO.getName()).isEqualTo("Owner");
     }
 
     @Test
@@ -226,23 +194,24 @@ class MemberUtilsTest {
     void getRoles_MultipleMembersIndependent() {
         // Given
         Member member2 = mock(Member.class);
-        when(member.getRoles()).thenReturn(Collections.singletonList(allowedRole1));
-        when(member2.getRoles()).thenReturn(Collections.singletonList(allowedRole2));
 
-        try (MockedStatic<Config> configMock = mockStatic(Config.class)) {
-            configMock.when(() -> Config.DISCORD_ROLES_TO_UPDATE_TO_WEBSITE)
-                    .thenReturn(Arrays.asList("Voice Actor", "Trainee Actor"));
+        Role ownerRole = mock(Role.class);
+        Role adminRole = mock(Role.class);
+        when(ownerRole.getName()).thenReturn("Owner");
+        when(adminRole.getName()).thenReturn("Admin");
 
-            // When
-            List<UserDTO.RoleDTO> result1 = MemberUtils.getRoles(member);
-            List<UserDTO.RoleDTO> result2 = MemberUtils.getRoles(member2);
+        when(member.getRoles()).thenReturn(Collections.singletonList(ownerRole));
+        when(member2.getRoles()).thenReturn(Collections.singletonList(adminRole));
 
-            // Then
-            assertThat(result1).hasSize(1);
-            assertThat(result1.get(0).getName()).isEqualTo("Voice Actor");
+        // When
+        List<UserDTO.RoleDTO> result1 = MemberUtils.getRoles(member);
+        List<UserDTO.RoleDTO> result2 = MemberUtils.getRoles(member2);
 
-            assertThat(result2).hasSize(1);
-            assertThat(result2.get(0).getName()).isEqualTo("Trainee Actor");
-        }
+        // Then
+        assertThat(result1).hasSize(1);
+        assertThat(result1.get(0).getName()).isEqualTo("Owner");
+
+        assertThat(result2).hasSize(1);
+        assertThat(result2.get(0).getName()).isEqualTo("Admin");
     }
 }

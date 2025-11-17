@@ -81,13 +81,13 @@ class AuditionsHandlerTest {
     void setUp() {
         // Setup common mocks
         when(channel.sendMessage(anyString())).thenReturn(messageCreateAction);
-        when(messageCreateAction.queue(any())).thenAnswer(invocation -> {
+        doAnswer(invocation -> {
             java.util.function.Consumer<Message> consumer = invocation.getArgument(0);
             consumer.accept(message);
             return null;
-        });
+        }).when(messageCreateAction).queue(any());
         when(message.addReaction(any(Emoji.class))).thenReturn(reactionRestAction);
-        when(reactionRestAction.queue()).thenReturn(null);
+        doNothing().when(reactionRestAction).queue();
     }
 
     @Test
@@ -180,14 +180,6 @@ class AuditionsHandlerTest {
         when(memberHandler.upgradeActorRole(member, guild)).thenReturn(upgradeFuture);
         when(memberHandler.createAccount(member)).thenReturn(expectedPassword);
 
-        RestAction<Member> memberRestAction = mock(RestAction.class);
-        when(guild.retrieveMemberById(anyString())).thenReturn(memberRestAction);
-        when(memberRestAction.queueAfter(anyLong(), any(), any())).thenAnswer(invocation -> {
-            java.util.function.Consumer<Member> consumer = invocation.getArgument(2);
-            consumer.accept(member);
-            return null;
-        });
-
         upgradeFuture.complete(null);
 
         // When
@@ -220,9 +212,11 @@ class AuditionsHandlerTest {
         // Given
         when(guildService.getGuild()).thenReturn(guild);
         when(guild.getNewsChannelById(Config.VOICE_APPLY_CHANNEL_ID)).thenReturn(newsChannel);
-        when(newsChannel.getHistoryFromBeginning(100)).thenReturn(messageHistory);
-        when(messageHistory.complete()).thenReturn(messageHistory);
-        when(messageHistory.getRetrievedHistory()).thenReturn(Arrays.asList());
+
+        // Mock the history retrieval chain - using doReturn to avoid type issues
+        var historyAction = mock(net.dv8tion.jda.api.requests.restaction.pagination.MessagePaginationAction.class);
+        doReturn(historyAction).when(newsChannel).getHistoryFromBeginning(100);
+        when(historyAction.complete()).thenReturn(Arrays.asList());
 
         // When
         String result = auditionsHandler.setRole("NonexistentQuest", "SomeNPC", user);
@@ -237,9 +231,11 @@ class AuditionsHandlerTest {
         // Given
         when(guildService.getGuild()).thenReturn(guild);
         when(guild.getNewsChannelById(Config.VOICE_APPLY_CHANNEL_ID)).thenReturn(newsChannel);
-        when(newsChannel.getHistoryFromBeginning(100)).thenReturn(messageHistory);
-        when(messageHistory.complete()).thenReturn(messageHistory);
-        when(messageHistory.getRetrievedHistory()).thenReturn(Arrays.asList());
+
+        // Mock the history retrieval chain - using doReturn to avoid type issues
+        var historyAction = mock(net.dv8tion.jda.api.requests.restaction.pagination.MessagePaginationAction.class);
+        doReturn(historyAction).when(newsChannel).getHistoryFromBeginning(100);
+        when(historyAction.complete()).thenReturn(Arrays.asList());
 
         // When
         String result = auditionsHandler.setRole("ValidQuest", "NonexistentNPC", user);
@@ -254,9 +250,11 @@ class AuditionsHandlerTest {
         // Given
         when(guildService.getGuild()).thenReturn(guild);
         when(guild.getNewsChannelById(Config.VOICE_APPLY_CHANNEL_ID)).thenReturn(newsChannel);
-        when(newsChannel.getHistoryFromBeginning(100)).thenReturn(messageHistory);
-        when(messageHistory.complete()).thenReturn(messageHistory);
-        when(messageHistory.getRetrievedHistory()).thenReturn(Arrays.asList());
+
+        // Mock the history retrieval chain - using doReturn to avoid type issues
+        var historyAction = mock(net.dv8tion.jda.api.requests.restaction.pagination.MessagePaginationAction.class);
+        doReturn(historyAction).when(newsChannel).getHistoryFromBeginning(100);
+        when(historyAction.complete()).thenReturn(Arrays.asList());
 
         // When
         String result = auditionsHandler.openRole("NonexistentQuest", "SomeNPC");

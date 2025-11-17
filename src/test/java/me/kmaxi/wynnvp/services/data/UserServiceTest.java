@@ -57,7 +57,7 @@ class UserServiceTest {
         ReflectionTestUtils.setField(userService, "restTemplate", restTemplate);
         ReflectionTestUtils.setField(userService, "objectMapper", objectMapper);
 
-        when(apiKeys.getDiscordIntegrationApiKey()).thenReturn("test-api-key");
+        apiKeys.discordIntegrationApiKey = "test-api-key";
 
         // Setup common Member mock behavior
         when(member.getUser()).thenReturn(user);

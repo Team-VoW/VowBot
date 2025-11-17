@@ -57,7 +57,7 @@ class DiscordPollHandlerTest {
     @BeforeEach
     void setUp() {
         when(staffVotingChannel.sendMessage(anyString())).thenReturn(messageCreateAction);
-        when(messageCreateAction.queue()).thenReturn(null);
+        doNothing().when(messageCreateAction).queue();
     }
 
     @Test

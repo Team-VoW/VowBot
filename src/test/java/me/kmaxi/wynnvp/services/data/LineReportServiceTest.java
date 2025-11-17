@@ -46,8 +46,8 @@ class LineReportServiceTest {
         ReflectionTestUtils.setField(lineReportService, "restTemplate", restTemplate);
         ReflectionTestUtils.setField(lineReportService, "objectMapper", objectMapper);
 
-        when(apiKeys.getReadingApiKey()).thenReturn("test-reading-key");
-        when(apiKeys.getUpdateApiKey()).thenReturn("test-update-key");
+        apiKeys.readingApiKey = "test-reading-key";
+        apiKeys.updateApiKey = "test-update-key";
     }
 
     @Test

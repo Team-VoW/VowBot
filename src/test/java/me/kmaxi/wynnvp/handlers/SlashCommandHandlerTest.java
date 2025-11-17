@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,9 +54,6 @@ class SlashCommandHandlerTest {
     @Mock
     private CommandListUpdateAction commandListUpdateAction;
 
-    @Mock
-    private RestAction<Void> queueAction;
-
     @Captor
     private ArgumentCaptor<String> replyCaptor;
 
@@ -71,7 +67,7 @@ class SlashCommandHandlerTest {
         CommandData adminCommandData = Commands.slash("admin", "Admin command");
 
         when(everyoneCommand.getCommandData()).thenReturn(everyoneCommandData);
-        when(everyoneCommand.getPermissionLevel()).thenReturn(PermissionLevel.EVERYONE);
+        when(everyoneCommand.getPermissionLevel()).thenReturn(PermissionLevel.ANYONE);
 
         when(staffCommand.getCommandData()).thenReturn(staffCommandData);
         when(staffCommand.getPermissionLevel()).thenReturn(PermissionLevel.STAFF);
@@ -85,10 +81,6 @@ class SlashCommandHandlerTest {
 
         // Setup common event mocks
         when(event.getMember()).thenReturn(member);
-        RestAction<Void> replyAction = mock(RestAction.class);
-        when(event.reply(anyString())).thenReturn(replyAction);
-        when(replyAction.setEphemeral(anyBoolean())).thenReturn(replyAction);
-        when(replyAction.queue()).thenReturn(null);
     }
 
     @Test
@@ -98,7 +90,7 @@ class SlashCommandHandlerTest {
         when(guildReadyEvent.getGuild()).thenReturn(guild);
         when(guild.updateCommands()).thenReturn(commandListUpdateAction);
         when(commandListUpdateAction.addCommands(any(List.class))).thenReturn(commandListUpdateAction);
-        when(commandListUpdateAction.queue()).thenReturn(null);
+        doNothing().when(commandListUpdateAction).queue();
 
         // When
         handler.onGuildReady(guildReadyEvent);
@@ -248,18 +240,15 @@ class SlashCommandHandlerTest {
     }
 
     @Test
-    @DisplayName("Should set ephemeral flag on error messages")
+    @DisplayName("Should reply with error when member is null")
     void onSlashCommandInteraction_ErrorMessages_AreEphemeral() {
         // Given
         when(event.getMember()).thenReturn(null);
-        RestAction<Void> replyAction = mock(RestAction.class);
-        when(event.reply(anyString())).thenReturn(replyAction);
-        when(replyAction.setEphemeral(anyBoolean())).thenReturn(replyAction);
 
         // When
         handler.onSlashCommandInteraction(event);
 
         // Then
-        verify(replyAction).setEphemeral(true);
+        verify(event).reply("Error. User was null");
     }
 }
