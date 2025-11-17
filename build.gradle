@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'org.springframework.boot' version '3.4.4' // Add Spring Boot plugin
     id 'io.spring.dependency-management' version '1.1.4' // Add dependency management
@@ -53,19 +54,59 @@ dependencies {
 
     // FFmpeg for audio conversion
     implementation 'net.bramp.ffmpeg:ffmpeg:0.8.0'
-}
 
-sonar {
-  properties {
-    property "sonar.projectKey", "Team-VoW_VowBot"
-    property "sonar.organization", "team-vow"
-    property "sonar.host.url", "https://sonarcloud.io"
-  }
+    // Testing Dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
+    testImplementation 'org.mockito:mockito-core:5.8.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.8.0'
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+    testImplementation 'com.h2database:h2:2.2.224'
+
+    // Lombok for tests
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
 
 //  (Spring Boot 3+ requires Java 17 or higher)
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+// Test configuration
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        showStandardStreams = false
+    }
+    finalizedBy jacocoTestReport
+}
+
+// JaCoCo configuration for code coverage
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+}
+
+// SonarQube should run coverage
+sonar {
+    properties {
+        property "sonar.projectKey", "Team-VoW_VowBot"
+        property "sonar.organization", "team-vow"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
     }
 }
