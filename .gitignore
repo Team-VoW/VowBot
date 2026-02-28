@@ -5,3 +5,5 @@
 
 */application.yml
 /.env
+/.claude/settings.local.json
+/.idea/*

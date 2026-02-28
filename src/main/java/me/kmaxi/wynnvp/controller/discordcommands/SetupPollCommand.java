@@ -1,21 +1,22 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
 import lombok.extern.slf4j.Slf4j;
+import me.kmaxi.wynnvp.APIKeys;
 import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
+import me.kmaxi.wynnvp.services.AudioConversionService;
 import me.kmaxi.wynnvp.services.DiscordPollHandler;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -31,17 +32,20 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Objects;
+import java.util.*;
 
 @Slf4j
 @Component
 public class SetupPollCommand implements ICommandImpl {
-    private static final String ATTACHMENT_PREFIX = "attachment/";
 
     private final DiscordPollHandler pollHandler;
-    public SetupPollCommand(DiscordPollHandler pollHandler) {
+    private final APIKeys apiKeys;
+    private final AudioConversionService audioConversionService;
+
+    public SetupPollCommand(DiscordPollHandler pollHandler, APIKeys apiKeys, AudioConversionService audioConversionService) {
         this.pollHandler = pollHandler;
+        this.apiKeys = apiKeys;
+        this.audioConversionService = audioConversionService;
     }
 
     @Override
@@ -68,45 +72,39 @@ public class SetupPollCommand implements ICommandImpl {
             return;
         }
 
-        // Check if the URL option is provided
         if (event.getOption("url") == null) {
             event.getHook().editOriginal("Please provide a URL or QuestName").queue();
             return;
         }
 
-
-        String url = Objects.requireNonNull(event.getOption("url")).getAsString(); // The URL of the project will be provided in the command
+        String url = Objects.requireNonNull(event.getOption("url")).getAsString();
 
         event.getChannel().sendMessage("Auditions for " + url).queue();
         try {
             Document doc = Jsoup.connect(url).get();
-
             String castingCallTitle = doc.title();
-            ArrayList<String> roleIds = getIDS(doc);
-
-
-            roleIds.forEach(log::info);
-
             log.info("Title from Casting Call Club: {}", castingCallTitle);
 
+            String projectId = getProjectId(doc);
+            log.info("Found project ID: {}", projectId);
 
-            //For each role
-            for (String roleId : roleIds) {
-                ArrayList<JSONObject> auditions = getAuditions(roleId);
+            ArrayList<JSONObject> allSubmissions = getAllSubmissions(projectId);
+            log.info("Total submissions fetched: {}", allSubmissions.size());
 
-                String roleName = auditions.get(0).getString("roleName").trim().replaceAll("[ ,.-]", "_");
-
-                //PollSQL.createPoll(roleName);
-
-
-                // Create a thread for each role
-                final String threadName = roleName + " Auditions";
-                Message startMessage = event.getChannel().sendMessage("Auditions for " + roleName).complete();
-                ThreadChannel threadChannelAction = startMessage.createThreadChannel(threadName).complete();
-
-                sendAudioFiles(auditions, threadChannelAction);
+            // Group by role name
+            Map<String, List<JSONObject>> byRole = new LinkedHashMap<>();
+            for (JSONObject sub : allSubmissions) {
+                String roleName = sub.getString("roleName").trim();
+                byRole.computeIfAbsent(roleName, k -> new ArrayList<>()).add(sub);
             }
 
+            for (Map.Entry<String, List<JSONObject>> entry : byRole.entrySet()) {
+                String roleName = entry.getKey().replaceAll("[ ,.-]", "_");
+                String threadName = roleName + " Auditions";
+                Message startMessage = event.getChannel().sendMessage("Auditions for " + entry.getKey()).complete();
+                ThreadChannel threadChannelAction = startMessage.createThreadChannel(threadName).complete();
+                sendAudioFiles(new ArrayList<>(entry.getValue()), threadChannelAction);
+            }
 
         } catch (IOException e) {
             log.error("Error while trying to connect to the URL: {}", url, e);
@@ -117,11 +115,100 @@ public class SetupPollCommand implements ICommandImpl {
         event.getHook().editOriginal("Finished sending everything").queue();
     }
 
+    private String getProjectId(Document doc) {
+        Elements links = doc.select("a[href*=project_id=]");
+        for (Element link : links) {
+            String href = link.attr("href");
+            String[] parts = href.split("[?&]");
+            for (String part : parts) {
+                if (part.startsWith("project_id=")) {
+                    return part.substring("project_id=".length());
+                }
+            }
+        }
+        throw new RuntimeException("Could not find project_id in page");
+    }
+
+    private ArrayList<JSONObject> getAllSubmissions(String projectId) throws Exception {
+        // Step 1: establish session by hitting the home page with _ccc_token
+        String cccToken = apiKeys.cccToken;
+        String sessionCookie = fetchSessionCookie(cccToken);
+        String cookieHeader = "_ccc_token=" + cccToken + "; _ccc_session=" + sessionCookie;
+
+        ArrayList<JSONObject> submissions = new ArrayList<>();
+        JSONArray lastJsonArray = null;
+        int page = 1;
+
+        while (true) {
+            String apiUrl = "https://www.castingcall.club/api/v3/manage/projects/" + projectId
+                    + "/submissions?order_by=updated_at&review_status=unsorted&page=" + page;
+            log.info("Fetching submissions from {}", apiUrl);
+
+            JSONObject jsonData = getJsonObject(apiUrl, cookieHeader);
+
+            // Log the first submission on first page so we can verify field names
+            if (page == 1) {
+                JSONArray arr = jsonData.optJSONArray("submissions");
+                if (arr != null && !arr.isEmpty()) {
+                    log.info("Raw first submission JSON: {}", arr.getJSONObject(0));
+                }
+            }
+
+            JSONArray auditionsArray = jsonData.getJSONArray("submissions");
+
+            if (auditionsArray.isEmpty()
+                    || (lastJsonArray != null && auditionsArray.toString().equals(lastJsonArray.toString()))) {
+                break;
+            }
+
+            lastJsonArray = auditionsArray;
+
+            for (int j = 0; j < auditionsArray.length(); j++) {
+                submissions.add(auditionsArray.getJSONObject(j));
+            }
+            page++;
+        }
+
+        return submissions;
+    }
+
+    /**
+     * GETs the CCC home page with the persistent token and extracts _ccc_session from Set-Cookie.
+     */
+    private String fetchSessionCookie(String cccToken) throws Exception {
+        URL url = new URL("https://www.castingcall.club/");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setInstanceFollowRedirects(false);
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+        connection.setRequestProperty("Cookie", "_ccc_token=" + cccToken);
+
+        // Consume response so headers are populated
+        connection.getResponseCode();
+
+        String sessionValue = null;
+        for (Map.Entry<String, List<String>> header : connection.getHeaderFields().entrySet()) {
+            if ("Set-Cookie".equalsIgnoreCase(header.getKey())) {
+                for (String cookieStr : header.getValue()) {
+                    if (cookieStr.startsWith("_ccc_session=")) {
+                        sessionValue = cookieStr.split(";")[0].substring("_ccc_session=".length());
+                        break;
+                    }
+                }
+            }
+            if (sessionValue != null) break;
+        }
+
+        connection.disconnect();
+
+        if (sessionValue == null) {
+            throw new RuntimeException("Could not obtain _ccc_session cookie from CCC home page");
+        }
+        log.info("Obtained _ccc_session cookie");
+        return sessionValue;
+    }
 
     private void sendAudioFiles(ArrayList<JSONObject> auditions, MessageChannel channel) {
         for (int j = 0; j < auditions.size(); j++) {
-
-
             JSONObject audition = auditions.get(j);
             String audioURL = audition.getString("audioUrl");
             String userName = audition.getString("username");
@@ -136,20 +223,31 @@ public class SetupPollCommand implements ICommandImpl {
                 }
                 File file = new File(audioFileName);
 
-                String messageText = roleName + " " + (j + 1) + " " + userName;
-
-                Button voteButton = Button.primary(
-                        messageText.replace(" ", "-") + "-" + Config.VOTE_BUTTON_LABEL, Config.VOTE_BUTTON_LABEL);
-                Button removeVoteButton = Button.danger(
-                        messageText.replace(" ", "-") + "-" + Config.REMOVE_VOTE_BUTTON_LABEL, Config.REMOVE_VOTE_BUTTON_LABEL);
-                ActionRow.of(voteButton, removeVoteButton);
-                channel.sendMessage("```" + messageText + "```").addActionRow(voteButton, removeVoteButton).addFiles(FileUpload.fromData(file)).queue();
-
+                // Convert/compress via FFmpeg (no-op if already MP3 < 7MB, deletes original if conversion runs)
                 try {
-                    Files.delete(file.toPath());
+                    file = audioConversionService.convertToMp3(file);
                 } catch (IOException e) {
-                    log.warn("Failed to delete file: {}", file.getAbsolutePath(), e);
+                    log.warn("Audio conversion failed for {}, skipping: {}", audioFileName, e.getMessage());
+                    Files.deleteIfExists(new File(audioFileName).toPath());
+                    continue;
                 }
+
+                String messageText = roleName + " " + (j + 1) + " " + userName;
+                final File finalFile = file;
+
+                channel.sendMessage("```" + messageText + "```")
+                        .addFiles(FileUpload.fromData(finalFile))
+                        .queue(
+                                success -> {
+                                    success.addReaction(Emoji.fromUnicode(Config.ACCEPT_UNICODE)).queue();
+                                    try {
+                                        Files.deleteIfExists(finalFile.toPath());
+                                    } catch (IOException e) {
+                                        log.warn("Failed to delete file: {}", finalFile.getAbsolutePath(), e);
+                                    }
+                                },
+                                failure -> log.error("Failed to send audio file: {}", finalFile.getName(), failure)
+                        );
 
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -157,71 +255,13 @@ public class SetupPollCommand implements ICommandImpl {
         }
     }
 
-    private ArrayList<JSONObject> getAuditions(String roleId) {
-        ArrayList<JSONObject> auditions = new ArrayList<>(); //Array of objects
-
-        JSONArray lastJsonArray = null;
-        int page = 1;
-        while (true) {
-
-            JSONObject jsonData;
-            try {
-                String url = "https://www.castingcall.club/api/v3/roles/" + roleId + "/submissions?page=" + page;
-                log.info("Getting auditions from {}", url);
-                jsonData = getJsonObject(url);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-
-            JSONArray auditionsArray = jsonData.getJSONArray("submissions");
-
-            if (auditionsArray.isEmpty() || (lastJsonArray != null && auditionsArray.toString().equals(lastJsonArray.toString())))
-                break;
-
-            lastJsonArray = auditionsArray;
-
-            for (int j = 0; j < auditionsArray.length(); j++) {
-                JSONObject audition = auditionsArray.getJSONObject(j);
-
-                auditions.add(audition);
-
-
-            }
-            page++;
-        }
-
-        return auditions;
-    }
-
-    private ArrayList<String> getIDS(Document doc) {
-
-        ArrayList<String> roleIds = new ArrayList<>();
-
-        Elements images = doc.select("img[src]");
-
-        for (Element image : images) {
-            String src = image.attr("src");
-
-            if (src.contains("role")) {
-                String result = src.substring(src.indexOf(ATTACHMENT_PREFIX) + ATTACHMENT_PREFIX.length(),
-                        src.indexOf("/", src.indexOf(ATTACHMENT_PREFIX) + ATTACHMENT_PREFIX.length()));
-
-                // Add to roleIds only if the result is made up of 7 numbers
-                if (result.matches("\\d{7}")) {
-                    roleIds.add(result);
-                }
-            }
-        }
-
-        return roleIds;
-    }
-
-    private JSONObject getJsonObject(String urlToRead) throws Exception {
+    private JSONObject getJsonObject(String urlToRead, String cookieHeader) throws Exception {
         URL url = new URL(urlToRead);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        // Set the User-Agent header
         connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+        connection.setRequestProperty("Cookie", cookieHeader);
+        connection.setRequestProperty("X-Requested-With", "XMLHttpRequest");
+        connection.setRequestProperty("Accept", "application/json");
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
             StringBuilder response = new StringBuilder();
@@ -234,5 +274,4 @@ public class SetupPollCommand implements ICommandImpl {
             connection.disconnect();
         }
     }
-
 }

@@ -8,9 +8,6 @@ public class Config {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    public static final String VOTE_BUTTON_LABEL = "Vote";
-    public static final String REMOVE_VOTE_BUTTON_LABEL = "Unvote";
-
     //Wynn Vp Server /*
     public static final long VOICE_APPLY_CHANNEL_ID = 1304017023684050975L;
     public static final long AUDITION_GUIDE_ID = 1426658009974837409L;
