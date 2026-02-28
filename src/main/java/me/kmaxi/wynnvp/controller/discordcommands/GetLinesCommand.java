@@ -1,10 +1,14 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
 import lombok.RequiredArgsConstructor;
+import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.enums.LineType;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
 import me.kmaxi.wynnvp.services.LineReportHandler;
+import me.kmaxi.wynnvp.utils.Utils;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -35,6 +39,15 @@ public class GetLinesCommand implements ICommandImpl {
     @Override
     public PermissionLevel getPermissionLevel() {
         return PermissionLevel.STAFF;
+    }
+
+    @Override
+    public boolean hasPermission(Member member) {
+        if (Utils.isStaff(member)) return true;
+        for (Role role : member.getRoles()) {
+            if (role.getIdLong() == Config.LOG_COLLECTORS_ROLE_ID) return true;
+        }
+        return false;
     }
 
     @Override

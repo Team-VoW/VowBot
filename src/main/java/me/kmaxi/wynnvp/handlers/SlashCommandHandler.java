@@ -2,7 +2,6 @@ package me.kmaxi.wynnvp.handlers;
 
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
-import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class SlashCommandHandler extends ListenerAdapter {
@@ -48,13 +46,9 @@ public class SlashCommandHandler extends ListenerAdapter {
             return;
         }
 
-        if (command.getPermissionLevel() == PermissionLevel.STAFF && !Utils.isStaff(event.getMember())) {
-            event.reply("You do not have permission to execute this command.").setEphemeral(true).queue();
-            return;
-        }
-
-        if (command.getPermissionLevel() == PermissionLevel.ADMIN && !Utils.isAdmin(event.getMember())) {
-            event.reply("You do not have permission to execute this command. You need Admin perms").setEphemeral(true).queue();
+        if (!command.hasPermission(event.getMember())) {
+            String suffix = command.getPermissionLevel() == PermissionLevel.ADMIN ? " You need Admin perms" : "";
+            event.reply("You do not have permission to execute this command." + suffix).setEphemeral(true).queue();
             return;
         }
 

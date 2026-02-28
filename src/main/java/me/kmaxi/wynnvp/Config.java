@@ -22,6 +22,7 @@ public class Config {
     public static final long ACCEPTED_CATEGORY_ID = 821787630726938674L;
     public static final long TRAINEE_ROLE = 835558288489578536L;
     public static final long REPORTED_LINES = 1135090965938450433L;
+    public static final long LOG_COLLECTORS_ROLE_ID = 937440477320466442L;
     public static final long STAFF_VOTING_CHANNEL_ID = 846410802777161748L;
 
     public static final String URL_DISCORD_INTEGRATION = "https://voicesofwynn.com/api/discord-integration";
