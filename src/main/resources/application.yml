@@ -13,3 +13,6 @@ sql:
   url: ${SQL_URL}
   username: ${SQL_USERNAME}
   password: ${SQL_PASSWORD}
+
+ccc:
+  token: ${CCC_TOKEN}

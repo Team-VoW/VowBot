@@ -26,4 +26,7 @@ public class APIKeys {
 
     @Value("${sql.password}")
     public String sqlPassword;
+
+    @Value("${ccc.token}")
+    public String cccToken;
 }
