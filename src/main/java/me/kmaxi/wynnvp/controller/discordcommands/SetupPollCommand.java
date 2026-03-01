@@ -134,7 +134,7 @@ public class SetupPollCommand implements ICommandImpl {
                 }
             }
         }
-        throw new RuntimeException("Could not find project_id in page");
+        throw new IllegalStateException("Could not find project_id in page");
     }
 
     private ArrayList<JSONObject> getAllSubmissions(String projectId) throws IOException {
