@@ -250,27 +250,17 @@ public class SetupPollCommand implements ICommandImpl {
                 }
 
                 String messageText = roleName + " " + (j + 1) + " " + userName;
-                final File finalFile = file;
+                String fileName = file.getName();
+                byte[] audioBytes = Files.readAllBytes(file.toPath());
+                Files.deleteIfExists(file.toPath());
 
                 channel.sendMessage("```" + messageText + "```")
-                        .addFiles(FileUpload.fromData(finalFile))
+                        .addFiles(FileUpload.fromData(audioBytes, fileName))
                         .queue(
-                                success -> {
-                                    success.addReaction(Emoji.fromUnicode(Config.ACCEPT_UNICODE)).queue();
-                                    try {
-                                        Files.deleteIfExists(finalFile.toPath());
-                                    } catch (IOException e) {
-                                        log.warn("Failed to delete file: {}", finalFile.getAbsolutePath(), e);
-                                    }
-                                },
+                                success -> success.addReaction(Emoji.fromUnicode(Config.ACCEPT_UNICODE)).queue(),
                                 failure -> {
-                                    log.error("Failed to send audio file: {}", finalFile.getName(), failure);
+                                    log.error("Failed to send audio file: {}", fileName, failure);
                                     channel.sendMessage("Failed to send audio for **" + userName + "**: " + failure.getMessage()).queue();
-                                    try {
-                                        Files.deleteIfExists(finalFile.toPath());
-                                    } catch (IOException ex) {
-                                        log.warn("Failed to delete orphaned file: {}", finalFile.getAbsolutePath(), ex);
-                                    }
                                 }
                         );
 
@@ -313,5 +303,6 @@ public class SetupPollCommand implements ICommandImpl {
         }
     }
 
-    private static class CccAuthException extends RuntimeException {}
+    private static class CccAuthException extends RuntimeException {
+    }
 }
