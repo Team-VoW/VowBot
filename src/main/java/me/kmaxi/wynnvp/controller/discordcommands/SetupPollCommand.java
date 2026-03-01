@@ -79,7 +79,6 @@ public class SetupPollCommand implements ICommandImpl {
 
         String url = Objects.requireNonNull(event.getOption("url")).getAsString();
 
-        event.getChannel().sendMessage("Auditions for " + url).queue();
         try {
             Document doc = Jsoup.connect(url).get();
             String castingCallTitle = doc.title();
@@ -90,6 +89,8 @@ public class SetupPollCommand implements ICommandImpl {
 
             ArrayList<JSONObject> allSubmissions = getAllSubmissions(projectId);
             log.info("Total submissions fetched: {}", allSubmissions.size());
+
+            event.getChannel().sendMessage("Auditions for " + url).queue();
 
             // Group by role name
             Map<String, List<JSONObject>> byRole = new LinkedHashMap<>();
@@ -106,10 +107,17 @@ public class SetupPollCommand implements ICommandImpl {
                 sendAudioFiles(new ArrayList<>(entry.getValue()), threadChannelAction);
             }
 
+        } catch (CccAuthException e) {
+            event.getHook().editOriginal("CCC authentication failed — your token is invalid or expired. Please update it in the bot configuration.").queue();
+            return;
         } catch (IOException e) {
             log.error("Error while trying to connect to the URL: {}", url, e);
+            event.getHook().editOriginal("Failed to connect to the URL: " + e.getMessage()).queue();
+            return;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Unexpected error during poll setup", e);
+            event.getHook().editOriginal("An error occurred: " + e.getMessage()).queue();
+            return;
         }
 
         event.getHook().editOriginal("Finished sending everything").queue();
@@ -181,9 +189,15 @@ public class SetupPollCommand implements ICommandImpl {
         connection.setInstanceFollowRedirects(false);
         connection.setRequestProperty("User-Agent", "Mozilla/5.0");
         connection.setRequestProperty("Cookie", "_ccc_token=" + cccToken);
+        connection.setConnectTimeout(10_000);
+        connection.setReadTimeout(30_000);
 
         // Consume response so headers are populated
-        connection.getResponseCode();
+        int responseCode = connection.getResponseCode();
+        if (responseCode != HttpURLConnection.HTTP_OK && (responseCode < 300 || responseCode >= 400)) {
+            connection.disconnect();
+            throw new RuntimeException("CCC auth request failed with status " + responseCode);
+        }
 
         String sessionValue = null;
         for (Map.Entry<String, List<String>> header : connection.getHeaderFields().entrySet()) {
@@ -212,7 +226,10 @@ public class SetupPollCommand implements ICommandImpl {
             JSONObject audition = auditions.get(j);
             String audioURL = audition.getString("audioUrl");
             String userName = audition.getString("username");
-            String audioFileName = userName + ".mp3";
+            String safeUserName = userName.replaceAll("[^A-Za-z0-9._-]", "_").trim();
+            if (safeUserName.isEmpty()) safeUserName = "unknown";
+            if (safeUserName.length() > 100) safeUserName = safeUserName.substring(0, 100);
+            String audioFileName = safeUserName + ".mp3";
             String roleName = audition.getString("roleName").trim().replaceAll("[ ,.-]", "_");
 
             try {
@@ -227,7 +244,7 @@ public class SetupPollCommand implements ICommandImpl {
                 try {
                     file = audioConversionService.convertToMp3(file);
                 } catch (IOException e) {
-                    log.warn("Audio conversion failed for {}, skipping: {}", audioFileName, e.getMessage());
+                    log.warn("Audio conversion failed for {}, skipping: {}", safeUserName, e.getMessage());
                     Files.deleteIfExists(new File(audioFileName).toPath());
                     continue;
                 }
@@ -246,11 +263,20 @@ public class SetupPollCommand implements ICommandImpl {
                                         log.warn("Failed to delete file: {}", finalFile.getAbsolutePath(), e);
                                     }
                                 },
-                                failure -> log.error("Failed to send audio file: {}", finalFile.getName(), failure)
+                                failure -> {
+                                    log.error("Failed to send audio file: {}", finalFile.getName(), failure);
+                                    channel.sendMessage("Failed to send audio for **" + userName + "**: " + failure.getMessage()).queue();
+                                    try {
+                                        Files.deleteIfExists(finalFile.toPath());
+                                    } catch (IOException ex) {
+                                        log.warn("Failed to delete orphaned file: {}", finalFile.getAbsolutePath(), ex);
+                                    }
+                                }
                         );
 
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                log.error("Failed to download audio for {}", userName, e);
+                channel.sendMessage("Failed to download audio for **" + userName + "**: " + e.getMessage()).queue();
             }
         }
     }
@@ -262,6 +288,18 @@ public class SetupPollCommand implements ICommandImpl {
         connection.setRequestProperty("Cookie", cookieHeader);
         connection.setRequestProperty("X-Requested-With", "XMLHttpRequest");
         connection.setRequestProperty("Accept", "application/json");
+        connection.setConnectTimeout(10_000);
+        connection.setReadTimeout(30_000);
+
+        int responseCode = connection.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            connection.disconnect();
+            throw new CccAuthException();
+        }
+        if (responseCode != HttpURLConnection.HTTP_OK) {
+            connection.disconnect();
+            throw new RuntimeException("API request failed with status " + responseCode);
+        }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
             StringBuilder response = new StringBuilder();
@@ -274,4 +312,6 @@ public class SetupPollCommand implements ICommandImpl {
             connection.disconnect();
         }
     }
+
+    private static class CccAuthException extends RuntimeException {}
 }
