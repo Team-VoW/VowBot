@@ -137,7 +137,7 @@ public class SetupPollCommand implements ICommandImpl {
         throw new RuntimeException("Could not find project_id in page");
     }
 
-    private ArrayList<JSONObject> getAllSubmissions(String projectId) throws Exception {
+    private ArrayList<JSONObject> getAllSubmissions(String projectId) throws IOException {
         // Step 1: establish session by hitting the home page with _ccc_token
         String cccToken = apiKeys.cccToken;
         String sessionCookie = fetchSessionCookie(cccToken);
@@ -183,7 +183,7 @@ public class SetupPollCommand implements ICommandImpl {
     /**
      * GETs the CCC home page with the persistent token and extracts _ccc_session from Set-Cookie.
      */
-    private String fetchSessionCookie(String cccToken) throws Exception {
+    private String fetchSessionCookie(String cccToken) throws IOException {
         URL url = new URL("https://www.castingcall.club/");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setInstanceFollowRedirects(false);
@@ -196,29 +196,30 @@ public class SetupPollCommand implements ICommandImpl {
         int responseCode = connection.getResponseCode();
         if (responseCode != HttpURLConnection.HTTP_OK && (responseCode < 300 || responseCode >= 400)) {
             connection.disconnect();
-            throw new RuntimeException("CCC auth request failed with status " + responseCode);
+            throw new IOException("CCC auth request failed with status " + responseCode);
         }
 
-        String sessionValue = null;
-        for (Map.Entry<String, List<String>> header : connection.getHeaderFields().entrySet()) {
-            if ("Set-Cookie".equalsIgnoreCase(header.getKey())) {
-                for (String cookieStr : header.getValue()) {
-                    if (cookieStr.startsWith("_ccc_session=")) {
-                        sessionValue = cookieStr.split(";")[0].substring("_ccc_session=".length());
-                        break;
-                    }
-                }
-            }
-            if (sessionValue != null) break;
-        }
-
+        String sessionValue = parseSessionCookie(connection.getHeaderFields());
         connection.disconnect();
 
         if (sessionValue == null) {
-            throw new RuntimeException("Could not obtain _ccc_session cookie from CCC home page");
+            throw new IOException("Could not obtain _ccc_session cookie from CCC home page");
         }
         log.info("Obtained _ccc_session cookie");
         return sessionValue;
+    }
+
+    private String parseSessionCookie(Map<String, List<String>> headers) {
+        for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+            if ("Set-Cookie".equalsIgnoreCase(header.getKey())) {
+                for (String cookieStr : header.getValue()) {
+                    if (cookieStr.startsWith("_ccc_session=")) {
+                        return cookieStr.split(";")[0].substring("_ccc_session=".length());
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private void sendAudioFiles(ArrayList<JSONObject> auditions, MessageChannel channel) {
@@ -271,7 +272,7 @@ public class SetupPollCommand implements ICommandImpl {
         }
     }
 
-    private JSONObject getJsonObject(String urlToRead, String cookieHeader) throws Exception {
+    private JSONObject getJsonObject(String urlToRead, String cookieHeader) throws IOException {
         URL url = new URL(urlToRead);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("User-Agent", "Mozilla/5.0");
@@ -288,7 +289,7 @@ public class SetupPollCommand implements ICommandImpl {
         }
         if (responseCode != HttpURLConnection.HTTP_OK) {
             connection.disconnect();
-            throw new RuntimeException("API request failed with status " + responseCode);
+            throw new IOException("API request failed with status " + responseCode);
         }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
