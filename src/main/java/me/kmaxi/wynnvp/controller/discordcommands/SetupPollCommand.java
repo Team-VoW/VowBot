@@ -33,6 +33,9 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.*;
 import java.util.concurrent.Executor;
 
@@ -86,7 +89,14 @@ public class SetupPollCommand implements ICommandImpl {
         pollSetupExecutor.execute(() -> {
             Path tempDir = null;
             try {
-                tempDir = Files.createTempDirectory("poll-setup-");
+                try {
+                    FileAttribute<Set<PosixFilePermission>> ownerOnly =
+                            PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+                    tempDir = Files.createTempDirectory("poll-setup-", ownerOnly);
+                } catch (UnsupportedOperationException e) {
+                    // Non-POSIX filesystem (e.g. Windows) — default temp dir permissions apply
+                    tempDir = Files.createTempDirectory("poll-setup-");
+                }
 
                 Document doc = Jsoup.connect(url).get();
                 String castingCallTitle = doc.title();
