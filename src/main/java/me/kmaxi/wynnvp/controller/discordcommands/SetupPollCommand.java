@@ -32,9 +32,9 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executor;
 
 @Slf4j
 @Component
@@ -43,12 +43,13 @@ public class SetupPollCommand implements ICommandImpl {
     private final DiscordPollHandler pollHandler;
     private final APIKeys apiKeys;
     private final AudioConversionService audioConversionService;
-    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final Executor pollSetupExecutor;
 
-    public SetupPollCommand(DiscordPollHandler pollHandler, APIKeys apiKeys, AudioConversionService audioConversionService) {
+    public SetupPollCommand(DiscordPollHandler pollHandler, APIKeys apiKeys, AudioConversionService audioConversionService, Executor pollSetupExecutor) {
         this.pollHandler = pollHandler;
         this.apiKeys = apiKeys;
         this.audioConversionService = audioConversionService;
+        this.pollSetupExecutor = pollSetupExecutor;
     }
 
     @Override
@@ -82,8 +83,11 @@ public class SetupPollCommand implements ICommandImpl {
 
         String url = Objects.requireNonNull(event.getOption("url")).getAsString();
 
-        executor.submit(() -> {
+        pollSetupExecutor.execute(() -> {
+            Path tempDir = null;
             try {
+                tempDir = Files.createTempDirectory("poll-setup-");
+
                 Document doc = Jsoup.connect(url).get();
                 String castingCallTitle = doc.title();
                 log.info("Title from Casting Call Club: {}", castingCallTitle);
@@ -108,7 +112,7 @@ public class SetupPollCommand implements ICommandImpl {
                     String threadName = roleName + " Auditions";
                     Message startMessage = event.getChannel().sendMessage("Auditions for " + entry.getKey()).complete();
                     ThreadChannel threadChannelAction = startMessage.createThreadChannel(threadName).complete();
-                    sendAudioFiles(new ArrayList<>(entry.getValue()), threadChannelAction);
+                    sendAudioFiles(new ArrayList<>(entry.getValue()), threadChannelAction, tempDir);
                 }
 
                 event.getHook().editOriginal("Finished sending everything").queue();
@@ -121,6 +125,18 @@ public class SetupPollCommand implements ICommandImpl {
             } catch (Exception e) {
                 log.error("Unexpected error during poll setup", e);
                 event.getHook().editOriginal("An error occurred: " + e.getMessage()).queue();
+            } finally {
+                if (tempDir != null) {
+                    try {
+                        try (var stream = Files.walk(tempDir)) {
+                            stream.sorted(Comparator.reverseOrder()).forEach(p -> {
+                                try { Files.deleteIfExists(p); } catch (IOException ignored) {}
+                            });
+                        }
+                    } catch (IOException e) {
+                        log.warn("Failed to clean up temp directory: {}", tempDir, e);
+                    }
+                }
             }
         });
     }
@@ -224,7 +240,7 @@ public class SetupPollCommand implements ICommandImpl {
         return null;
     }
 
-    private void sendAudioFiles(ArrayList<JSONObject> auditions, MessageChannel channel) {
+    private void sendAudioFiles(ArrayList<JSONObject> auditions, MessageChannel channel, Path tempDir) {
         for (int j = 0; j < auditions.size(); j++) {
             JSONObject audition = auditions.get(j);
             String audioURL = audition.getString("audioUrl");
@@ -237,18 +253,18 @@ public class SetupPollCommand implements ICommandImpl {
 
             try {
                 URL website = new URL(audioURL);
+                File file = tempDir.resolve(audioFileName).toFile();
                 try (ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-                     FileOutputStream fos = new FileOutputStream(audioFileName)) {
+                     FileOutputStream fos = new FileOutputStream(file)) {
                     fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
                 }
-                File file = new File(audioFileName);
 
                 // Convert/compress via FFmpeg (no-op if already MP3 < 7MB, deletes original if conversion runs)
                 try {
                     file = audioConversionService.convertToMp3(file);
                 } catch (IOException e) {
                     log.warn("Audio conversion failed for {}, skipping: {}", safeUserName, e.getMessage());
-                    Files.deleteIfExists(new File(audioFileName).toPath());
+                    Files.deleteIfExists(file.toPath());
                     continue;
                 }
 
