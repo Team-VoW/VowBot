@@ -33,6 +33,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Component
@@ -41,6 +43,7 @@ public class SetupPollCommand implements ICommandImpl {
     private final DiscordPollHandler pollHandler;
     private final APIKeys apiKeys;
     private final AudioConversionService audioConversionService;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public SetupPollCommand(DiscordPollHandler pollHandler, APIKeys apiKeys, AudioConversionService audioConversionService) {
         this.pollHandler = pollHandler;
@@ -79,48 +82,47 @@ public class SetupPollCommand implements ICommandImpl {
 
         String url = Objects.requireNonNull(event.getOption("url")).getAsString();
 
-        try {
-            Document doc = Jsoup.connect(url).get();
-            String castingCallTitle = doc.title();
-            log.info("Title from Casting Call Club: {}", castingCallTitle);
+        executor.submit(() -> {
+            try {
+                Document doc = Jsoup.connect(url).get();
+                String castingCallTitle = doc.title();
+                log.info("Title from Casting Call Club: {}", castingCallTitle);
 
-            String projectId = getProjectId(doc);
-            log.info("Found project ID: {}", projectId);
+                String projectId = getProjectId(doc);
+                log.info("Found project ID: {}", projectId);
 
-            ArrayList<JSONObject> allSubmissions = getAllSubmissions(projectId);
-            log.info("Total submissions fetched: {}", allSubmissions.size());
+                ArrayList<JSONObject> allSubmissions = getAllSubmissions(projectId);
+                log.info("Total submissions fetched: {}", allSubmissions.size());
 
-            event.getChannel().sendMessage("Auditions for " + url).queue();
+                event.getChannel().sendMessage("Auditions for " + url).queue();
 
-            // Group by role name
-            Map<String, List<JSONObject>> byRole = new LinkedHashMap<>();
-            for (JSONObject sub : allSubmissions) {
-                String roleName = sub.getString("roleName").trim();
-                byRole.computeIfAbsent(roleName, k -> new ArrayList<>()).add(sub);
+                // Group by role name
+                Map<String, List<JSONObject>> byRole = new LinkedHashMap<>();
+                for (JSONObject sub : allSubmissions) {
+                    String roleName = sub.getString("roleName").trim();
+                    byRole.computeIfAbsent(roleName, k -> new ArrayList<>()).add(sub);
+                }
+
+                for (Map.Entry<String, List<JSONObject>> entry : byRole.entrySet()) {
+                    String roleName = entry.getKey().replaceAll("[ ,.-]", "_");
+                    String threadName = roleName + " Auditions";
+                    Message startMessage = event.getChannel().sendMessage("Auditions for " + entry.getKey()).complete();
+                    ThreadChannel threadChannelAction = startMessage.createThreadChannel(threadName).complete();
+                    sendAudioFiles(new ArrayList<>(entry.getValue()), threadChannelAction);
+                }
+
+                event.getHook().editOriginal("Finished sending everything").queue();
+
+            } catch (CccAuthException e) {
+                event.getHook().editOriginal("CCC authentication failed — your token is invalid or expired. Please update it in the bot configuration.").queue();
+            } catch (IOException e) {
+                log.error("Error while trying to connect to the URL: {}", url, e);
+                event.getHook().editOriginal("Failed to connect to the URL: " + e.getMessage()).queue();
+            } catch (Exception e) {
+                log.error("Unexpected error during poll setup", e);
+                event.getHook().editOriginal("An error occurred: " + e.getMessage()).queue();
             }
-
-            for (Map.Entry<String, List<JSONObject>> entry : byRole.entrySet()) {
-                String roleName = entry.getKey().replaceAll("[ ,.-]", "_");
-                String threadName = roleName + " Auditions";
-                Message startMessage = event.getChannel().sendMessage("Auditions for " + entry.getKey()).complete();
-                ThreadChannel threadChannelAction = startMessage.createThreadChannel(threadName).complete();
-                sendAudioFiles(new ArrayList<>(entry.getValue()), threadChannelAction);
-            }
-
-        } catch (CccAuthException e) {
-            event.getHook().editOriginal("CCC authentication failed — your token is invalid or expired. Please update it in the bot configuration.").queue();
-            return;
-        } catch (IOException e) {
-            log.error("Error while trying to connect to the URL: {}", url, e);
-            event.getHook().editOriginal("Failed to connect to the URL: " + e.getMessage()).queue();
-            return;
-        } catch (Exception e) {
-            log.error("Unexpected error during poll setup", e);
-            event.getHook().editOriginal("An error occurred: " + e.getMessage()).queue();
-            return;
-        }
-
-        event.getHook().editOriginal("Finished sending everything").queue();
+        });
     }
 
     private String getProjectId(Document doc) {
