@@ -32,7 +32,12 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.*;
+import java.util.concurrent.Executor;
 
 @Slf4j
 @Component
@@ -41,11 +46,13 @@ public class SetupPollCommand implements ICommandImpl {
     private final DiscordPollHandler pollHandler;
     private final APIKeys apiKeys;
     private final AudioConversionService audioConversionService;
+    private final Executor pollSetupExecutor;
 
-    public SetupPollCommand(DiscordPollHandler pollHandler, APIKeys apiKeys, AudioConversionService audioConversionService) {
+    public SetupPollCommand(DiscordPollHandler pollHandler, APIKeys apiKeys, AudioConversionService audioConversionService, Executor pollSetupExecutor) {
         this.pollHandler = pollHandler;
         this.apiKeys = apiKeys;
         this.audioConversionService = audioConversionService;
+        this.pollSetupExecutor = pollSetupExecutor;
     }
 
     @Override
@@ -79,10 +86,16 @@ public class SetupPollCommand implements ICommandImpl {
 
         String url = Objects.requireNonNull(event.getOption("url")).getAsString();
 
+        pollSetupExecutor.execute(() -> setupPollFromUrl(event, url));
+    }
+
+    private void setupPollFromUrl(SlashCommandInteractionEvent event, String url) {
+        Path tempDir = null;
         try {
+            tempDir = createSecureTempDirectory();
+
             Document doc = Jsoup.connect(url).get();
-            String castingCallTitle = doc.title();
-            log.info("Title from Casting Call Club: {}", castingCallTitle);
+            log.info("Title from Casting Call Club: {}", doc.title());
 
             String projectId = getProjectId(doc);
             log.info("Found project ID: {}", projectId);
@@ -92,35 +105,58 @@ public class SetupPollCommand implements ICommandImpl {
 
             event.getChannel().sendMessage("Auditions for " + url).queue();
 
-            // Group by role name
             Map<String, List<JSONObject>> byRole = new LinkedHashMap<>();
             for (JSONObject sub : allSubmissions) {
-                String roleName = sub.getString("roleName").trim();
-                byRole.computeIfAbsent(roleName, k -> new ArrayList<>()).add(sub);
+                byRole.computeIfAbsent(sub.getString("roleName").trim(), k -> new ArrayList<>()).add(sub);
             }
 
             for (Map.Entry<String, List<JSONObject>> entry : byRole.entrySet()) {
                 String roleName = entry.getKey().replaceAll("[ ,.-]", "_");
-                String threadName = roleName + " Auditions";
                 Message startMessage = event.getChannel().sendMessage("Auditions for " + entry.getKey()).complete();
-                ThreadChannel threadChannelAction = startMessage.createThreadChannel(threadName).complete();
-                sendAudioFiles(new ArrayList<>(entry.getValue()), threadChannelAction);
+                ThreadChannel threadChannel = startMessage.createThreadChannel(roleName + " Auditions").complete();
+                sendAudioFiles(new ArrayList<>(entry.getValue()), threadChannel, tempDir);
             }
+
+            event.getHook().editOriginal("Finished sending everything").queue();
 
         } catch (CccAuthException e) {
             event.getHook().editOriginal("CCC authentication failed — your token is invalid or expired. Please update it in the bot configuration.").queue();
-            return;
         } catch (IOException e) {
             log.error("Error while trying to connect to the URL: {}", url, e);
             event.getHook().editOriginal("Failed to connect to the URL: " + e.getMessage()).queue();
-            return;
         } catch (Exception e) {
             log.error("Unexpected error during poll setup", e);
             event.getHook().editOriginal("An error occurred: " + e.getMessage()).queue();
-            return;
+        } finally {
+            cleanupTempDir(tempDir);
         }
+    }
 
-        event.getHook().editOriginal("Finished sending everything").queue();
+    private Path createSecureTempDirectory() throws IOException {
+        try {
+            FileAttribute<Set<PosixFilePermission>> ownerOnly =
+                    PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+            return Files.createTempDirectory("poll-setup-", ownerOnly);
+        } catch (UnsupportedOperationException e) {
+            // Non-POSIX filesystem (e.g. Windows) — restrict permissions explicitly
+            Path tempDir = Files.createTempDirectory("poll-setup-");
+            File dir = tempDir.toFile();
+            if (!dir.setReadable(true, true) || !dir.setWritable(true, true) || !dir.setExecutable(true, true)) {
+                throw new IOException("Failed to restrict permissions on temp directory: " + tempDir);
+            }
+            return tempDir;
+        }
+    }
+
+    private void cleanupTempDir(Path tempDir) {
+        if (tempDir == null) return;
+        try (var stream = Files.walk(tempDir)) {
+            stream.sorted(Comparator.reverseOrder()).forEach(p -> {
+                try { Files.deleteIfExists(p); } catch (IOException ignored) { /* best-effort deletion */ }
+            });
+        } catch (IOException e) {
+            log.warn("Failed to clean up temp directory: {}", tempDir, e);
+        }
     }
 
     private String getProjectId(Document doc) {
@@ -222,7 +258,7 @@ public class SetupPollCommand implements ICommandImpl {
         return null;
     }
 
-    private void sendAudioFiles(ArrayList<JSONObject> auditions, MessageChannel channel) {
+    private void sendAudioFiles(ArrayList<JSONObject> auditions, MessageChannel channel, Path tempDir) {
         for (int j = 0; j < auditions.size(); j++) {
             JSONObject audition = auditions.get(j);
             String audioURL = audition.getString("audioUrl");
@@ -235,18 +271,18 @@ public class SetupPollCommand implements ICommandImpl {
 
             try {
                 URL website = new URL(audioURL);
+                File file = tempDir.resolve(audioFileName).toFile();
                 try (ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-                     FileOutputStream fos = new FileOutputStream(audioFileName)) {
+                     FileOutputStream fos = new FileOutputStream(file)) {
                     fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
                 }
-                File file = new File(audioFileName);
 
                 // Convert/compress via FFmpeg (no-op if already MP3 < 7MB, deletes original if conversion runs)
                 try {
                     file = audioConversionService.convertToMp3(file);
                 } catch (IOException e) {
                     log.warn("Audio conversion failed for {}, skipping: {}", safeUserName, e.getMessage());
-                    Files.deleteIfExists(new File(audioFileName).toPath());
+                    Files.deleteIfExists(file.toPath());
                     continue;
                 }
 
