@@ -86,73 +86,77 @@ public class SetupPollCommand implements ICommandImpl {
 
         String url = Objects.requireNonNull(event.getOption("url")).getAsString();
 
-        pollSetupExecutor.execute(() -> {
-            Path tempDir = null;
-            try {
-                try {
-                    FileAttribute<Set<PosixFilePermission>> ownerOnly =
-                            PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
-                    tempDir = Files.createTempDirectory("poll-setup-", ownerOnly);
-                } catch (UnsupportedOperationException e) {
-                    // Non-POSIX filesystem (e.g. Windows) — restrict permissions explicitly
-                    tempDir = Files.createTempDirectory("poll-setup-");
-                    File dir = tempDir.toFile();
-                    dir.setReadable(true, true);
-                    dir.setWritable(true, true);
-                    dir.setExecutable(true, true);
-                }
+        pollSetupExecutor.execute(() -> setupPollFromUrl(event, url));
+    }
 
-                Document doc = Jsoup.connect(url).get();
-                String castingCallTitle = doc.title();
-                log.info("Title from Casting Call Club: {}", castingCallTitle);
+    private void setupPollFromUrl(SlashCommandInteractionEvent event, String url) {
+        Path tempDir = null;
+        try {
+            tempDir = createSecureTempDirectory();
 
-                String projectId = getProjectId(doc);
-                log.info("Found project ID: {}", projectId);
+            Document doc = Jsoup.connect(url).get();
+            log.info("Title from Casting Call Club: {}", doc.title());
 
-                ArrayList<JSONObject> allSubmissions = getAllSubmissions(projectId);
-                log.info("Total submissions fetched: {}", allSubmissions.size());
+            String projectId = getProjectId(doc);
+            log.info("Found project ID: {}", projectId);
 
-                event.getChannel().sendMessage("Auditions for " + url).queue();
+            ArrayList<JSONObject> allSubmissions = getAllSubmissions(projectId);
+            log.info("Total submissions fetched: {}", allSubmissions.size());
 
-                // Group by role name
-                Map<String, List<JSONObject>> byRole = new LinkedHashMap<>();
-                for (JSONObject sub : allSubmissions) {
-                    String roleName = sub.getString("roleName").trim();
-                    byRole.computeIfAbsent(roleName, k -> new ArrayList<>()).add(sub);
-                }
+            event.getChannel().sendMessage("Auditions for " + url).queue();
 
-                for (Map.Entry<String, List<JSONObject>> entry : byRole.entrySet()) {
-                    String roleName = entry.getKey().replaceAll("[ ,.-]", "_");
-                    String threadName = roleName + " Auditions";
-                    Message startMessage = event.getChannel().sendMessage("Auditions for " + entry.getKey()).complete();
-                    ThreadChannel threadChannelAction = startMessage.createThreadChannel(threadName).complete();
-                    sendAudioFiles(new ArrayList<>(entry.getValue()), threadChannelAction, tempDir);
-                }
-
-                event.getHook().editOriginal("Finished sending everything").queue();
-
-            } catch (CccAuthException e) {
-                event.getHook().editOriginal("CCC authentication failed — your token is invalid or expired. Please update it in the bot configuration.").queue();
-            } catch (IOException e) {
-                log.error("Error while trying to connect to the URL: {}", url, e);
-                event.getHook().editOriginal("Failed to connect to the URL: " + e.getMessage()).queue();
-            } catch (Exception e) {
-                log.error("Unexpected error during poll setup", e);
-                event.getHook().editOriginal("An error occurred: " + e.getMessage()).queue();
-            } finally {
-                if (tempDir != null) {
-                    try {
-                        try (var stream = Files.walk(tempDir)) {
-                            stream.sorted(Comparator.reverseOrder()).forEach(p -> {
-                                try { Files.deleteIfExists(p); } catch (IOException ignored) {}
-                            });
-                        }
-                    } catch (IOException e) {
-                        log.warn("Failed to clean up temp directory: {}", tempDir, e);
-                    }
-                }
+            Map<String, List<JSONObject>> byRole = new LinkedHashMap<>();
+            for (JSONObject sub : allSubmissions) {
+                byRole.computeIfAbsent(sub.getString("roleName").trim(), k -> new ArrayList<>()).add(sub);
             }
-        });
+
+            for (Map.Entry<String, List<JSONObject>> entry : byRole.entrySet()) {
+                String roleName = entry.getKey().replaceAll("[ ,.-]", "_");
+                Message startMessage = event.getChannel().sendMessage("Auditions for " + entry.getKey()).complete();
+                ThreadChannel threadChannel = startMessage.createThreadChannel(roleName + " Auditions").complete();
+                sendAudioFiles(new ArrayList<>(entry.getValue()), threadChannel, tempDir);
+            }
+
+            event.getHook().editOriginal("Finished sending everything").queue();
+
+        } catch (CccAuthException e) {
+            event.getHook().editOriginal("CCC authentication failed — your token is invalid or expired. Please update it in the bot configuration.").queue();
+        } catch (IOException e) {
+            log.error("Error while trying to connect to the URL: {}", url, e);
+            event.getHook().editOriginal("Failed to connect to the URL: " + e.getMessage()).queue();
+        } catch (Exception e) {
+            log.error("Unexpected error during poll setup", e);
+            event.getHook().editOriginal("An error occurred: " + e.getMessage()).queue();
+        } finally {
+            cleanupTempDir(tempDir);
+        }
+    }
+
+    private Path createSecureTempDirectory() throws IOException {
+        try {
+            FileAttribute<Set<PosixFilePermission>> ownerOnly =
+                    PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+            return Files.createTempDirectory("poll-setup-", ownerOnly);
+        } catch (UnsupportedOperationException e) {
+            // Non-POSIX filesystem (e.g. Windows) — restrict permissions explicitly
+            Path tempDir = Files.createTempDirectory("poll-setup-");
+            File dir = tempDir.toFile();
+            if (!dir.setReadable(true, true) || !dir.setWritable(true, true) || !dir.setExecutable(true, true)) {
+                throw new IOException("Failed to restrict permissions on temp directory: " + tempDir);
+            }
+            return tempDir;
+        }
+    }
+
+    private void cleanupTempDir(Path tempDir) {
+        if (tempDir == null) return;
+        try (var stream = Files.walk(tempDir)) {
+            stream.sorted(Comparator.reverseOrder()).forEach(p -> {
+                try { Files.deleteIfExists(p); } catch (IOException ignored) { /* best-effort deletion */ }
+            });
+        } catch (IOException e) {
+            log.warn("Failed to clean up temp directory: {}", tempDir, e);
+        }
     }
 
     private String getProjectId(Document doc) {
