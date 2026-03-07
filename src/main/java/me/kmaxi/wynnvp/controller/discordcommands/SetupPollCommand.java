@@ -94,8 +94,12 @@ public class SetupPollCommand implements ICommandImpl {
                             PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
                     tempDir = Files.createTempDirectory("poll-setup-", ownerOnly);
                 } catch (UnsupportedOperationException e) {
-                    // Non-POSIX filesystem (e.g. Windows) — default temp dir permissions apply
+                    // Non-POSIX filesystem (e.g. Windows) — restrict permissions explicitly
                     tempDir = Files.createTempDirectory("poll-setup-");
+                    File dir = tempDir.toFile();
+                    dir.setReadable(true, true);
+                    dir.setWritable(true, true);
+                    dir.setExecutable(true, true);
                 }
 
                 Document doc = Jsoup.connect(url).get();
