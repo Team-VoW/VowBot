@@ -9,10 +9,6 @@ import me.kmaxi.wynnvp.dtos.VowDialogueDTO;
 import me.kmaxi.wynnvp.enums.LineType;
 import me.kmaxi.wynnvp.enums.SetLinesCommand;
 import okhttp3.*;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -44,36 +40,6 @@ public class LineReportService {
             });
         } catch (Exception e) {
             log.error("Error fetching messages: ", e);
-            return List.of(); // Return an empty list in case of an error
-        }
-    }
-
-    public boolean resetForwarded() {
-        try {
-            String url = "https://voicesofwynn.com/api/unvoiced-line-report/reset";
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Content-Type", FORM_URLENCODED);
-
-            String data = "apiKey=" + apiKeys.updateApiKey;
-            HttpEntity<String> entity = new HttpEntity<>(data, headers);
-
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
-            return !response.getStatusCode().isError();
-        } catch (Exception e) {
-            log.error("Error resetting forwarded lines: ", e);
-            return false;
-        }
-    }
-
-    public List<LineReportDTO> getNewReports() {
-        try {
-            String url = "http://voicesofwynn.com/api/unvoiced-line-report/index?apiKey=" + apiKeys.readingApiKey;
-            String response = restTemplate.getForObject(url, String.class);
-
-            return objectMapper.readValue(response, new TypeReference<>() {
-            });
-        } catch (Exception e) {
-            log.error("Error fetching new reports: ", e);
             return List.of(); // Return an empty list in case of an error
         }
     }
