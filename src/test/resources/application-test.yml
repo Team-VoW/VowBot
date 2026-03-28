@@ -1,0 +1,28 @@
+bot:
+  token: test-token
+
+api:
+  reading:
+    key: test-reading-key
+  update:
+    key: test-update-key
+  discord_integration:
+    key: test-integration-key
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+  sql:
+    init:
+      mode: never
+
+logging:
+  level:
+    me.kmaxi.wynnvp: DEBUG
