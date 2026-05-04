@@ -45,7 +45,8 @@ public class CreateChannelCommand implements ICommandImpl {
                 .addRolePermissionOverride(Config.TRAINEE_ROLE, traineePerms(), null)
                 .addPermissionOverride(guild.getPublicRole(), null, permissions())
                 .queue(textChannel -> textChannel.sendMessage("Congrats " + user.getAsMention() + " for getting the role as **" + npcName + "** :partying_face: "
-                        + "\n \nPlease send in the recordings for this character in one wav file as soon as you are able to.  "
+                        + "\n \nPlease send in the recordings for this character **in one wav file** as soon as you are able to.  "
+                        + "If your file exceeds Discord upload limit (or you don't want to upload to Discord), you can rename your file to `" + npcName + ".wav` and upload it to our filedrop at https://voicesofwynn.com/submit. Once you do, please send a message here to inform the cast manager of your submission.  "
                         + "Once every person that voices a character in this quest has sent in their lines it will be added to the mod and website (https://voicesofwynn.com). "
                         + "If this is your first role then you'll get login details for your account when it's uploaded."
                         + "\n\nA staff member will send the script of this quest very soon."
