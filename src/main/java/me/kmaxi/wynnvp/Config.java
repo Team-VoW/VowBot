@@ -17,6 +17,7 @@ public class Config {
     public static final long CATEGORY_ID_2 = 1348201751165272074L;
     public static final long CLOSING_CATEGORY_ID = 867868540320743485L;
     public static final long ACCEPTED_CATEGORY_ID = 821787630726938674L;
+    // Currently the same category as accepted channels, but kept separate for commands that target recording collection setup.
     public static final long RECORDING_COLLECTION_CATEGORY_ID = 821787630726938674L;
     public static final long TRAINEE_ROLE = 835558288489578536L;
     public static final long LOG_COLLECTORS_ROLE_ID = 937440477320466442L;

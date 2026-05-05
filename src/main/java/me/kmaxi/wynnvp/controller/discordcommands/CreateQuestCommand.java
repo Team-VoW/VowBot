@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -22,7 +23,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 
 @Slf4j
 @Component
@@ -33,8 +37,9 @@ public class CreateQuestCommand implements ICommandImpl {
     private static final String NPCS_OPTION = "npcs";
 
     private final Executor questSetupExecutor;
+    private final ConcurrentMap<String, Object> questLocks = new ConcurrentHashMap<>();
 
-    public CreateQuestCommand(Executor questSetupExecutor) {
+    public CreateQuestCommand(@Qualifier("questSetupExecutor") Executor questSetupExecutor) {
         this.questSetupExecutor = questSetupExecutor;
     }
 
@@ -58,7 +63,12 @@ public class CreateQuestCommand implements ICommandImpl {
         String questName = Objects.requireNonNull(event.getOption(NAME_OPTION)).getAsString().trim();
         List<String> npcNames = parseNpcNames(Objects.requireNonNull(event.getOption(NPCS_OPTION)).getAsString());
 
-        questSetupExecutor.execute(() -> setupQuest(event, questName, npcNames));
+        try {
+            questSetupExecutor.execute(() -> setupQuest(event, questName, npcNames));
+        } catch (RejectedExecutionException exception) {
+            log.error("Failed scheduling quest setup for {}", questName, exception);
+            event.getHook().editOriginal("The quest setup queue is full. Please try again shortly.").queue();
+        }
     }
 
     private void setupQuest(SlashCommandInteractionEvent event, String questName, List<String> npcNames) {
@@ -84,22 +94,28 @@ public class CreateQuestCommand implements ICommandImpl {
         List<String> skippedThreads = new ArrayList<>();
 
         try {
-            TextChannel questChannel = getOrCreateQuestChannel(guild, recordingCollectionCategory, questName);
-            Set<String> existingThreadNames = getExistingThreadNames(questChannel);
+            String lockKey = getQuestLockKey(guild, questName);
+            Object lock = questLocks.computeIfAbsent(lockKey, key -> new Object());
+            TextChannel questChannel;
 
-            for (String npcName : npcNames) {
-                String normalizedNpcName = npcName.toLowerCase(Locale.ROOT);
-                if (existingThreadNames.contains(normalizedNpcName)) {
-                    skippedThreads.add(npcName);
-                    continue;
+            synchronized (lock) {
+                questChannel = getOrCreateQuestChannel(guild, recordingCollectionCategory, questName);
+                Set<String> existingThreadNames = getExistingThreadNames(questChannel);
+
+                for (String npcName : npcNames) {
+                    String normalizedNpcName = npcName.toLowerCase(Locale.ROOT);
+                    if (existingThreadNames.contains(normalizedNpcName)) {
+                        skippedThreads.add(npcName);
+                        continue;
+                    }
+
+                    ThreadChannel threadChannel = questChannel.createThreadChannel(npcName)
+                            .setAutoArchiveDuration(ThreadChannel.AutoArchiveDuration.TIME_1_WEEK)
+                            .complete();
+                    threadChannel.sendMessage(getSubmissionMessage(guild, questName, npcName)).complete();
+                    createdThreads.add(npcName);
+                    existingThreadNames.add(normalizedNpcName);
                 }
-
-                ThreadChannel threadChannel = questChannel.createThreadChannel(npcName)
-                        .setAutoArchiveDuration(ThreadChannel.AutoArchiveDuration.TIME_1_WEEK)
-                        .complete();
-                threadChannel.sendMessage(getSubmissionMessage(guild, questName, npcName)).complete();
-                createdThreads.add(npcName);
-                existingThreadNames.add(normalizedNpcName);
             }
 
             event.getHook().editOriginal(getSuccessMessage(questChannel, createdThreads, skippedThreads)).queue();
@@ -150,6 +166,10 @@ public class CreateQuestCommand implements ICommandImpl {
         }
 
         return null;
+    }
+
+    private static String getQuestLockKey(Guild guild, String questName) {
+        return guild.getId() + ":" + Utils.getChannelName(questName).toLowerCase(Locale.ROOT);
     }
 
     private static TextChannel getOrCreateQuestChannel(Guild guild, Category category, String questName) {
