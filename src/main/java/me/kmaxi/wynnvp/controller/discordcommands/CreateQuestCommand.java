@@ -109,7 +109,7 @@ public class CreateQuestCommand implements ICommandImpl {
                         continue;
                     }
 
-                    ThreadChannel threadChannel = questChannel.createThreadChannel(npcName)
+                    ThreadChannel threadChannel = questChannel.createThreadChannel(npcName, true)
                             .setAutoArchiveDuration(ThreadChannel.AutoArchiveDuration.TIME_1_WEEK)
                             .complete();
                     threadChannel.sendMessage(getSubmissionMessage(guild, questName, npcName)).complete();
@@ -190,6 +190,9 @@ public class CreateQuestCommand implements ICommandImpl {
         questChannel.getThreadChannels()
                 .forEach(thread -> threadNames.add(thread.getName().toLowerCase(Locale.ROOT)));
         questChannel.retrieveArchivedPublicThreadChannels()
+                .complete()
+                .forEach(thread -> threadNames.add(thread.getName().toLowerCase(Locale.ROOT)));
+        questChannel.retrieveArchivedPrivateThreadChannels()
                 .complete()
                 .forEach(thread -> threadNames.add(thread.getName().toLowerCase(Locale.ROOT)));
 
