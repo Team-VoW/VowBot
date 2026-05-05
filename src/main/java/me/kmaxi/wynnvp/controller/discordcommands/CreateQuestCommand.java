@@ -94,9 +94,10 @@ public class CreateQuestCommand implements ICommandImpl {
                     continue;
                 }
 
-                questChannel.createThreadChannel(npcName)
+                ThreadChannel threadChannel = questChannel.createThreadChannel(npcName)
                         .setAutoArchiveDuration(ThreadChannel.AutoArchiveDuration.TIME_1_WEEK)
                         .complete();
+                threadChannel.sendMessage(getSubmissionMessage(guild, questName, npcName)).complete();
                 createdThreads.add(npcName);
                 existingThreadNames.add(normalizedNpcName);
             }
@@ -173,6 +174,15 @@ public class CreateQuestCommand implements ICommandImpl {
                 .forEach(thread -> threadNames.add(thread.getName().toLowerCase(Locale.ROOT)));
 
         return threadNames;
+    }
+
+    private static String getSubmissionMessage(Guild guild, String questName, String npcName) {
+        return "Please send in the recordings for **" + npcName + "** in **one wav file** as soon as you are able to. "
+                + "If your file exceeds Discord upload limit (or you don't want to upload to Discord), you can rename your file to `" + npcName + ".wav` and upload it to our filedrop at https://voicesofwynn.com/submit. Once you do, please send a message here to inform the cast manager of your submission. "
+                + "Once every person that voices a character in **" + questName + "** has sent in their lines it will be added to the mod and website (https://voicesofwynn.com). "
+                + "If this is your first role then you'll get login details for your account when it's uploaded."
+                + "\n\nA staff member will send the script of this quest very soon."
+                + "\n\nBy voicing this character, you agreed to the terms listed in " + Objects.requireNonNull(guild.getTextChannelById(820027818799792129L)).getAsMention();
     }
 
     private static String getSuccessMessage(TextChannel questChannel, List<String> createdThreads, List<String> skippedThreads) {
