@@ -24,6 +24,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -48,7 +49,7 @@ public class SetupPollCommand implements ICommandImpl {
     private final AudioConversionService audioConversionService;
     private final Executor pollSetupExecutor;
 
-    public SetupPollCommand(DiscordPollHandler pollHandler, APIKeys apiKeys, AudioConversionService audioConversionService, Executor pollSetupExecutor) {
+    public SetupPollCommand(DiscordPollHandler pollHandler, APIKeys apiKeys, AudioConversionService audioConversionService, @Qualifier("pollSetupExecutor") Executor pollSetupExecutor) {
         this.pollHandler = pollHandler;
         this.apiKeys = apiKeys;
         this.audioConversionService = audioConversionService;
