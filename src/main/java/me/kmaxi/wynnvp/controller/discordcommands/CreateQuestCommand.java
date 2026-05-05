@@ -80,10 +80,11 @@ public class CreateQuestCommand implements ICommandImpl {
             return;
         }
 
+        List<String> createdThreads = new ArrayList<>();
+        List<String> skippedThreads = new ArrayList<>();
+
         try {
             TextChannel questChannel = getOrCreateQuestChannel(guild, recordingCollectionCategory, questName);
-            List<String> createdThreads = new ArrayList<>();
-            List<String> skippedThreads = new ArrayList<>();
             Set<String> existingThreadNames = getExistingThreadNames(questChannel);
 
             for (String npcName : npcNames) {
@@ -103,7 +104,7 @@ public class CreateQuestCommand implements ICommandImpl {
             event.getHook().editOriginal(getSuccessMessage(questChannel, createdThreads, skippedThreads)).queue();
         } catch (RuntimeException exception) {
             log.error("Failed creating quest {}", questName, exception);
-            event.getHook().editOriginal("Failed to create the quest setup. Check the bot logs for details.").queue();
+            event.getHook().editOriginal(getFailureMessage(createdThreads, skippedThreads)).queue();
         }
     }
 
@@ -186,6 +187,24 @@ public class CreateQuestCommand implements ICommandImpl {
         if (!skippedThreads.isEmpty()) {
             message.append(" Skipped existing thread")
                     .append(skippedThreads.size() == 1 ? ": " : "s: ")
+                    .append(String.join(", ", skippedThreads))
+                    .append(".");
+        }
+
+        return message.toString();
+    }
+
+    private static String getFailureMessage(List<String> createdThreads, List<String> skippedThreads) {
+        StringBuilder message = new StringBuilder("Failed to finish the quest setup. Check the bot logs for details.");
+
+        if (!createdThreads.isEmpty()) {
+            message.append(" Created before failing: ")
+                    .append(String.join(", ", createdThreads))
+                    .append(".");
+        }
+
+        if (!skippedThreads.isEmpty()) {
+            message.append(" Already existed: ")
                     .append(String.join(", ", skippedThreads))
                     .append(".");
         }
