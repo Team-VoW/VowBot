@@ -61,7 +61,7 @@ public class CreateAccountCommand implements ICommandImpl {
             } else {
                 user.openPrivateChannel().queue(channel ->
                         channel.sendMessage("An account with the name " + member.getUser().getName() + " and the temporary password ||" +
-                                password + "|| has been created for you on our website https://voicesofwynn.com/ " +
+                                password + "|| has been created for you on our website https://voicesofwynn.com/login " +
                                 "\n\n Feel free to go in there and change your bio, profile picture and more! :grin:").queue(
                                 success -> event.getHook().setEphemeral(true).editOriginal("Account created and private message sent to the user.").queue(),
                                 error -> event.getHook().setEphemeral(true).editOriginal("Failed to send a message to the user. Please send them the password: ||" + password + "||").queue()));

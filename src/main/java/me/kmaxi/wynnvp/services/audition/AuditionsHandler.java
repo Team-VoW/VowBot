@@ -79,7 +79,7 @@ public class AuditionsHandler {
                 } else {
                     resultFuture.complete("Thanks a lot for voicing your very first character for us " + member.getAsMention() + ":heart::partying_face:." +
                             "\n\n An account with the name " + member.getUser().getName() + " and the temporary password ||" +
-                            password + "|| has been created for you on our website https://voicesofwynn.com/ " +
+                            password + "|| has been created for you on our website https://voicesofwynn.com/login " +
                             "\n\n Once everyone voice actor from this quest has sent in their lines, everything will be " +
                             " added to all the voice actors accounts. Feel free to go in there and change your bio, profile picture and we appreciate if you could fill out your **e-mail** so we can contact you easily if needed (feel free to make it private)! :grin:");
                 }
