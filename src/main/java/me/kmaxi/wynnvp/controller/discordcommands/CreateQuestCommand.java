@@ -33,6 +33,7 @@ import java.util.concurrent.RejectedExecutionException;
 public class CreateQuestCommand implements ICommandImpl {
 
     private static final int DISCORD_CHANNEL_NAME_LIMIT = 100;
+    private static final long VOICE_GUIDE_ROLE_ID = 1426658009974837409L;
     private static final String NAME_OPTION = "name";
     private static final String NPCS_OPTION = "npcs";
 
@@ -112,7 +113,7 @@ public class CreateQuestCommand implements ICommandImpl {
                     ThreadChannel threadChannel = questChannel.createThreadChannel(npcName, true)
                             .setAutoArchiveDuration(ThreadChannel.AutoArchiveDuration.TIME_1_WEEK)
                             .complete();
-                    threadChannel.sendMessage(getSubmissionMessage(guild, questName, npcName)).complete();
+                    threadChannel.sendMessage(getSubmissionMessage(guild, questChannel, questName, npcName)).complete();
                     createdThreads.add(npcName);
                     existingThreadNames.add(normalizedNpcName);
                 }
@@ -199,13 +200,18 @@ public class CreateQuestCommand implements ICommandImpl {
         return threadNames;
     }
 
-    private static String getSubmissionMessage(Guild guild, String questName, String npcName) {
-        return "Please send in the recordings for **" + npcName + "** in **one wav file** as soon as you are able to. "
-                + "If your file exceeds Discord upload limit (or you don't want to upload to Discord), you can rename your file to `" + npcName + ".wav` and upload it to our filedrop at https://voicesofwynn.com/submit. Once you do, please send a message here to inform the cast manager of your submission. "
-                + "Once every person that voices a character in **" + questName + "** has sent in their lines it will be added to the mod and website (https://voicesofwynn.com). "
-                + "If this is your first role then you'll get login details for your account when it's uploaded."
-                + "\n\nA staff member will send the script of this quest very soon."
-                + "\n\nBy voicing this character, you agreed to the terms listed in " + Objects.requireNonNull(guild.getTextChannelById(820027818799792129L)).getAsMention();
+    private static String getSubmissionMessage(Guild guild, TextChannel questChannel, String questName, String npcName) {
+        return "# IMPORTANT PLEASE READ"
+                + "\nCongratulations on getting the role! By voicing this character, you agree to the terms in " + Objects.requireNonNull(guild.getTextChannelById(820027818799792129L)).getAsMention() + "."
+                + "\n\n### Submission Directions"
+                + "\nPlease send in the final recording for " + npcName + " in one .wav file. If it is too large, rename it to " + npcName + ".wav, upload it to https://voicesofwynn.com/submit, and let us know in this thread."
+                + "\nIf your character is in multiple scripts, each script's lines should be in a separate file and be named " + questName + "-" + npcName + ".wav."
+                + "\n\nIf you wish, you may ping <@&" + VOICE_GUIDE_ROLE_ID + "> for feedback. This is not required."
+                + "\n\nOnce your lines are checked, your voice actor role will be updated on Discord and on our website. If you don't have a contributor account yet, it will be created."
+                + "\n\n### Deadline is one week."
+                + "\nArrangements can be made if this is not possible but please communicate with us. If you have multiple scripts to finish, you may finish one or more scripts per week."
+                + "\n\n### Script"
+                + "\nPronunciation guide and script are in " + questChannel.getAsMention() + ". We will let you know if you have multiple scripts or any other special directions.";
     }
 
     private static String getSuccessMessage(TextChannel questChannel, List<String> createdThreads, List<String> skippedThreads) {
