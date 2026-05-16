@@ -1,7 +1,6 @@
 package me.kmaxi.wynnvp.utils;
 
 import me.kmaxi.wynnvp.Config;
-import me.kmaxi.wynnvp.dtos.UserDTO;
 import net.dv8tion.jda.api.entities.Member;
 
 import java.util.ArrayList;
@@ -11,8 +10,8 @@ public class MemberUtils {
     private MemberUtils() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
-    public static List<UserDTO.RoleDTO> getRoles(Member discordMember) {
-        List<UserDTO.RoleDTO> roles = new ArrayList<>();
+    public static List<String> getRoleNames(Member discordMember) {
+        List<String> roleNames = new ArrayList<>();
 
         //For each role user has in discord
         discordMember.getRoles().forEach(role -> {
@@ -22,9 +21,9 @@ public class MemberUtils {
             if (!Config.DISCORD_ROLES_TO_UPDATE_TO_WEBSITE.contains(roleName)) {
                 return;
             }
-            roles.add(new UserDTO.RoleDTO(roleName));
+            roleNames.add(roleName);
 
         });
-        return roles;
+        return roleNames;
     }
 }
