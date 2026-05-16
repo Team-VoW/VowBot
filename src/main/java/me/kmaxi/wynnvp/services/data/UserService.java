@@ -6,6 +6,7 @@ import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.dtos.UserDTO;
 import me.kmaxi.wynnvp.utils.MemberUtils;
 import net.dv8tion.jda.api.entities.Member;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +29,7 @@ public class UserService {
 
     private final RestTemplate restTemplate;
 
+    @Autowired
     public UserService(APIKeys apiKeys) {
         this(apiKeys, new RestTemplate());
     }
@@ -150,7 +152,7 @@ public class UserService {
     }
 
     private boolean shouldSyncDiscordPicture(UserDTO userDTO) {
-        return userDTO.getPictureType() == null || userDTO.getPictureType() == UserDTO.PictureType.Default;
+        return userDTO.getPictureType() == null || userDTO.getPictureType() == UserDTO.PictureType.DEFAULT;
     }
 
     public UserDTO fromMember(Member member) {
@@ -158,7 +160,7 @@ public class UserService {
         userDTO.setDiscordName(member.getUser().getName());
         userDTO.setDiscordId(member.getUser().getIdLong());
         userDTO.setAvatarUrl(member.getEffectiveAvatarUrl());
-        userDTO.setPictureType(UserDTO.PictureType.Default);
+        userDTO.setPictureType(UserDTO.PictureType.DEFAULT);
         userDTO.setRoleNames(MemberUtils.getRoleNames(member));
 
         return userDTO;

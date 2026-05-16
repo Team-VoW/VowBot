@@ -1,5 +1,6 @@
 package me.kmaxi.wynnvp.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -19,8 +20,11 @@ public class UserDTO {
     private List<String> roleNames;
 
     public enum PictureType {
-        Default,
-        Discord,
-        Manual
+        @JsonProperty("Default")
+        DEFAULT,
+        @JsonProperty("Discord")
+        DISCORD,
+        @JsonProperty("Manual")
+        MANUAL
     }
 }

@@ -66,14 +66,14 @@ class UserServiceTest {
         assertThat(user.getUserId()).isEqualTo(42);
         assertThat(user.getDiscordId()).isEqualTo(123456789L);
         assertThat(user.getAvatarUrl()).isEqualTo("https://example.com/avatar.png");
-        assertThat(user.getPictureType()).isEqualTo(UserDTO.PictureType.Manual);
+        assertThat(user.getPictureType()).isEqualTo(UserDTO.PictureType.MANUAL);
         assertThat(user.getRoleNames()).containsExactly("Admin", "Writer");
         server.verify();
     }
 
     @Test
     void setUserIfNeededSendsDiscordAvatarWhenPictureTypeIsDefault() throws Exception {
-        UserDTO user = websiteUser(UserDTO.PictureType.Default, "https://website.example/current.png", List.of());
+        UserDTO user = websiteUser(UserDTO.PictureType.DEFAULT, "https://website.example/current.png", List.of());
 
         server.expect(once(), requestTo(Config.URL_DISCORD_INTEGRATION + "/users/sync"))
                 .andExpect(method(HttpMethod.POST))
@@ -98,7 +98,7 @@ class UserServiceTest {
 
     @Test
     void setUserIfNeededKeepsWebsiteAvatarWhenPictureTypeIsManual() throws Exception {
-        UserDTO user = websiteUser(UserDTO.PictureType.Manual, "https://website.example/manual.png", List.of("Writer"));
+        UserDTO user = websiteUser(UserDTO.PictureType.MANUAL, "https://website.example/manual.png", List.of("Writer"));
 
         server.expect(once(), requestTo(Config.URL_DISCORD_INTEGRATION + "/users/sync"))
                 .andExpect(method(HttpMethod.POST))
