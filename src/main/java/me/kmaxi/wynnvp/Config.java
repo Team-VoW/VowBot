@@ -31,7 +31,7 @@ public class Config {
     public static final String TRASH_UNICODE = "\uD83D\uDDD1";
 
     public static final Set<String> DISCORD_ROLES_TO_UPDATE_TO_WEBSITE = new HashSet<>(Arrays.asList(
-            "Project Director", "Admin", "Developer", "Cast Manager", "Voice Manager", "Sound Editor",
+            "Project Director", "Admin", "Developer", "Cast Manager", "Voice Manager", "Sound Editor", "Trial Sound Editor",
             "Writer", "Moderator", "Expert Actor", "Skilled Actor", "Top funder",
             "Advanced Actor", "Beginner Actor", "Former Staff"));
 
