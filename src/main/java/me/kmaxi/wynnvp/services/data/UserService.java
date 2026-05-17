@@ -152,7 +152,7 @@ public class UserService {
     }
 
     private boolean shouldSyncDiscordPicture(UserDTO userDTO) {
-        return userDTO.getPictureType() == null || userDTO.getPictureType() == UserDTO.PictureType.DEFAULT;
+        return userDTO.getAvatarType() == null || userDTO.getAvatarType() == UserDTO.PictureType.DEFAULT;
     }
 
     public UserDTO fromMember(Member member) {
@@ -160,7 +160,7 @@ public class UserService {
         userDTO.setDiscordName(member.getUser().getName());
         userDTO.setDiscordId(member.getUser().getIdLong());
         userDTO.setAvatarUrl(member.getEffectiveAvatarUrl());
-        userDTO.setPictureType(UserDTO.PictureType.DEFAULT);
+        userDTO.setAvatarType(UserDTO.PictureType.DEFAULT);
         userDTO.setRoleNames(MemberUtils.getRoleNames(member));
 
         return userDTO;

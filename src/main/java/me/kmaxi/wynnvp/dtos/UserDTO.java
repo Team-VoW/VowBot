@@ -16,7 +16,7 @@ public class UserDTO {
     private long discordId;
     private String discordName;
     private String avatarUrl;
-    private PictureType pictureType;
+    private PictureType avatarType;
     private List<String> roleNames;
 
     public enum PictureType {

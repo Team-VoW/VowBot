@@ -54,7 +54,7 @@ class UserServiceTest {
                           "discordId": "123456789",
                           "discordName": "DiscordName",
                           "avatarUrl": "https://example.com/avatar.png",
-                          "pictureType": "Manual",
+                          "avatarType": "Manual",
                           "roleNames": ["Admin", "Writer"]
                         }]
                         """, MediaType.APPLICATION_JSON));
@@ -66,13 +66,13 @@ class UserServiceTest {
         assertThat(user.getUserId()).isEqualTo(42);
         assertThat(user.getDiscordId()).isEqualTo(123456789L);
         assertThat(user.getAvatarUrl()).isEqualTo("https://example.com/avatar.png");
-        assertThat(user.getPictureType()).isEqualTo(UserDTO.PictureType.MANUAL);
+        assertThat(user.getAvatarType()).isEqualTo(UserDTO.PictureType.MANUAL);
         assertThat(user.getRoleNames()).containsExactly("Admin", "Writer");
         server.verify();
     }
 
     @Test
-    void setUserIfNeededSendsDiscordAvatarWhenPictureTypeIsDefault() throws Exception {
+    void setUserIfNeededSendsDiscordAvatarWhenAvatarTypeIsDefault() throws Exception {
         UserDTO user = websiteUser(UserDTO.PictureType.DEFAULT, "https://website.example/current.png", List.of());
 
         server.expect(once(), requestTo(Config.URL_DISCORD_INTEGRATION + "/users/sync"))
@@ -97,7 +97,7 @@ class UserServiceTest {
     }
 
     @Test
-    void setUserIfNeededKeepsWebsiteAvatarWhenPictureTypeIsManual() throws Exception {
+    void setUserIfNeededKeepsWebsiteAvatarWhenAvatarTypeIsManual() throws Exception {
         UserDTO user = websiteUser(UserDTO.PictureType.MANUAL, "https://website.example/manual.png", List.of("Writer"));
 
         server.expect(once(), requestTo(Config.URL_DISCORD_INTEGRATION + "/users/sync"))
@@ -120,13 +120,13 @@ class UserServiceTest {
         server.verify();
     }
 
-    private static UserDTO websiteUser(UserDTO.PictureType pictureType, String avatarUrl, List<String> roles) {
+    private static UserDTO websiteUser(UserDTO.PictureType avatarType, String avatarUrl, List<String> roles) {
         UserDTO user = new UserDTO();
         user.setDisplayName("WebsiteName");
         user.setDiscordId(99L);
         user.setDiscordName("DiscordName");
         user.setAvatarUrl(avatarUrl);
-        user.setPictureType(pictureType);
+        user.setAvatarType(avatarType);
         user.setRoleNames(roles);
         return user;
     }
