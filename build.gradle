@@ -53,6 +53,8 @@ dependencies {
 
     // FFmpeg for audio conversion
     implementation 'net.bramp.ffmpeg:ffmpeg:0.8.0'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 sonar {
