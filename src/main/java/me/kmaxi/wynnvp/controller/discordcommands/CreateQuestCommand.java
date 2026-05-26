@@ -113,7 +113,7 @@ public class CreateQuestCommand implements ICommandImpl {
                     ThreadChannel threadChannel = questChannel.createThreadChannel(npcName, true)
                             .setAutoArchiveDuration(ThreadChannel.AutoArchiveDuration.TIME_1_WEEK)
                             .complete();
-                    threadChannel.sendMessage(getSubmissionMessage(guild, questChannel, questName, npcName)).complete();
+                    threadChannel.sendMessage(getSubmissionMessage(guild, questChannel, npcName)).complete();
                     createdThreads.add(npcName);
                     existingThreadNames.add(normalizedNpcName);
                 }
@@ -200,12 +200,12 @@ public class CreateQuestCommand implements ICommandImpl {
         return threadNames;
     }
 
-    private static String getSubmissionMessage(Guild guild, TextChannel questChannel, String questName, String npcName) {
-        return "# IMPORTANT PLEASE READ"
-                + "\nCongratulations on getting the role! By voicing this character, you agree to the terms in " + Objects.requireNonNull(guild.getTextChannelById(820027818799792129L)).getAsMention() + "."
+    private static String getSubmissionMessage(Guild guild, TextChannel questChannel, String npcName) {
+        return "Congratulations on getting the role! By voicing this character, you agree to the terms in " + Objects.requireNonNull(guild.getTextChannelById(820027818799792129L)).getAsMention() + "."
+                + "\n\n# Please read the information below, as it is very important."
                 + "\n\n### Submission Directions"
-                + "\nPlease send in the final recording for " + npcName + " in one .wav file. If it is too large, rename it to " + npcName + ".wav, upload it to https://voicesofwynn.com/submit, and let us know in this thread."
-                + "\nIf your character is in multiple scripts, each script's lines should be in a separate file and be named " + questName + "-" + npcName + ".wav."
+                + "\nPlease send in the final recording for " + npcName + " in one raw .wav file, no noise reduction performed. If it is too large, rename it to " + npcName + ".wav, upload it to https://voicesofwynn.com/submit, and let us know in this thread."
+                + "\nThe file must be in AABBCC format, maximum of two takes per line, with 5 seconds of silence at the beginning and end of the file for our editors to use in noise reduction."
                 + "\n\nIf you wish, you may ping <@&" + VOICE_GUIDE_ROLE_ID + "> for feedback. This is not required."
                 + "\n\nOnce your lines are checked, your voice actor role will be updated on Discord and on our website. If you don't have a contributor account yet, it will be created."
                 + "\n\n### Deadline is one week."
