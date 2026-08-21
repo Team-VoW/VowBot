@@ -22,6 +22,8 @@ public class Config {
     public static final long TRAINEE_ROLE = 835558288489578536L;
     public static final long LOG_COLLECTORS_ROLE_ID = 937440477320466442L;
     public static final long STAFF_VOTING_CHANNEL_ID = 846410802777161748L;
+    public static final long CAST_MANAGER_ROLE_ID = 1125091788630274121L;
+    public static final String CAST_MANAGER_ROLE_NAME = "Cast Manager";
 
     public static final String URL_DISCORD_INTEGRATION = "https://voicesofwynn.com/vow-api/integrations/discord";
 
@@ -31,7 +33,7 @@ public class Config {
     public static final String TRASH_UNICODE = "\uD83D\uDDD1";
 
     public static final Set<String> DISCORD_ROLES_TO_UPDATE_TO_WEBSITE = new HashSet<>(Arrays.asList(
-            "Project Director", "Admin", "Developer", "Cast Manager", "Voice Manager", "Sound Editor", "Trial Sound Editor",
+            "Project Director", "Admin", "Developer", CAST_MANAGER_ROLE_NAME, "Voice Manager", "Sound Editor", "Trial Sound Editor",
             "Writer", "Moderator", "Expert Actor", "Skilled Actor", "Top funder",
             "Advanced Actor", "Beginner Actor", "Former Staff"));
 

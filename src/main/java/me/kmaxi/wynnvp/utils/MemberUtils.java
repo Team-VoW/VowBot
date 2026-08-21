@@ -15,6 +15,11 @@ public class MemberUtils {
 
         //For each role user has in discord
         discordMember.getRoles().forEach(role -> {
+            if (role.getIdLong() == Config.CAST_MANAGER_ROLE_ID) {
+                roleNames.add(Config.CAST_MANAGER_ROLE_NAME);
+                return;
+            }
+
             String roleName = role.getName();
 
             //Is a weird role that should not be published to the website
