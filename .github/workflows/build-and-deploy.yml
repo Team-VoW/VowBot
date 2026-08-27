@@ -23,12 +23,11 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Build executable JAR
+        run: ./gradlew clean bootJar
 
-      - name: Rename jar to vowbot.jar
-        run: |
-          find build/libs -name "*.jar" -type f -exec cp {} vowbot.jar \;
+      - name: Stage executable JAR
+        run: cp build/libs/vowbot.jar vowbot.jar
 
       - name: Copy Dockerfile
         run: cp Dockerfile dockerfile

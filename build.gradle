@@ -12,17 +12,11 @@ group 'org.example'
 version '1.0-SNAPSHOT'
 
 jar {
-    manifest {
-        attributes(
-                'Main-Class': 'me.kmaxi.wynnvp.WynnVPBotMain'
-        )
-    }
+    enabled = false
 }
 
-shadowJar {
-    manifest {
-        attributes 'Main-Class': 'me/kmaxi/wynnvp/WynnVPBotMain'
-    }
+bootJar {
+    archiveFileName = 'vowbot.jar'
 }
 
 repositories {
