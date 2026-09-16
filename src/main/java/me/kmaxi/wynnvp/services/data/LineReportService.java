@@ -1,100 +1,105 @@
 package me.kmaxi.wynnvp.services.data;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.APIKeys;
+import me.kmaxi.wynnvp.Config;
+import me.kmaxi.wynnvp.dtos.LineQueryResponseDTO;
 import me.kmaxi.wynnvp.dtos.LineReportDTO;
 import me.kmaxi.wynnvp.dtos.VowDialogueDTO;
 import me.kmaxi.wynnvp.enums.LineType;
 import me.kmaxi.wynnvp.enums.SetLinesCommand;
-import okhttp3.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import java.io.IOException;
-import java.util.List;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @Slf4j
 public class LineReportService {
 
-    private static final String FORM_URLENCODED = "application/x-www-form-urlencoded";
+    /** The API accepts up to 2000 messages per call; staying well under that keeps requests small. */
+    private static final int CHUNK_SIZE = 500;
+
+    private static final int MAX_LINES_PER_QUERY = 2000;
 
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
     private final APIKeys apiKeys;
 
     public LineReportService(APIKeys apiKeys) {
+        this(apiKeys, new RestTemplate());
+    }
+
+    LineReportService(APIKeys apiKeys, RestTemplate restTemplate) {
         this.apiKeys = apiKeys;
-        this.restTemplate = new RestTemplate();
-        this.objectMapper = new ObjectMapper();
+        this.restTemplate = restTemplate;
     }
 
     public List<LineReportDTO> fetchMessages(LineType type, String npcName) {
-        try {
-            String url = getReadingUrl(type, npcName);
-            String response = restTemplate.getForObject(url, String.class);
+        // UriComponentsBuilder encodes the NPC name; the old code only replaced spaces, so a name
+        // holding an '&' silently truncated the query.
+        UriComponentsBuilder url = UriComponentsBuilder.fromUriString(Config.URL_BOT_REPORTS + "/lines")
+                .queryParam("npc", npcName)
+                .queryParam("limit", MAX_LINES_PER_QUERY);
+        type.getStatuses().forEach(status -> url.queryParam("statuses", status));
 
-            return objectMapper.readValue(response, new TypeReference<>() {
-            });
+        try {
+            LineQueryResponseDTO response = restTemplate
+                    .exchange(
+                            url.encode().toUriString(),
+                            HttpMethod.GET,
+                            new HttpEntity<>(createHeaders()),
+                            LineQueryResponseDTO.class)
+                    .getBody();
+
+            return response == null ? List.of() : response.getResults();
         } catch (Exception e) {
             log.error("Error fetching messages: ", e);
             return List.of(); // Return an empty list in case of an error
         }
     }
 
-    private String getReadingUrl(LineType type, String npcName) {
-        return "https://voicesofwynn.com/api/unvoiced-line-report/" + type.getApiKeyword() + "?npc="
-                + npcName.replace(" ", "%20") + "&apiKey=" + apiKeys.readingApiKey;
-    }
-
     public boolean setLinesAsVoiced(List<VowDialogueDTO> lines, SetLinesCommand command) {
-        int chunkSize = 500;
-        if (lines.size() <= chunkSize) {
-            return setLinesAsVoicesNoSplit(lines, command);
-        }
         boolean allSuccess = true;
-        for (int i = 0; i < lines.size(); i += chunkSize) {
-            List<VowDialogueDTO> chunk = lines.subList(i, Math.min(i + chunkSize, lines.size()));
-            boolean success = setLinesAsVoicesNoSplit(chunk, command);
-            if (!success) {
+        for (int i = 0; i < lines.size(); i += CHUNK_SIZE) {
+            List<String> chunk = lines.subList(i, Math.min(i + CHUNK_SIZE, lines.size())).stream()
+                    .map(VowDialogueDTO::getLine)
+                    .toList();
+            if (!sendChunk(chunk, command)) {
                 allSuccess = false;
             }
         }
         return allSuccess;
     }
 
-    private boolean setLinesAsVoicesNoSplit(List<VowDialogueDTO> lines, SetLinesCommand command) {
-        OkHttpClient client = new OkHttpClient().newBuilder().build();
-        MediaType mediaType = MediaType.parse(FORM_URLENCODED);
+    private boolean sendChunk(List<String> chatMessages, SetLinesCommand command) {
+        String url = Config.URL_BOT_REPORTS + "/lines" + (command.isDelete() ? "" : "/status");
+        Map<String, Object> body = command.isDelete()
+                ? Map.of("chatMessages", chatMessages)
+                : Map.of("chatMessages", chatMessages, "status", command.getApiStatus());
 
-        // Build the lines[] parameters from the VowDialogueDTO list
-        StringBuilder linesParam = new StringBuilder();
-        for (VowDialogueDTO dto : lines) {
-            if (!linesParam.isEmpty()) linesParam.append("&");
-            linesParam.append("lines[]=").append(dto.getLine());
-        }
-        String bodyString = "apiKey=" + "testing" + (!linesParam.isEmpty() ? "&" + linesParam : "") + "&status=" + command.getShorthand();
-        RequestBody body = RequestBody.create(bodyString, mediaType);
-
-        Request request = new Request.Builder()
-                .url("https://voicesofwynn.com/api/unvoiced-line-report/import")
-                .method("POST", body)
-                .addHeader("Content-Type", FORM_URLENCODED)
-                .build();
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                log.error("Failed to set lines as voiced: {}", response.message());
-                return false;
-            }
-            assert response.body() != null;
-            String responseBody = response.body().string();
-            log.info("Response from setting lines as voiced: {}", responseBody);
+        try {
+            restTemplate.exchange(
+                    url,
+                    command.isDelete() ? HttpMethod.DELETE : HttpMethod.POST,
+                    new HttpEntity<>(body, createHeaders()),
+                    String.class);
             return true;
-        } catch (IOException e) {
-            log.error("Error setting lines as voiced: ", e);
+        } catch (Exception e) {
+            log.error("Error setting the status of {} lines: ", chatMessages.size(), e);
             return false;
         }
+    }
+
+    private HttpHeaders createHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(apiKeys.botApiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        return headers;
     }
 }

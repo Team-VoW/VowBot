@@ -9,14 +9,8 @@ public class APIKeys {
     @Value("${bot.token}")
     public String botToken;
 
-    @Value("${api.reading.key}")
-    public String readingApiKey;
-
-    @Value("${api.update.key}")
-    public String updateApiKey;
-
-    @Value("${api.discord_integration.key}")
-    public String discordIntegrationApiKey;
+    @Value("${api.key}")
+    public String botApiKey;
 
     @Value("${sql.url}")
     public String sqlUrl;

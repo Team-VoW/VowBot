@@ -2,12 +2,9 @@ bot:
   token: ${BOT_TOKEN}
 
 api:
-  reading:
-    key: ${READING_API_KEY}
-  update:
-    key: ${UPDATE_API_KEY}
-  discord_integration:
-    key: ${DISCORD_INTEGRATION_API_KEY}
+  # One bearer key for every bot -> API call. The .NET side validates it as DISCORD_BOT_API_KEY;
+  # the env var keeps its original name so deployed .env files do not have to change.
+  key: ${DISCORD_INTEGRATION_API_KEY}
 
 sql:
   url: ${SQL_URL}

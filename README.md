@@ -10,13 +10,17 @@ The bot requires a `.env` file in the project root or next to the .jar with the 
 
 ```
 BOT_TOKEN=your_discord_bot_token
-READING_API_KEY=your_reading_api_key
-UPDATE_API_KEY=your_update_api_key
-DISCORD_INTEGRATION_API_KEY=your_discord_integration_api_key
+DISCORD_INTEGRATION_API_KEY=your_vow_api_bot_key
+CCC_TOKEN=your_castingcall_club_token
 SQL_URL=your_sql_connection_url
 SQL_USERNAME=your_sql_username
 SQL_PASSWORD=your_sql_password
 ```
+
+`DISCORD_INTEGRATION_API_KEY` is the bearer key for every call to the Voices of Wynn API
+(`https://voicesofwynn.com/vow-api`); it must match the API's `DISCORD_BOT_API_KEY`. The former
+`READING_API_KEY` and `UPDATE_API_KEY` are gone — the line-report endpoints they authenticated
+have moved to that same bearer scheme.
 
 ### Building the Project
 

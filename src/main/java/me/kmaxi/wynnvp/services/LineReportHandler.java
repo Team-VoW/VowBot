@@ -43,7 +43,7 @@ public class LineReportHandler {
         int maxLengthInOneMessage = 2000;
 
         for (LineReportDTO message : messages) {
-            String line = message.getMessage();
+            String line = message.getChatMessage();
 
             if (messageChunks.get(currentChunkIndex).length() + line.length() > maxLengthInOneMessage) {
                 currentChunkIndex++;

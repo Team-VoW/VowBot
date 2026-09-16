@@ -146,7 +146,7 @@ public class UserService {
 
     private HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(apiKeys.discordIntegrationApiKey);
+        headers.setBearerAuth(apiKeys.botApiKey);
         headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
     }

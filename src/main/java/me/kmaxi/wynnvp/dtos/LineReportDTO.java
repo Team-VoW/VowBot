@@ -1,38 +1,26 @@
 package me.kmaxi.wynnvp.dtos;
 
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@Getter @Setter @ToString
+@Getter
+@Setter
+@ToString
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LineReportDTO {
-    @JsonProperty("message")
-    private String message;
+    private String chatMessage;
+    private String npcName;
+    private PositionDTO position;
 
-    @JsonProperty("NPC")
-    private String npc;
-
-    @JsonProperty("X")
-    private String x;
-
-    @JsonProperty("Y")
-    private String y;
-
-    @JsonProperty("Z")
-    private String z;
-
-    @JsonProperty("reporter")
-    private String reporter; // Can be null
-
-    // Default constructor required for Jackson JSON deserialization
-    public LineReportDTO() {}
-    public LineReportDTO(String message, String npc, String x, String y, String z) {
-        this.message = message;
-        this.npc = npc;
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    @Getter
+    @Setter
+    @ToString
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class PositionDTO {
+        private int x;
+        private int y;
+        private int z;
     }
 }

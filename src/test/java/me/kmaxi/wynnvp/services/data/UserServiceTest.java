@@ -35,7 +35,7 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         APIKeys apiKeys = new APIKeys();
-        apiKeys.discordIntegrationApiKey = API_KEY;
+        apiKeys.botApiKey = API_KEY;
 
         RestTemplate restTemplate = new RestTemplate();
         server = MockRestServiceServer.bindTo(restTemplate).build();
