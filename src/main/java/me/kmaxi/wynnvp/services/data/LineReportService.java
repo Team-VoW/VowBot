@@ -10,6 +10,7 @@ import me.kmaxi.wynnvp.dtos.LineReportDTO;
 import me.kmaxi.wynnvp.dtos.VowDialogueDTO;
 import me.kmaxi.wynnvp.enums.LineType;
 import me.kmaxi.wynnvp.enums.SetLinesCommand;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -30,6 +31,7 @@ public class LineReportService {
     private final RestTemplate restTemplate;
     private final APIKeys apiKeys;
 
+    @Autowired
     public LineReportService(APIKeys apiKeys) {
         this(apiKeys, new RestTemplate());
     }
