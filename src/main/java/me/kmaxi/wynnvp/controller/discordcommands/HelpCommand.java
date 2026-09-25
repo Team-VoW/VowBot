@@ -27,7 +27,7 @@ public class HelpCommand implements ICommandImpl {
                 `/role set <QuestName> <NpcName> <PersonWhoGotRole>` to assign a role to a person
                 `/role open <QuestName> <NpcName>(CaseSens)>` to remove an assignation
                 `/role open <QuestName> <NpcName>(CaseSens)>` to remove an assignation
-                `/setuppoll to set up the voting for either CCC casting or discord casting`
+                `/setuppoll quest:<QuestName>` to send a Discord casting's auditions to the website for voting. CCC castings are imported on the website
                 `/finishedrole upgrades the users role here and on the website`
                 `/opencasting <QuestName> <Npc> <Npc>...` to add a new quest. Maximum 9 roles.
                 `/resetforwarded` sets all lines with status unproccesed to forwarded. WARNING! Clear reported lines channel before doing this!`

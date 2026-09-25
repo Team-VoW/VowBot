@@ -11,7 +11,6 @@ The bot requires a `.env` file in the project root or next to the .jar with the 
 ```
 BOT_TOKEN=your_discord_bot_token
 DISCORD_INTEGRATION_API_KEY=your_vow_api_bot_key
-CCC_TOKEN=your_castingcall_club_token
 SQL_URL=your_sql_connection_url
 SQL_USERNAME=your_sql_username
 SQL_PASSWORD=your_sql_password
@@ -27,17 +26,6 @@ have moved to that same bearer scheme.
 ```bash
 ./gradlew build
 ```
-
-### FFmpeg Requirement
-
-The bot requires **FFmpeg** to convert audition audio files to MP3 format:
-
-- **Windows:** Download from [gyan.dev/ffmpeg](https://www.gyan.dev/ffmpeg/builds/) and add to PATH
-- **Linux:** `sudo apt-get install ffmpeg` (Debian/Ubuntu) or `sudo yum install ffmpeg` (RHEL/CentOS)
-- **Mac:** `brew install ffmpeg`
-- **Docker:** Automatically installed via Dockerfile
-
-Verify installation: `ffmpeg -version`
 
 ## Running the Application
 

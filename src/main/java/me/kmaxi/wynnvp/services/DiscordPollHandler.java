@@ -2,38 +2,41 @@ package me.kmaxi.wynnvp.services;
 
 import lombok.extern.slf4j.Slf4j;
 import me.kmaxi.wynnvp.services.audition.AuditionsChannelHandler;
+import me.kmaxi.wynnvp.services.data.CastingService;
 import me.kmaxi.wynnvp.utils.Utils;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.ThreadMember;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Closes a Discord casting and moves it to the website for voting: the newest audio in every
+ * audition thread is uploaded to the quest's casting round, where staff listen and vote.
+ */
 @Service
 @Slf4j
 public class DiscordPollHandler {
     private final AuditionsChannelHandler auditionsChannelHandler;
-    private final GuildService guildService;
-    private final AudioConversionService audioConversionService;
+    private final CastingService castingService;
     private static final Set<String> SUPPORTED_AUDIO_FORMATS = Set.of(
             ".ogg", ".wav", ".mp3", ".m4a", ".aac", ".flac", ".opus",
             ".wma", ".aiff", ".alac", ".oga", ".webm", ".mp4", ".mov"
     );
 
-    public DiscordPollHandler(AuditionsChannelHandler auditionsChannelHandler, GuildService guildService, AudioConversionService audioConversionService) {
+    public DiscordPollHandler(AuditionsChannelHandler auditionsChannelHandler, CastingService castingService) {
         this.auditionsChannelHandler = auditionsChannelHandler;
-        this.guildService = guildService;
-        this.audioConversionService = audioConversionService;
+        this.castingService = castingService;
     }
 
     public String setupPoll(String questName) {
@@ -42,36 +45,97 @@ public class DiscordPollHandler {
             return "Failed opening auditions for " + questName + " because could not find quest channel";
         }
 
-        Map<String, List<ThreadChannel>> auditionMessages = auditionsChannelHandler.getNpcThreadMap(questChannel);
-
-        TextChannel staffVotingChannel = guildService.getStaffVotingChannel();
-
-        if (staffVotingChannel == null) {
-            return "Failed opening auditions for " + questName + " because could not find staff voting channel";
+        Map<String, List<ThreadChannel>> auditionThreads = auditionsChannelHandler.getNpcThreadMap(questChannel);
+        if (auditionThreads.isEmpty()) {
+            return "No characters found in " + questChannel.getAsMention() + ", nothing to set up.";
         }
 
-        staffVotingChannel.sendMessage("# Poll for " + questName).queue();
-        for (Map.Entry<String, List<ThreadChannel>> entry : auditionMessages.entrySet()) {
-            String npcName = entry.getKey();
-            List<ThreadChannel> threads = entry.getValue();
-            staffVotingChannel.sendMessage("## " + npcName).queue();
+        CastingService.CastingRound round;
+        try {
+            round = castingService.ensureRound(questName, new ArrayList<>(auditionThreads.keySet()));
+        } catch (RestClientException e) {
+            log.error("Could not create the casting round for {}", questName, e);
+            return "Could not reach the website to create the casting round: " + e.getMessage();
+        }
 
-            for (ThreadChannel thread : threads) {
-                String auditionFileLink = getAuditionFileLink(thread);
-                if (auditionFileLink == null) {
+        int uploaded = 0;
+        int alreadyThere = 0;
+        List<String> failed = new ArrayList<>();
+        for (Map.Entry<String, List<ThreadChannel>> entry : auditionThreads.entrySet()) {
+            String npcName = entry.getKey();
+            for (ThreadChannel thread : entry.getValue()) {
+                Optional<Message.Attachment> audition = findAuditionFile(thread);
+                if (audition.isEmpty()) {
                     continue;
                 }
 
-                // Download the file to a temporary location and then send a message that has the
-                //content of thread.getAsMention() and the audio file as an attachement.
-                // THen delete the file.
-                forwardAuditionToStaffChannel(thread, auditionFileLink, staffVotingChannel);
-
-
+                try {
+                    CastingService.UploadedAudition result = uploadAudition(round.roundId(), npcName, thread, audition.get());
+                    if (result.created()) {
+                        uploaded++;
+                    } else {
+                        alreadyThere++;
+                    }
+                } catch (IOException | RestClientException e) {
+                    log.error("Failed to upload the audition from thread {}", thread.getName(), e);
+                    failed.add(thread.getAsMention());
+                }
             }
         }
-        return "Poll setup complete for " + questName;
 
+        StringBuilder reply = new StringBuilder()
+                .append(round.created() ? "Created" : "Updated")
+                .append(" the casting round for **").append(questName).append("** on the website: ")
+                .append(uploaded).append(" auditions uploaded");
+        if (alreadyThere > 0) {
+            reply.append(", ").append(alreadyThere).append(" were already there");
+        }
+        reply.append(".\nOpen it for voting here: ").append(round.adminUrl());
+        if (!failed.isEmpty()) {
+            reply.append("\nFailed to upload: ").append(String.join(", ", failed)).append(". Run the command again to retry.");
+        }
+        return reply.toString();
+    }
+
+    private CastingService.UploadedAudition uploadAudition(int roundId,
+                                                           String npcName,
+                                                           ThreadChannel thread,
+                                                           Message.Attachment attachment) throws IOException {
+        byte[] audio;
+        try (InputStream in = attachment.getProxy().download().join()) {
+            audio = in.readAllBytes();
+        }
+
+        Optional<User> auditionee = findAuditionee(thread, npcName);
+        String auditioneeName = auditionee.map(User::getName).orElseGet(() -> auditioneeFromThreadName(thread, npcName));
+        String discordUserId = auditionee.map(User::getId).orElse(null);
+
+        return castingService.uploadAudition(
+                roundId, npcName, auditioneeName, discordUserId, thread.getId(), audio, attachment.getFileName());
+    }
+
+    /**
+     * Audition threads are named {@code <npc>-<username>} and the auditionee is added as a member,
+     * so the member whose name matches the suffix is the one who auditioned.
+     */
+    private Optional<User> findAuditionee(ThreadChannel thread, String npcName) {
+        String expected = auditioneeFromThreadName(thread, npcName);
+        try {
+            return thread.retrieveThreadMembers().complete().stream()
+                    .map(ThreadMember::getUser)
+                    .filter(user -> !user.isBot())
+                    .filter(user -> Utils.getChannelName(user.getName()).equalsIgnoreCase(expected))
+                    .findFirst();
+        } catch (RuntimeException e) {
+            log.warn("Could not list the members of thread {}", thread.getName(), e);
+            return Optional.empty();
+        }
+    }
+
+    private String auditioneeFromThreadName(ThreadChannel thread, String npcName) {
+        String prefix = Utils.getChannelName(npcName.toLowerCase() + "-");
+        String name = thread.getName().toLowerCase();
+        return name.startsWith(prefix) ? thread.getName().substring(prefix.length()) : thread.getName();
     }
 
     /**
@@ -79,18 +143,16 @@ public class DiscordPollHandler {
      * If no audio was found send a message in that channel saying that they did not submit an audition in time.
      *
      * @param threadChannel the thread channel to search in
-     * @return the URL of the audition file if found, null otherwise
+     * @return the audition file if found
      */
-    private String getAuditionFileLink(ThreadChannel threadChannel) {
+    private Optional<Message.Attachment> findAuditionFile(ThreadChannel threadChannel) {
         List<Message> messages = Utils.getMessageHistory(threadChannel, 100); // Fetch the latest 100 messages
         for (Message message : messages) {
-            if (!message.getAttachments().isEmpty()) {
-                for (Message.Attachment attachment : message.getAttachments()) {
-                    String fileName = attachment.getFileName().toLowerCase();
-                    if (SUPPORTED_AUDIO_FORMATS.stream().anyMatch(fileName::endsWith)) {
-                        message.reply("This audio was used for the audition. If this was a mistake please ping a staff member as soon as possible.").queue();
-                        return attachment.getUrl();
-                    }
+            for (Message.Attachment attachment : message.getAttachments()) {
+                String fileName = attachment.getFileName().toLowerCase();
+                if (SUPPORTED_AUDIO_FORMATS.stream().anyMatch(fileName::endsWith)) {
+                    message.reply("This audio was used for the audition. If this was a mistake please ping a staff member as soon as possible.").queue();
+                    return Optional.of(attachment);
                 }
             }
         }
@@ -102,145 +164,6 @@ public class DiscordPollHandler {
                     "You can now not submit any new recordings since the internal voting process has now started.").queue();
         }
 
-        return null;
+        return Optional.empty();
     }
-
-    private void forwardAuditionToStaffChannel(ThreadChannel thread, String fileUrl, TextChannel staffVotingChannel) {
-        File tempFile = null;
-        File convertedFile = null;
-
-        try {
-            tempFile = downloadAudioFile(fileUrl, thread.getName());
-            convertedFile = convertAudioFile(tempFile, thread.getName());
-            sendAudioToStaffChannel(convertedFile, thread, staffVotingChannel);
-
-        } catch (Exception e) {
-            log.error("Failed to download or send the audition file from thread: {}", thread.getAsMention(), e);
-            staffVotingChannel.sendMessage("Failed to download or send the audition file from thread: " + thread.getAsMention()).queue();
-            cleanupTempFiles(tempFile, convertedFile);
-        }
-    }
-
-    /**
-     * Downloads an audio file from a URL to a temporary location.
-     *
-     * @param fileUrl the URL of the file to download
-     * @param threadName the name of the thread (used for file naming)
-     * @return the downloaded file
-     * @throws IOException if download fails
-     */
-    private File downloadAudioFile(String fileUrl, String threadName) throws IOException {
-        URL url = new URL(fileUrl);
-
-        // Remove query parameters before extracting extension
-        String originalFileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1).split("\\?")[0];
-        String extension = originalFileName.contains(".")
-                ? originalFileName.substring(originalFileName.lastIndexOf('.'))
-                : ".tmp";
-
-        // Sanitize thread name for filesystem
-        String sanitizedThreadName = threadName.replaceAll("[\\\\/:*?\"<>|]", "_");
-
-        // Build file path in temp dir
-        File tempDir = new File(System.getProperty("java.io.tmpdir"));
-        File tempFile = new File(tempDir, sanitizedThreadName + extension);
-
-        // Download the file
-        try (InputStream in = url.openStream(); FileOutputStream out = new FileOutputStream(tempFile)) {
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            while ((bytesRead = in.read(buffer)) != -1) {
-                out.write(buffer, 0, bytesRead);
-            }
-        }
-
-        return tempFile;
-    }
-
-    /**
-     * Converts an audio file to MP3 format.
-     *
-     * @param tempFile the file to convert
-     * @param threadName the thread name for logging
-     * @return the converted file (or original if conversion fails)
-     */
-    private File convertAudioFile(File tempFile, String threadName) {
-        try {
-            File convertedFile = audioConversionService.convertToMp3(tempFile);
-            log.info("Converted audio file for thread {} to MP3", threadName);
-            return convertedFile;
-        } catch (Exception e) {
-            log.warn("Failed to convert audio to MP3, using original file: {}", e.getMessage());
-            return tempFile; // Fall back to original file if conversion fails
-        }
-    }
-
-    /**
-     * Sends an audio file to the staff voting channel.
-     *
-     * @param fileToSend the file to send
-     * @param thread the thread channel
-     * @param staffVotingChannel the staff voting channel
-     */
-    private void sendAudioToStaffChannel(File fileToSend, ThreadChannel thread, TextChannel staffVotingChannel) {
-        staffVotingChannel.sendMessage(thread.getAsMention())
-                .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(fileToSend))
-                .queue(
-                        success -> handleSendSuccess(fileToSend, success),
-                        error -> handleSendError(fileToSend, thread, staffVotingChannel)
-                );
-    }
-
-    /**
-     * Handles successful file send.
-     *
-     * @param fileToSend the file that was sent
-     * @param message the sent message
-     */
-    private void handleSendSuccess(File fileToSend, net.dv8tion.jda.api.entities.Message message) {
-        deleteFile(fileToSend);
-        message.addReaction(Emoji.fromUnicode("✅")).queue();
-    }
-
-    /**
-     * Handles failed file send.
-     *
-     * @param fileToSend the file that failed to send
-     * @param thread the thread channel
-     * @param staffVotingChannel the staff voting channel
-     */
-    private void handleSendError(File fileToSend, ThreadChannel thread, TextChannel staffVotingChannel) {
-        deleteFile(fileToSend);
-        staffVotingChannel.sendMessage("Failed to send the audition file from thread: " + thread.getAsMention()).queue();
-    }
-
-    /**
-     * Deletes a file and logs any errors.
-     *
-     * @param file the file to delete
-     */
-    private void deleteFile(File file) {
-        try {
-            Files.delete(file.toPath());
-        } catch (Exception e) {
-            log.error("Failed to delete temporary file: {}", file.getAbsolutePath(), e);
-        }
-    }
-
-    /**
-     * Cleans up temporary files.
-     *
-     * @param tempFile the original temp file
-     * @param convertedFile the converted file
-     */
-    private void cleanupTempFiles(File tempFile, File convertedFile) {
-        if (tempFile != null && tempFile.exists()) {
-            deleteFile(tempFile);
-        }
-        if (convertedFile != null && convertedFile.exists() && !convertedFile.equals(tempFile)) {
-            deleteFile(convertedFile);
-        }
-    }
-
-
 }

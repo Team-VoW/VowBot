@@ -1,66 +1,43 @@
 package me.kmaxi.wynnvp.controller.discordcommands;
 
 import lombok.extern.slf4j.Slf4j;
-import me.kmaxi.wynnvp.APIKeys;
-import me.kmaxi.wynnvp.Config;
 import me.kmaxi.wynnvp.PermissionLevel;
 import me.kmaxi.wynnvp.interfaces.ICommandImpl;
-import me.kmaxi.wynnvp.services.AudioConversionService;
 import me.kmaxi.wynnvp.services.DiscordPollHandler;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.FileUpload;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
-import java.util.*;
 import java.util.concurrent.Executor;
 
+/**
+ * Ends a Discord casting and sends its auditions to the website's casting page, where staff vote.
+ * Casting Call Club castings are imported on the website itself, so the old url option only points there.
+ */
 @Slf4j
 @Component
 public class SetupPollCommand implements ICommandImpl {
 
+    private static final String CASTING_ADMIN_URL = "https://app.voicesofwynn.com/admin/casting";
+
     private final DiscordPollHandler pollHandler;
-    private final APIKeys apiKeys;
-    private final AudioConversionService audioConversionService;
     private final Executor pollSetupExecutor;
 
-    public SetupPollCommand(DiscordPollHandler pollHandler, APIKeys apiKeys, AudioConversionService audioConversionService, @Qualifier("pollSetupExecutor") Executor pollSetupExecutor) {
+    public SetupPollCommand(DiscordPollHandler pollHandler, @Qualifier("pollSetupExecutor") Executor pollSetupExecutor) {
         this.pollHandler = pollHandler;
-        this.apiKeys = apiKeys;
-        this.audioConversionService = audioConversionService;
         this.pollSetupExecutor = pollSetupExecutor;
     }
 
     @Override
     public CommandData getCommandData() {
-        return Commands.slash("setuppoll", "Sets up the voting poll from a casting club call casting")
-                .addOptions(new OptionData(OptionType.STRING, "url", "The url to the casting call", false))
-                .addOptions(new OptionData(OptionType.STRING, "quest", "The quest name if setting up a poll from discord auditions", false));
+        return Commands.slash("setuppoll", "Sends a Discord casting's auditions to the website for voting")
+                .addOptions(new OptionData(OptionType.STRING, "quest", "The quest name of the Discord casting", false))
+                .addOptions(new OptionData(OptionType.STRING, "url", "Casting Call Club castings are now imported on the website", false));
     }
 
     @Override
@@ -76,271 +53,24 @@ public class SetupPollCommand implements ICommandImpl {
         OptionMapping questName = event.getOption("quest");
         if (questName != null) {
             String quest = questName.getAsString();
-            event.getHook().editOriginal(pollHandler.setupPoll(quest)).queue();
-            return;
-        }
-
-        if (event.getOption("url") == null) {
-            event.getHook().editOriginal("Please provide a URL or QuestName").queue();
-            return;
-        }
-
-        String url = Objects.requireNonNull(event.getOption("url")).getAsString();
-
-        pollSetupExecutor.execute(() -> setupPollFromUrl(event, url));
-    }
-
-    private void setupPollFromUrl(SlashCommandInteractionEvent event, String url) {
-        Path tempDir = null;
-        try {
-            tempDir = createSecureTempDirectory();
-
-            Document doc = Jsoup.connect(url).get();
-            log.info("Title from Casting Call Club: {}", doc.title());
-
-            String projectId = getProjectId(doc);
-            log.info("Found project ID: {}", projectId);
-
-            ArrayList<JSONObject> allSubmissions = getAllSubmissions(projectId);
-            log.info("Total submissions fetched: {}", allSubmissions.size());
-
-            event.getChannel().sendMessage("Auditions for " + url).queue();
-
-            Map<String, List<JSONObject>> byRole = new LinkedHashMap<>();
-            for (JSONObject sub : allSubmissions) {
-                byRole.computeIfAbsent(sub.getString("roleName").trim(), k -> new ArrayList<>()).add(sub);
-            }
-
-            for (Map.Entry<String, List<JSONObject>> entry : byRole.entrySet()) {
-                String roleName = entry.getKey().replaceAll("[ ,.-]", "_");
-                Message startMessage = event.getChannel().sendMessage("Auditions for " + entry.getKey()).complete();
-                ThreadChannel threadChannel = startMessage.createThreadChannel(roleName + " Auditions").complete();
-                sendAudioFiles(new ArrayList<>(entry.getValue()), threadChannel, tempDir);
-            }
-
-            event.getHook().editOriginal("Finished sending everything").queue();
-
-        } catch (CccAuthException e) {
-            event.getHook().editOriginal("CCC authentication failed — your token is invalid or expired. Please update it in the bot configuration.").queue();
-        } catch (IOException e) {
-            log.error("Error while trying to connect to the URL: {}", url, e);
-            event.getHook().editOriginal("Failed to connect to the URL: " + e.getMessage()).queue();
-        } catch (Exception e) {
-            log.error("Unexpected error during poll setup", e);
-            event.getHook().editOriginal("An error occurred: " + e.getMessage()).queue();
-        } finally {
-            cleanupTempDir(tempDir);
-        }
-    }
-
-    private Path createSecureTempDirectory() throws IOException {
-        try {
-            FileAttribute<Set<PosixFilePermission>> ownerOnly =
-                    PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
-            return Files.createTempDirectory("poll-setup-", ownerOnly);
-        } catch (UnsupportedOperationException e) {
-            // Non-POSIX filesystem (e.g. Windows) — restrict permissions explicitly
-            Path tempDir = Files.createTempDirectory("poll-setup-");
-            File dir = tempDir.toFile();
-            if (!dir.setReadable(true, true) || !dir.setWritable(true, true) || !dir.setExecutable(true, true)) {
-                throw new IOException("Failed to restrict permissions on temp directory: " + tempDir);
-            }
-            return tempDir;
-        }
-    }
-
-    private void cleanupTempDir(Path tempDir) {
-        if (tempDir == null) return;
-        try (var stream = Files.walk(tempDir)) {
-            stream.sorted(Comparator.reverseOrder()).forEach(p -> {
-                try { Files.deleteIfExists(p); } catch (IOException ignored) { /* best-effort deletion */ }
-            });
-        } catch (IOException e) {
-            log.warn("Failed to clean up temp directory: {}", tempDir, e);
-        }
-    }
-
-    private String getProjectId(Document doc) {
-        Elements links = doc.select("a[href*=project_id=]");
-        for (Element link : links) {
-            String href = link.attr("href");
-            String[] parts = href.split("[?&]");
-            for (String part : parts) {
-                if (part.startsWith("project_id=")) {
-                    return part.substring("project_id=".length());
-                }
-            }
-        }
-        throw new IllegalStateException("Could not find project_id in page");
-    }
-
-    private ArrayList<JSONObject> getAllSubmissions(String projectId) throws IOException {
-        // Step 1: establish session by hitting the home page with _ccc_token
-        String cccToken = apiKeys.cccToken;
-        String sessionCookie = fetchSessionCookie(cccToken);
-        String cookieHeader = "_ccc_token=" + cccToken + "; _ccc_session=" + sessionCookie;
-
-        ArrayList<JSONObject> submissions = new ArrayList<>();
-        JSONArray lastJsonArray = null;
-        int page = 1;
-
-        while (true) {
-            String apiUrl = "https://www.castingcall.club/api/v3/manage/projects/" + projectId
-                    + "/submissions?order_by=updated_at&review_status=unsorted&page=" + page;
-            log.info("Fetching submissions from {}", apiUrl);
-
-            JSONObject jsonData = getJsonObject(apiUrl, cookieHeader);
-
-            // Log the first submission on first page so we can verify field names
-            if (page == 1) {
-                JSONArray arr = jsonData.optJSONArray("submissions");
-                if (arr != null && !arr.isEmpty()) {
-                    log.info("Raw first submission JSON: {}", arr.getJSONObject(0));
-                }
-            }
-
-            JSONArray auditionsArray = jsonData.getJSONArray("submissions");
-
-            if (auditionsArray.isEmpty()
-                    || (lastJsonArray != null && auditionsArray.toString().equals(lastJsonArray.toString()))) {
-                break;
-            }
-
-            lastJsonArray = auditionsArray;
-
-            for (int j = 0; j < auditionsArray.length(); j++) {
-                submissions.add(auditionsArray.getJSONObject(j));
-            }
-            page++;
-        }
-
-        return submissions;
-    }
-
-    /**
-     * GETs the CCC home page with the persistent token and extracts _ccc_session from Set-Cookie.
-     */
-    private String fetchSessionCookie(String cccToken) throws IOException {
-        URL url = new URL("https://www.castingcall.club/");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setInstanceFollowRedirects(false);
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-        connection.setRequestProperty("Cookie", "_ccc_token=" + cccToken);
-        connection.setConnectTimeout(10_000);
-        connection.setReadTimeout(30_000);
-
-        // Consume response so headers are populated
-        int responseCode = connection.getResponseCode();
-        if (responseCode != HttpURLConnection.HTTP_OK && (responseCode < 300 || responseCode >= 400)) {
-            connection.disconnect();
-            throw new IOException("CCC auth request failed with status " + responseCode);
-        }
-
-        String sessionValue = parseSessionCookie(connection.getHeaderFields());
-        connection.disconnect();
-
-        if (sessionValue == null) {
-            throw new IOException("Could not obtain _ccc_session cookie from CCC home page");
-        }
-        log.info("Obtained _ccc_session cookie");
-        return sessionValue;
-    }
-
-    private String parseSessionCookie(Map<String, List<String>> headers) {
-        for (Map.Entry<String, List<String>> header : headers.entrySet()) {
-            if ("Set-Cookie".equalsIgnoreCase(header.getKey())) {
-                for (String cookieStr : header.getValue()) {
-                    if (cookieStr.startsWith("_ccc_session=")) {
-                        return cookieStr.split(";")[0].substring("_ccc_session=".length());
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private void sendAudioFiles(ArrayList<JSONObject> auditions, MessageChannel channel, Path tempDir) {
-        for (int j = 0; j < auditions.size(); j++) {
-            JSONObject audition = auditions.get(j);
-            String audioURL = audition.getString("audioUrl");
-            String userName = audition.getString("username");
-            String safeUserName = userName.replaceAll("[^A-Za-z0-9._-]", "_").trim();
-            if (safeUserName.isEmpty()) safeUserName = "unknown";
-            if (safeUserName.length() > 100) safeUserName = safeUserName.substring(0, 100);
-            String audioFileName = safeUserName + ".mp3";
-            String roleName = audition.getString("roleName").trim().replaceAll("[ ,.-]", "_");
-
-            try {
-                URL website = new URL(audioURL);
-                File file = tempDir.resolve(audioFileName).toFile();
-                try (ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-                     FileOutputStream fos = new FileOutputStream(file)) {
-                    fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                }
-
-                // Convert/compress via FFmpeg (no-op if already MP3 < 7MB, deletes original if conversion runs)
+            // Downloading and uploading every audition takes a while; keep the gateway thread free.
+            pollSetupExecutor.execute(() -> {
                 try {
-                    file = audioConversionService.convertToMp3(file);
-                } catch (IOException e) {
-                    log.warn("Audio conversion failed for {}, skipping: {}", safeUserName, e.getMessage());
-                    Files.deleteIfExists(file.toPath());
-                    continue;
+                    event.getHook().editOriginal(pollHandler.setupPoll(quest)).queue();
+                } catch (RuntimeException e) {
+                    log.error("Unexpected error while setting up the casting for {}", quest, e);
+                    event.getHook().editOriginal("An error occurred: " + e.getMessage()).queue();
                 }
-
-                String messageText = roleName + " " + (j + 1) + " " + userName;
-                String fileName = file.getName();
-                byte[] audioBytes = Files.readAllBytes(file.toPath());
-                Files.deleteIfExists(file.toPath());
-
-                channel.sendMessage("```" + messageText + "```")
-                        .addFiles(FileUpload.fromData(audioBytes, fileName))
-                        .queue(
-                                success -> success.addReaction(Emoji.fromUnicode(Config.ACCEPT_UNICODE)).queue(),
-                                failure -> {
-                                    log.error("Failed to send audio file: {}", fileName, failure);
-                                    channel.sendMessage("Failed to send audio for **" + userName + "**: " + failure.getMessage()).queue();
-                                }
-                        );
-
-            } catch (IOException e) {
-                log.error("Failed to download audio for {}", userName, e);
-                channel.sendMessage("Failed to download audio for **" + userName + "**: " + e.getMessage()).queue();
-            }
-        }
-    }
-
-    private JSONObject getJsonObject(String urlToRead, String cookieHeader) throws IOException {
-        URL url = new URL(urlToRead);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-        connection.setRequestProperty("Cookie", cookieHeader);
-        connection.setRequestProperty("X-Requested-With", "XMLHttpRequest");
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setConnectTimeout(10_000);
-        connection.setReadTimeout(30_000);
-
-        int responseCode = connection.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            connection.disconnect();
-            throw new CccAuthException();
-        }
-        if (responseCode != HttpURLConnection.HTTP_OK) {
-            connection.disconnect();
-            throw new IOException("API request failed with status " + responseCode);
+            });
+            return;
         }
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-            StringBuilder response = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-            return new JSONObject(response.toString());
-        } finally {
-            connection.disconnect();
+        if (event.getOption("url") != null) {
+            event.getHook().editOriginal("Casting Call Club castings are imported on the website now: create a round at "
+                    + CASTING_ADMIN_URL + " and paste the casting call link into \"Import from Casting Call Club\".").queue();
+            return;
         }
-    }
 
-    private static class CccAuthException extends RuntimeException {
+        event.getHook().editOriginal("Please provide the quest name of the Discord casting.").queue();
     }
 }

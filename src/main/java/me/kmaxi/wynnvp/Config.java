@@ -28,6 +28,7 @@ public class Config {
     public static final String URL_API_BASE = "https://voicesofwynn.com/vow-api";
     public static final String URL_DISCORD_INTEGRATION = URL_API_BASE + "/integrations/discord";
     public static final String URL_BOT_REPORTS = URL_API_BASE + "/bot/reports";
+    public static final String URL_BOT_CASTING = URL_API_BASE + "/bot/casting";
 
     public static final String ACCEPT_UNICODE = "✅";
     public static final String DECLINE_UNICODE = "❌";
