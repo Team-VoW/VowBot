@@ -20,6 +20,11 @@ public class MemberUtils {
                 return;
             }
 
+            if (role.getIdLong() == Config.TRAINEE_ROLE) {
+                roleNames.add(Config.TRIAL_VOICE_MANAGER_ROLE_NAME);
+                return;
+            }
+
             String roleName = role.getName();
 
             //Is a weird role that should not be published to the website

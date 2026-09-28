@@ -14,6 +14,18 @@ import static org.mockito.Mockito.when;
 class MemberUtilsTest {
 
     @Test
+    void mapsTrialVoiceManagerByDiscordRoleId() {
+        Role trialRole = mock(Role.class);
+        when(trialRole.getIdLong()).thenReturn(Config.TRAINEE_ROLE);
+        when(trialRole.getName()).thenReturn("Renamed trainee role");
+
+        Member member = mock(Member.class);
+        when(member.getRoles()).thenReturn(List.of(trialRole));
+
+        assertThat(MemberUtils.getRoleNames(member)).containsExactly(Config.TRIAL_VOICE_MANAGER_ROLE_NAME);
+    }
+
+    @Test
     void mapsCastManagerByDiscordRoleId() {
         Role castManagerRole = mock(Role.class);
         when(castManagerRole.getIdLong()).thenReturn(Config.CAST_MANAGER_ROLE_ID);

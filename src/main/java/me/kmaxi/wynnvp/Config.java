@@ -20,6 +20,7 @@ public class Config {
     // Currently the same category as accepted channels, but kept separate for commands that target recording collection setup.
     public static final long RECORDING_COLLECTION_CATEGORY_ID = 821787630726938674L;
     public static final long TRAINEE_ROLE = 835558288489578536L;
+    public static final String TRIAL_VOICE_MANAGER_ROLE_NAME = "Trial Voice Manager";
     public static final long LOG_COLLECTORS_ROLE_ID = 937440477320466442L;
     public static final long STAFF_VOTING_CHANNEL_ID = 846410802777161748L;
     public static final long CAST_MANAGER_ROLE_ID = 1125091788630274121L;
